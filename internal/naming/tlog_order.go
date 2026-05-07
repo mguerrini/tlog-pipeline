@@ -27,6 +27,19 @@ var TLOGOrder = []TLOGType{
 	TLOGCierre,      // 0008
 }
 
+// tlogOriginalName mapea cada TLOGType al nombre del archivo original
+// que se usa como segmento del nombre del XML generado.
+var tlogOriginalName = map[TLOGType]string{
+	TLOGReception:   "INVENTORY_RECEPTION",
+	TLOGReturn:      "INVENTORY_RETURN",
+	TLOGTransfer:    "INVENTORY_TRANSFER",
+	TLOGAdjustment:  "INVENTORY_ADJUSTMENT",
+	TLOGCount:       "INVENTORY_COUNT",
+	TLOGFiscalDocFC: "INVENTORY_FISCAL_DOC_FC",
+	TLOGFiscalDocNC: "INVENTORY_FISCAL_DOC_NC",
+	TLOGCierre:      "CIERRE",
+}
+
 // indexOf devuelve la posición 1-based de t dentro de TLOGOrder. 0 si no está.
 func indexOf(t TLOGType) int {
 	for i, v := range TLOGOrder {
@@ -35,4 +48,9 @@ func indexOf(t TLOGType) int {
 		}
 	}
 	return 0
+}
+
+// originalNameOf devuelve el nombre del archivo original asociado a t.
+func originalNameOf(t TLOGType) string {
+	return tlogOriginalName[t]
 }

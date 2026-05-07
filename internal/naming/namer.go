@@ -20,7 +20,7 @@ type DefaultNamer struct{}
 
 func (DefaultNamer) XMLFile(retailID string, day time.Time, t TLOGType) string {
 	n := indexOf(t)
-	return fmt.Sprintf("%s-%s-%04d.xml", retailID, day.Format("20060102"), n)
+	return fmt.Sprintf("%s-%s-%s-%04d.xml", retailID, day.Format("20060102"), originalNameOf(t), n)
 }
 
 func (DefaultNamer) DayStatusFile(day time.Time) string {

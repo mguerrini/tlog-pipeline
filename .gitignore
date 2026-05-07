@@ -1,6 +1,7 @@
 # Binario compilado
-pipeline
-pipeline-*
+/pipeline
+/pipeline.exe
+/pipeline-*
 
 # Output del pipeline (no subir al repo)
 output/

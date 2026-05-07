@@ -18,19 +18,15 @@
     "mode": "ALL",
     "execution_mode": "PARALLEL",
     "parallel_retails_per_day": false,
-    "keep_db_after_run": false,
-    "begin_date_offset": "00:00:00",
-    "end_date_offset": "23:59:59",
+    "keep_db_after_run": true,
+    "begin_date_offset": "22:00:01",
+    "end_date_offset": "22:00:00",
     "operator_id": "admin"
   },
   "ftp_download": {
     "enabled": false,
     "folder_root_source": "",
     "folder_root_target": ""
-  },
-  "read_days": {
-    "enabled": true,
-    "folder_source_root": ""
   },
   "read_files": {
     "enabled": true,
@@ -66,15 +62,15 @@
     "folder_source": "",
     "folder_target": ""
   },
-  "local_clean": {
-    "enabled": true,
-    "folder_source": "",
-    "folder_target": "",
-    "delete_source": false
-  },
   "ftp_end": {
     "enabled": false,
     "folder_source": "",
     "folder_target": ""
+  },
+  "local_clean": {
+    "enabled": false,
+    "folder_source": "",
+    "folder_target": "",
+    "delete_source": false
   }
 }
