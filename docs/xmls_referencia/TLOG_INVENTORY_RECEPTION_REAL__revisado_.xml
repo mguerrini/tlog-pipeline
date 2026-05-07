@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <Transaction>
+    <RetailStoreID>00019</RetailStoreID>
+    <WorkstationID>0</WorkstationID>
+    <SequenceNumber>000190000001</SequenceNumber>   -- Debe comenzar con "9", Longitud 12, iniciando en 900000000001 para la APIES --
+    <BusinessDayDate>2020-06-01</BusinessDayDate>
+    <Period>0</Period>
+    <Subperiod>0</Subperiod>
+    <PeriodCode>0</PeriodCode>
+    <SubPeriodCode>0</SubPeriodCode>
+    <BeginDateTime>2020-06-01 00:00:00</BeginDateTime>
+    <EndDateTime>2020-06-01 23:59:59</EndDateTime>
+    <OperatorID>1</OperatorID>                   -- Debe ser un Usuario Válido configurado en la EESS, por ejemplo "RY9999" -- 
+    <OriginalTransaction></OriginalTransaction>
+    <InventoryControlTransaction>
+      <SerialFormID>000190000001</SerialFormID>   -- Mismo contendo de SequenceNumber -- 
+      <DocumentTypeCode>InventoryReception</DocumentTypeCode>
+      <InventoryControlDocumentState>4</InventoryControlDocumentState>
+      <contractReferenceNumber/>
+      <CreateDateTimestamp>2020-06-01 10:00:00.000 ART</CreateDateTimestamp>
+      <DestinationRetailStoreID>00019</DestinationRetailStoreID>
+      <ExpectedDeliveryDate>2020-06-01 00:00:00.0 ART</ExpectedDeliveryDate>
+      <ICDAmount>14869.0000</ICDAmount>
+      <LastUpdateDate>2020-06-01 10:01:00.000 ART</LastUpdateDate>
+      <Originator/>
+      <SourceRetailStore>00019</SourceRetailStore>
+      <Supplier>90211</Supplier>
+      <OrderDocumentType/>
+      <User>1</User>                          -- Debe ser un Usuario Válido configurado en la EESS, por ejemplo "RY9999" --
+      <ICDQuantity/>
+      <ICDTotSalesAmount/>
+      <Frequency/>
+      <InventoryAdjustmentType/>
+      <ReceiptNumber>00015</ReceiptNumber>
+      <FiscalReceiptFlag>true</FiscalReceiptFlag>
+      <ReceiptType/>
+      <ReceiptDate>2020-06-01 00:00:00.0 ART</ReceiptDate>
+      <CAINumber/>
+      <CAIDate/>
+      <PagesQuantity>1</PagesQuantity>                         -- NO SE UTILIZA EN "InventoryReception" --
+      <NetAmount>14869.0000</NetAmount>                        -- NO SE UTILIZA EN "InventoryReception" --
+      <ExemptAmout>0.0000</ExemptAmout>                        -- NO SE UTILIZA EN "InventoryReception" --
+      <TaxAmount>0.0000</TaxAmount>                            -- NO SE UTILIZA EN "InventoryReception" --
+      <VatAmount>0.0000</VatAmount>                            -- NO SE UTILIZA EN "InventoryReception" --
+      <ServicesVATAmount>0.0000</ServicesVATAmount>            -- NO SE UTILIZA EN "InventoryReception" --
+      <DifferencialVATAmount>0.0000</DifferencialVATAmount>    -- NO SE UTILIZA EN "InventoryReception" --
+      <IvaTaxAmount>0.0000</IvaTaxAmount>                      -- NO SE UTILIZA EN "InventoryReception" --
+      <IIBBTaxAmount>0.0000</IIBBTaxAmount>                    -- NO SE UTILIZA EN "InventoryReception" --
+      <TotalAmount>14869.0000</TotalAmount>                    -- NO SE UTILIZA EN "InventoryReception" --
+      <InventoryControlDocumentLineItems>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>1</SequenceNumber>			-- El campo debe llamarse DetSequenceNumber --
+          <Item>567</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Aguas</ItemBrand>                         -- Debe ser la MARCA del Artículos que viene de PRISMA --
+          <ItemDescription>Agua mineral con gas</ItemDescription>
+          <UnitBaseCostAmount>50.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>100.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>2</SequenceNumber>
+          <Item>566</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Deshielo</ItemBrand>
+          <ItemDescription>Agua mineral sin gas</ItemDescription>
+          <UnitBaseCostAmount>48.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>96.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>3</SequenceNumber>
+          <Item>579</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Frutas y Verduras</ItemBrand>
+          <ItemDescription>Albahaca</ItemDescription>
+          <UnitBaseCostAmount>560.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>1120.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>4</SequenceNumber>
+          <Item>568</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Bebidas sin Alcohol</ItemBrand>
+          <ItemDescription>Coca cola lata</ItemDescription>
+          <UnitBaseCostAmount>56.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>112.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>5</SequenceNumber>
+          <Item>584</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Deshielo</ItemBrand>
+          <ItemDescription>Coca cola light lata</ItemDescription>
+          <UnitBaseCostAmount>60.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>120.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>6</SequenceNumber>
+          <Item>569</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Deshielo</ItemBrand>
+          <ItemDescription>Coca cola zero lata</ItemDescription>
+          <UnitBaseCostAmount>56.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>112.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>7</SequenceNumber>
+          <Item>582</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Fiambres y embutidos</ItemBrand>
+          <ItemDescription>Jamon Crudo</ItemDescription>
+          <UnitBaseCostAmount>2600.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>5200.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>8</SequenceNumber>
+          <Item>575</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Frutas y Verduras</ItemBrand>
+          <ItemDescription>Lechuga</ItemDescription>
+          <UnitBaseCostAmount>200.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>400.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>9</SequenceNumber>
+          <Item>570</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Carnes</ItemBrand>
+          <ItemDescription>Lomo sin cordon</ItemDescription>
+          <UnitBaseCostAmount>1000.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>2000.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>10</SequenceNumber>
+          <Item>583</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Lacteos</ItemBrand>
+          <ItemDescription>Manteca</ItemDescription>
+          <UnitBaseCostAmount>2400.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>4800.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>11</SequenceNumber>
+          <Item>580</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Panificados</ItemBrand>
+          <ItemDescription>Pan de campo</ItemDescription>
+          <UnitBaseCostAmount>40.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>80.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>12</SequenceNumber>
+          <Item>581</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Panificados</ItemBrand>
+          <ItemDescription>Pan Lactal</ItemDescription>
+          <UnitBaseCostAmount>24.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>48.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>13</SequenceNumber>
+          <Item>585</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Carnes</ItemBrand>
+          <ItemDescription>Pollo Alas</ItemDescription>
+          <UnitBaseCostAmount>25.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>50.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>14</SequenceNumber>
+          <Item>571</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Testa_Base_price</ItemBrand>
+          <ItemDescription>Pollo entero</ItemDescription>
+          <UnitBaseCostAmount>500.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>1000.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>15</SequenceNumber>
+          <Item>573</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Testa_Base_price</ItemBrand>
+          <ItemDescription>Pollo patas</ItemDescription>
+          <UnitBaseCostAmount>600.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>1200.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>16</SequenceNumber>
+          <Item>572</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Carnes</ItemBrand>
+          <ItemDescription>Pollo pechuga</ItemDescription>
+          <UnitBaseCostAmount>700.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>1400.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>17</SequenceNumber>
+          <Item>586</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Testa_Base_price</ItemBrand>
+          <ItemDescription>Pollo recortes</ItemDescription>
+          <UnitBaseCostAmount>50.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>100.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>18</SequenceNumber>
+          <Item>576</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Lacteos</ItemBrand>
+          <ItemDescription>Queso crema</ItemDescription>
+          <UnitBaseCostAmount>1200.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>2400.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>19</SequenceNumber>
+          <Item>578</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Lacteos</ItemBrand>
+          <ItemDescription>Queso Provolone</ItemDescription>
+          <UnitBaseCostAmount>3000.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>6000.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>20</SequenceNumber>
+          <Item>577</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Lacteos</ItemBrand>
+          <ItemDescription>Queso regianito</ItemDescription>
+          <UnitBaseCostAmount>1600.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>3200.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+      </InventoryControlDocumentLineItems>
+    </InventoryControlTransaction>
+  </Transaction>

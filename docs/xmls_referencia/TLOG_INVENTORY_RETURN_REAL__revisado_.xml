@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <Transaction>
+    <RetailStoreID>00019</RetailStoreID>
+    <WorkstationID>0</WorkstationID>
+    <SequenceNumber>000190000002</SequenceNumber>					--Tiene que iniciar en 9 con un formato de 12 digitos--
+    <BusinessDayDate>2021-10-13</BusinessDayDate>
+    <Period>0</Period>
+    <Subperiod>0</Subperiod>
+    <PeriodCode>0</PeriodCode>
+    <SubPeriodCode>0</SubPeriodCode>
+    <BeginDateTime>2021-10-13 00:00:00</BeginDateTime>
+    <EndDateTime>2021-10-13 23:59:59</EndDateTime>
+    <OperatorID>1</OperatorID>								--Tiene que tener el formato de un usuario activo en la EESS ejemplo RYxxxxx--
+    <OriginalTransaction></OriginalTransaction>
+    <InventoryControlTransaction>
+      <SerialFormID>000190000002</SerialFormID>						--Tiene que iniciar en 9 con un formato de 12 digitos--
+      <DocumentTypeCode>InventoryReturn</DocumentTypeCode>
+      <InventoryControlDocumentState>4</InventoryControlDocumentState>
+      <contractReferenceNumber/>
+      <CreateDateTimestamp>2021-10-13 10:00:00.000 ART</CreateDateTimestamp>		--Tiene que tener el dato y formato fecha/hora que el "BenginDateTime"--
+      <DestinationRetailStoreID>00019</DestinationRetailStoreID>
+      <ExpectedDeliveryDate>2021-10-13 00:00:00.0 ART</ExpectedDeliveryDate>		--Tiene que tener el dato y formato fecha/hora que el "BenginDateTime"--
+      <ICDAmount>-1500.0000</ICDAmount>							--Costo total de la devolución, no va con el signo menos(negativo)--
+      <LastUpdateDate>2021-10-13 10:01:00.000 ART</LastUpdateDate>			--Tiene que tener el dato y formato fecha/hora que el "BenginDateTime"--
+      <Originator/>
+      <SourceRetailStore>00019</SourceRetailStore>
+      <Supplier>90211</Supplier>
+      <OrderDocumentType/>
+      <User>1</User>									--Tiene que tener el formato de un usuario activo en la EESS ejemplo RYxxxxx--
+      <ICDQuantity/>
+      <ICDTotSalesAmount/>
+      <Frequency/>
+      <InventoryAdjustmentType/>
+      <ReceiptNumber>REC202110-0000018</ReceiptNumber>					--numero de comprobante con formato A-XXXXX-XXXXXXXX--
+      <FiscalReceiptFlag>false</FiscalReceiptFlag>					--En False viajan la que estan en estado 4 (Cerrado) y en true las que estan en estado 7 (Pendiente de imputación)
+      <ReceiptType/>
+      <ReceiptDate>2021-10-13 00:00:00.0 ART</ReceiptDate>
+      <CAINumber/>
+      <CAIDate/>
+      <PagesQuantity>1</PagesQuantity>							--Viaja en null para los inventory return--
+      <NetAmount>-1500.0000</NetAmount>							--Viaja en null para los inventory return--
+      <ExemptAmout>0.0000</ExemptAmout>							--Viaja en null para los inventory return--
+      <TaxAmount>0.0000</TaxAmount>							--Viaja en null para los inventory return--
+      <VatAmount>0.0000</VatAmount>							--Viaja en null para los inventory return--
+      <ServicesVATAmount>0.0000</ServicesVATAmount>					--Viaja en null para los inventory return--
+      <DifferencialVATAmount>0.0000</DifferencialVATAmount>				--Viaja en null para los inventory return--
+      <IvaTaxAmount>0.0000</IvaTaxAmount>						--Viaja en null para los inventory return--
+      <IIBBTaxAmount>0.0000</IIBBTaxAmount>						--Viaja en null para los inventory return--
+      <TotalAmount>-1500.0000</TotalAmount>						--Viaja en null para los inventory return--
+      <InventoryControlDocumentLineItems>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>1</SequenceNumber>				-- El campo debe llamarse DetSequenceNumber --
+          <Item>608</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Testa_Base_price</ItemBrand>					--Tiene que ser la Marca correspondiente al articulo que viaja de Prisma--
+          <ItemDescription>Pechuga pollo entera</ItemDescription>
+          <UnitBaseCostAmount>-1500.0000</UnitBaseCostAmount>
+          <UnitCount>-150.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>-150.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>-0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+      </InventoryControlDocumentLineItems>
+    </InventoryControlTransaction>
+  </Transaction>

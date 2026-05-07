@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <Transaction>
+    <RetailStoreID>00019</RetailStoreID>
+    <WorkstationID>0</WorkstationID>
+    <SequenceNumber>000190000001</SequenceNumber>         -- Debe comenzar con "9", Longitud 12, iniciando en 900000000001 para la APIES --
+    <BusinessDayDate>2021-10-12</BusinessDayDate>
+    <Period>0</Period>
+    <Subperiod>0</Subperiod>
+    <PeriodCode>0</PeriodCode>
+    <SubPeriodCode>0</SubPeriodCode>
+    	<EndDateTime>2021-10-12 23:59:59</EndDateTime>
+    <OperatorID>1</OperatorID>                           -- Debe ser un Usuario Válido configurado en la EESS, por ejemplo "RY9999" --
+    <OriginalTransaction></OriginalTransaction>
+    <InventoryControlTransaction>
+      <SerialFormID>000190000001</SerialFormID>                           	-- Mismo contendo de SequenceNumber --
+      <DocumentTypeCode>InventoryFiscalDoc</DocumentTypeCode>
+      <InventoryControlDocumentState>37</InventoryControlDocumentState> 	-- PARA "INVENTORYFISCALDOC" debe ser = 4 --
+      <contractReferenceNumber/>
+      <CreateDateTimestamp>2021-10-12 10:00:00.000 ART</CreateDateTimestamp>
+      <DestinationRetailStoreID>00019</DestinationRetailStoreID>
+      <ExpectedDeliveryDate>2021-10-12 00:00:00.0 ART</ExpectedDeliveryDate>
+      <ICDAmount>-4000.0000</ICDAmount>
+      <LastUpdateDate>2021-10-12 10:01:00.000 ART</LastUpdateDate>
+      <Originator/>
+      <SourceRetailStore>00019</SourceRetailStore>
+      <Supplier>90212</Supplier>
+      <OrderDocumentType/>
+      <User>1</User>                                     -- Debe ser un Usuario Válido configurado en la EESS, por ejemplo "RY9999" --
+      <ICDQuantity/>
+      <ICDTotSalesAmount/>
+      <Frequency/>
+      <InventoryAdjustmentType/>
+      <ReceiptNumber>REC202110-0000014</ReceiptNumber>   -- numero de comprobante con formato A-XXXXX-XXXXXXXX --
+      <FiscalReceiptFlag>false</FiscalReceiptFlag>
+      <ReceiptType>NC</ReceiptType>
+      <ReceiptDate>2021-10-12 00:00:00.0 ART</ReceiptDate>
+      <CAINumber/>					-- DEbe contener el Numero de CAI --
+      <CAIDate/>					-- DEbe concenter la fecha de Vencimiento del CAI --
+      <PagesQuantity>1</PagesQuantity>
+      <NetAmount>-4000.0000</NetAmount>
+      <ExemptAmout>0.0000</ExemptAmout>
+      <TaxAmount>0.0000</TaxAmount>			-- ¿no tiene ningún impuesto? --
+      <VatAmount>0.0000</VatAmount>			-- ¿no tiene ningún impuesto? --
+      <ServicesVATAmount>0.0000</ServicesVATAmount>
+      <DifferencialVATAmount>0.0000</DifferencialVATAmount>
+      <IvaTaxAmount>0.0000</IvaTaxAmount>		-- ¿no tiene ningún impuesto? --
+      <IIBBTaxAmount>0.0000</IIBBTaxAmount>
+      <TotalAmount>-4000.0000</TotalAmount>
+      <InventoryControlDocumentLineItems>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>1</SequenceNumber>		-- El campo debe llamarse DetSequenceNumber --
+          <Item>608</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Testa_Base_price</ItemBrand>
+          <ItemDescription>Pechuga pollo entera</ItemDescription>
+          <UnitBaseCostAmount>-4000.0000</UnitBaseCostAmount>
+          <UnitCount>-400.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>1600000.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>-0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+      </InventoryControlDocumentLineItems>
+    </InventoryControlTransaction>
+  </Transaction>

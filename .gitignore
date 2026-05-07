@@ -1,0 +1,22 @@
+# Binario compilado
+pipeline
+pipeline-*
+
+# Output del pipeline (no subir al repo)
+output/
+finished/
+
+# DB snapshot opcional
+*.db.json
+
+# Logs
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

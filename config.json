@@ -1,0 +1,80 @@
+{
+  "ftp_source": {
+    "url": "",
+    "username": "",
+    "pass": ""
+  },
+  "ftp_target": {
+    "url": "",
+    "username": "",
+    "pass": ""
+  },
+  "local_folders": {
+    "source_root": "./sample_data",
+    "target_root": "./output",
+    "finished_root": "./finished"
+  },
+  "process": {
+    "mode": "ALL",
+    "execution_mode": "PARALLEL",
+    "parallel_retails_per_day": false,
+    "keep_db_after_run": false,
+    "begin_date_offset": "00:00:00",
+    "end_date_offset": "23:59:59",
+    "operator_id": "admin"
+  },
+  "ftp_download": {
+    "enabled": false,
+    "folder_root_source": "",
+    "folder_root_target": ""
+  },
+  "read_days": {
+    "enabled": true,
+    "folder_source_root": ""
+  },
+  "read_files": {
+    "enabled": true,
+    "folder_source": "",
+    "folder_target_root": "",
+    "expected_files": [
+      "Kostst_*.csv",
+      "Liefer_*.csv",
+      "Warengruppe_*.csv",
+      "Vpckeinh_*.csv",
+      "Artikel_*.csv",
+      "Lieferschein_*.csv",
+      "Lieferpos_*.csv",
+      "Inventur_*.csv",
+      "Invposart_*.csv",
+      "His_verbrauch_*.csv",
+      "Dailytotals_*.csv"
+    ]
+  },
+  "create_db": {
+    "enabled": true,
+    "separator": ",",
+    "folder_source": "",
+    "folder_target_root": ""
+  },
+  "create_xml": {
+    "enabled": true,
+    "folder_source": "",
+    "folder_target_root": ""
+  },
+  "ftp_upload": {
+    "enabled": false,
+    "folder_source": "",
+    "folder_target": ""
+  },
+  "local_clean": {
+    "enabled": true,
+    "folder_source": "",
+    "folder_target": "",
+    "delete_source": false
+  },
+  "ftp_end": {
+    "enabled": false,
+    "folder_source": "",
+    "folder_target": ""
+  }
+}
