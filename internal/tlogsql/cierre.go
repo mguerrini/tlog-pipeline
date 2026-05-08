@@ -25,7 +25,7 @@ const (
 
 // CierreGenerator implementa TLOG_BUSINESS_EOD (cierre) con SQL.
 //
-// Lee DAILYTOTALS1 filtrado por KST_ID. La DB se carga con los CSVs de un
+// Lee DAILYTOTALS filtrado por KST_ID. La DB se carga con los CSVs de un
 // único día, así que no hace falta filtrar por DAY_DATE.
 type CierreGenerator struct{}
 
@@ -38,7 +38,7 @@ SELECT dt.KST_ID, dt.ART_ID, dt.DAY_DATE,
        dt.DAY_QTYPURCH, dt.DAY_QTYTRSFIN, dt.DAY_QTYTRSFOUT,
        dt.DAY_QTYUSAGE, dt.DAY_QTYSOLD, dt.DAY_QTYINV,
        art.ART_NUMMER, art.ART_NAME
-FROM DAILYTOTALS1 dt
+FROM DAILYTOTALS dt
 LEFT JOIN ARTIKEL art ON art.ART_ID = dt.ART_ID
 WHERE dt.KST_ID = ?
 ORDER BY dt.ART_ID`

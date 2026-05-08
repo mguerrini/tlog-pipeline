@@ -19,24 +19,20 @@ func applyDefaults(c *Config) {
 	if c.CreateDB.Separator == "" {
 		c.CreateDB.Separator = ","
 	}
-	// Si no se configuró ningún log (sección omitida en el JSON), habilitarlos
-	// todos para mantener compatibilidad con configs previas.
-	l := c.Logs
-	if !l.PipelineEnabled && !l.DayStatusEnabled && !l.SQLDBLoad && !l.OrphansReport {
-		c.Logs = Logs{
+	// Sección "logs" omitida del JSON → habilitar todos (compat retro).
+	// Si está presente, UnmarshalJSON ya resolvió cada flag (false explícito
+	// se respeta; flags ausentes default-ean a true).
+	if c.Logs == nil {
+		c.Logs = &Logs{
 			PipelineEnabled:  true,
 			DayStatusEnabled: true,
 			SQLDBLoad:        true,
 			OrphansReport:    true,
 		}
 	}
-	// Si no se configuró ningún output (sección omitida en el JSON), generar
-	// los 8 TLOGs para mantener compatibilidad con configs previas.
-	o := c.Output
-	if !o.Cierre && !o.InventoryReception && !o.InventoryFiscalDocFC &&
-		!o.InventoryFiscalDocNC && !o.InventoryReturn && !o.InventoryAdjustment &&
-		!o.InventoryCount && !o.InventoryTransfer {
-		c.Output = Output{
+	// Sección "output" omitida del JSON → generar los 8 TLOGs (compat retro).
+	if c.Output == nil {
+		c.Output = &Output{
 			Cierre:               true,
 			InventoryReception:   true,
 			InventoryFiscalDocFC: true,

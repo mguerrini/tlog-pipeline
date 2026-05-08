@@ -22,7 +22,9 @@ type LocalFolders struct {
 }
 
 // Output controla qué TLOGs (XMLs) se generan en create_xml / create_xml_sql.
-// Cada flag corresponde a un naming.TLOGType.
+// Cada flag corresponde a un naming.TLOGType. Si la sección entera se omite
+// del JSON, defaults.go la resuelve en "todo true" (compat retro). Si la
+// sección está presente pero falta un flag, ese flag default-ea a true.
 type Output struct {
 	Cierre               bool `json:"cierre"`
 	InventoryReception   bool `json:"inventory_reception"`
@@ -32,6 +34,44 @@ type Output struct {
 	InventoryAdjustment  bool `json:"inventory_adjustment"`
 	InventoryCount       bool `json:"inventory_count"`
 	InventoryTransfer    bool `json:"inventory_transfer"`
+}
+
+// UnmarshalJSON: cualquier flag omitido default-ea a true. Esto distingue
+// "campo ausente" de "campo explícito en false" — sin esto, json.Unmarshal
+// produciría false en ambos casos y no podríamos respetar un opt-out
+// explícito (false) cuando todos los flags están en false.
+func (o *Output) UnmarshalJSON(data []byte) error {
+	raw := struct {
+		Cierre               *bool `json:"cierre"`
+		InventoryReception   *bool `json:"inventory_reception"`
+		InventoryFiscalDocFC *bool `json:"inventory_fiscaldoc_fc"`
+		InventoryFiscalDocNC *bool `json:"inventory_fiscaldoc_nc"`
+		InventoryReturn      *bool `json:"inventory_return"`
+		InventoryAdjustment  *bool `json:"inventory_adjustment"`
+		InventoryCount       *bool `json:"inventory_count"`
+		InventoryTransfer    *bool `json:"inventory_transfer"`
+	}{}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	*o = Output{
+		Cierre:               boolOrTrue(raw.Cierre),
+		InventoryReception:   boolOrTrue(raw.InventoryReception),
+		InventoryFiscalDocFC: boolOrTrue(raw.InventoryFiscalDocFC),
+		InventoryFiscalDocNC: boolOrTrue(raw.InventoryFiscalDocNC),
+		InventoryReturn:      boolOrTrue(raw.InventoryReturn),
+		InventoryAdjustment:  boolOrTrue(raw.InventoryAdjustment),
+		InventoryCount:       boolOrTrue(raw.InventoryCount),
+		InventoryTransfer:    boolOrTrue(raw.InventoryTransfer),
+	}
+	return nil
+}
+
+func boolOrTrue(p *bool) bool {
+	if p == nil {
+		return true
+	}
+	return *p
 }
 
 // Enabled indica si el TLOG de tipo t debe generarse según la configuración.
@@ -58,12 +98,34 @@ func (o Output) Enabled(t naming.TLOGType) bool {
 }
 
 // Logs habilita / deshabilita la escritura de los archivos de log y reporte
-// que el pipeline produce por día.
+// que el pipeline produce por día. Misma semántica de defaults que Output:
+// sección ausente → defaults.go la resuelve en "todo true"; campo ausente
+// dentro de una sección presente → default-ea a true (ver UnmarshalJSON).
 type Logs struct {
 	PipelineEnabled  bool `json:"pipeline_enabled"`   // AAAAMMDD_pipeline.log
 	DayStatusEnabled bool `json:"day_status_enabled"` // AAAAMMDD_day_status.json
 	SQLDBLoad        bool `json:"sql_db_load"`        // AAAAMMDD_sqldb_load.md
 	OrphansReport    bool `json:"orphans_report"`     // AAAAMMDD_orphans.md
+}
+
+// UnmarshalJSON: flags omitidos default-ean a true.
+func (l *Logs) UnmarshalJSON(data []byte) error {
+	raw := struct {
+		PipelineEnabled  *bool `json:"pipeline_enabled"`
+		DayStatusEnabled *bool `json:"day_status_enabled"`
+		SQLDBLoad        *bool `json:"sql_db_load"`
+		OrphansReport    *bool `json:"orphans_report"`
+	}{}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	*l = Logs{
+		PipelineEnabled:  boolOrTrue(raw.PipelineEnabled),
+		DayStatusEnabled: boolOrTrue(raw.DayStatusEnabled),
+		SQLDBLoad:        boolOrTrue(raw.SQLDBLoad),
+		OrphansReport:    boolOrTrue(raw.OrphansReport),
+	}
+	return nil
 }
 
 type Process struct {
@@ -134,8 +196,8 @@ type Config struct {
 	FTPSource    FTP          `json:"ftp_source"`
 	FTPTarget    FTP          `json:"ftp_target"`
 	LocalFolders LocalFolders `json:"local_folders"`
-	Output       Output       `json:"output"`
-	Logs         Logs         `json:"logs"`
+	Output       *Output      `json:"output"`
+	Logs         *Logs        `json:"logs"`
 	Process      Process      `json:"process"`
 	FTPDownload  FTPDownload  `json:"ftp_download"`
 	ReadDays     ReadDays     `json:"read_days"`

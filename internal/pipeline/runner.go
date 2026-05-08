@@ -63,6 +63,6 @@ func (r *Runner) RunDay(ctx context.Context, d *DayCtx, onlyStep string) error {
 		}
 	}
 
-	_ = status.save(statusPath)
+	saveStatus(d, status, statusPath)
 	return nil
 }

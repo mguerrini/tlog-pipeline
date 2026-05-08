@@ -10,9 +10,9 @@
     "pass": ""
   },
   "local_folders": {
-    "source_root": "./sample_data",
-    "target_root": "./output",
-    "finished_root": "./finished"
+    "source_root": "./appdata/input",
+    "target_root": "./appdata/output",
+    "finished_root": "./appdata/finished"
   },
   "output": {
     "cierre": true,
@@ -25,9 +25,10 @@
     "inventory_transfer": false
   },
   "logs": {
-    "pipeline_enabled": true,
-    "day_status_enabled": true,
-    "sql_db_load": true
+    "pipeline_enabled": false,
+    "day_status_enabled": false,
+    "sql_db_load": false,
+    "orphans_report": false
   },
   "process": {
     "mode": "ALL",
@@ -69,7 +70,7 @@
     "sql": true
   },
   "create_xml": {
-    "enabled": false,
+    "enabled": true,
     "folder_source": "",
     "folder_target_root": ""
   },

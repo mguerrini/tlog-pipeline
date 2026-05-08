@@ -77,7 +77,7 @@ CREATE INDEX IF NOT EXISTS idx_inv_kst     ON INVENTUR(KST_ID);
 CREATE INDEX IF NOT EXISTS idx_inv_status  ON INVENTUR(INV_STATUS);
 CREATE INDEX IF NOT EXISTS idx_invp_art    ON INVPOSART(ART_ID);
 CREATE INDEX IF NOT EXISTS idx_invp_inv    ON INVPOSART(INV_ID);
-CREATE INDEX IF NOT EXISTS idx_dt_date     ON DAILYTOTALS1(DAY_DATE);
+CREATE INDEX IF NOT EXISTS idx_dt_date     ON DAILYTOTALS(DAY_DATE);
 `
 
 // buildDDL compone el DDL completo desde los schemas. Las columnas que no
@@ -158,7 +158,7 @@ func allSchemas() []*tableSchema {
 		inventur(),
 		invposart(),
 		hisVerbrauch(),
-		dailytotals1(),
+		dailytotals(),
 	}
 }
 
@@ -647,10 +647,10 @@ func hisVerbrauch() *tableSchema {
 	}
 }
 
-// ── DAILYTOTALS1 ───────────────────────────────────────────────────────────
-func dailytotals1() *tableSchema {
+// ── DAILYTOTALS ────────────────────────────────────────────────────────────
+func dailytotals() *tableSchema {
 	return &tableSchema{
-		sqliteName: "DAILYTOTALS1",
+		sqliteName: "DAILYTOTALS",
 		csvName:    "Dailytotals",
 		pk:         []string{"KST_ID", "ART_ID", "DAY_DATE"},
 		notNull:    []string{"KST_ID", "ART_ID", "DAY_DATE"},

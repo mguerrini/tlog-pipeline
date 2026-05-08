@@ -53,7 +53,7 @@ type OrphanCheck struct {
 var expectedCounts = map[string]int64{
 	"KOSTST": 2, "LIEFER": 54, "WARENGRUPPE": 627, "VPCKEINH": 73,
 	"ARTIKEL": 437, "LIEFERSCHEIN": 12, "LIEFERPOS": 150,
-	"INVENTUR": 1, "INVPOSART": 1022, "HIS_VERBRAUCH": 1, "DAILYTOTALS1": 438,
+	"INVENTUR": 1, "INVPOSART": 1022, "HIS_VERBRAUCH": 1, "DAILYTOTALS": 438,
 }
 
 // Load carga todos los CSVs de srcDir en una DB SQLite en dbPath.
@@ -83,14 +83,9 @@ func Load(srcDir, dbPath string) (*LoadResult, error) {
 	if err != nil {
 		return nil, fmt.Errorf("buscar CSVs: %w", err)
 	}
-	// csvio devuelve map[tableName]path; nuestro schema usa DAILYTOTALS1
 	fileByTable := make(map[string]string, len(csvFiles))
 	for table, path := range csvFiles {
-		name := table
-		if name == "DAILYTOTALS" {
-			name = "DAILYTOTALS1"
-		}
-		fileByTable[name] = path
+		fileByTable[table] = path
 	}
 
 	// Cargar en orden de dependencias
@@ -288,7 +283,7 @@ func runCounts(db *sql.DB) []CountCheck {
 	tables := []string{
 		"KOSTST", "LIEFER", "WARENGRUPPE", "VPCKEINH", "ARTIKEL",
 		"LIEFERSCHEIN", "LIEFERPOS", "INVENTUR", "INVPOSART",
-		"HIS_VERBRAUCH", "DAILYTOTALS1",
+		"HIS_VERBRAUCH", "DAILYTOTALS",
 	}
 	var out []CountCheck
 	for _, t := range tables {
@@ -314,8 +309,8 @@ func runOrphanChecks(db *sql.DB) []OrphanCheck {
 		{"INVPOSART.INV_ID → INVENTUR (esperado)", "INVPOSART", "INV_ID", "INVENTUR", "INV_ID", false},
 		{"INVPOSART.ART_ID → ARTIKEL", "INVPOSART", "ART_ID", "ARTIKEL", "ART_ID", true},
 		{"INVPOSART.WGR_NR → WARENGRUPPE", "INVPOSART", "WGR_NR", "WARENGRUPPE", "WGR_ID", true},
-		{"DAILYTOTALS1.ART_ID → ARTIKEL", "DAILYTOTALS1", "ART_ID", "ARTIKEL", "ART_ID", true},
-		{"DAILYTOTALS1.KST_ID → KOSTST", "DAILYTOTALS1", "KST_ID", "KOSTST", "KST_ID", true},
+		{"DAILYTOTALS.ART_ID → ARTIKEL", "DAILYTOTALS", "ART_ID", "ARTIKEL", "ART_ID", true},
+		{"DAILYTOTALS.KST_ID → KOSTST", "DAILYTOTALS", "KST_ID", "KOSTST", "KST_ID", true},
 		{"ARTIKEL.WGR_ID → WARENGRUPPE", "ARTIKEL", "WGR_ID", "WARENGRUPPE", "WGR_ID", true},
 	}
 	var out []OrphanCheck

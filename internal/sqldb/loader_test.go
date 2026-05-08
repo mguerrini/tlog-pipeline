@@ -63,9 +63,6 @@ func TestLoadSampleData(t *testing.T) {
 	}
 	for _, ts := range allSchemas() {
 		key := ts.sqliteName
-		if key == "DAILYTOTALS1" {
-			key = "DAILYTOTALS"
-		}
 		path, ok := csvFiles[key]
 		if !ok {
 			t.Errorf("CSV no encontrado para %s", ts.sqliteName)
