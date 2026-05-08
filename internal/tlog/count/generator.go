@@ -5,6 +5,7 @@ import (
 
 	"github.com/opessa/tlog-pipeline/internal/db"
 	"github.com/opessa/tlog-pipeline/internal/naming"
+	"github.com/opessa/tlog-pipeline/internal/sequence"
 	"github.com/opessa/tlog-pipeline/internal/tlog"
 	"github.com/opessa/tlog-pipeline/internal/tlog/common"
 )
@@ -53,8 +54,15 @@ func (Generator) Generate(s *db.Store, h *common.HeaderCtx, kstID string) (*tlog
 		return &tlog.GenerateResult{Empty: true}, nil
 	}
 
+	kst := s.Kostst[kstID]
+	retailID := common.FormatRetailStoreID(kst["KST_CODE"])
+	seqNum, err := sequence.Build(retailID, h.BusinessDay, sequence.DocCount)
+	if err != nil {
+		return nil, fmt.Errorf("count sequence: %w", err)
+	}
+
 	x := common.NewXMLBuilder()
-	totalDocs, totalLines, seq := 0, 0, 1
+	totalDocs, totalLines := 0, 0
 
 	for _, inv := range candidates {
 		invID := inv["INV_ID"]
@@ -62,10 +70,6 @@ func (Generator) Generate(s *db.Store, h *common.HeaderCtx, kstID string) (*tlog
 		if len(lines) == 0 {
 			continue
 		}
-		kst := s.Kostst[kstID]
-		retailID := common.FormatRetailStoreID(kst["KST_CODE"])
-		seqNum := common.BuildSequenceNumber12(retailID, seq)
-		seq++
 		totalDocs++
 		totalLines += len(lines)
 		writeCountDoc(x, h, retailID, seqNum, inv, lines, s)

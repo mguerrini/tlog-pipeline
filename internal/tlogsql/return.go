@@ -8,6 +8,7 @@ import (
 
 	"github.com/opessa/tlog-pipeline/internal/db"
 	"github.com/opessa/tlog-pipeline/internal/naming"
+	"github.com/opessa/tlog-pipeline/internal/sequence"
 	"github.com/opessa/tlog-pipeline/internal/tlog"
 	"github.com/opessa/tlog-pipeline/internal/tlog/common"
 )
@@ -66,9 +67,13 @@ ORDER BY lfs.LFS_ID`
 		return nil, err
 	}
 	retailID := common.FormatRetailStoreID(kst["KST_CODE"])
+	seqNum, err := sequence.Build(retailID, h.BusinessDay, sequence.DocReturn)
+	if err != nil {
+		return nil, fmt.Errorf("return sequence: %w", err)
+	}
 
 	x := common.NewXMLBuilder()
-	totalDocs, totalLines, seq := 0, 0, 1
+	totalDocs, totalLines := 0, 0
 
 	for _, lfs := range candidates {
 		lines, err := receptionLines(ctx, conn, lfs["LFS_ID"]) // mismo SELECT que reception
@@ -86,8 +91,6 @@ ORDER BY lfs.LFS_ID`
 			liefer = map[string]string{}
 		}
 
-		seqNum := common.BuildSequenceNumber12(retailID, seq)
-		seq++
 		totalDocs++
 		totalLines += len(lines)
 		writeReturnDoc(x, h, retailID, seqNum, lfs, liefer, lines)

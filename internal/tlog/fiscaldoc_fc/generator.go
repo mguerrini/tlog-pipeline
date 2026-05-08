@@ -6,6 +6,7 @@ import (
 
 	"github.com/opessa/tlog-pipeline/internal/db"
 	"github.com/opessa/tlog-pipeline/internal/naming"
+	"github.com/opessa/tlog-pipeline/internal/sequence"
 	"github.com/opessa/tlog-pipeline/internal/tlog"
 	"github.com/opessa/tlog-pipeline/internal/tlog/common"
 )
@@ -59,17 +60,20 @@ func (Generator) Generate(s *db.Store, h *common.HeaderCtx, kstID string) (*tlog
 		return &tlog.GenerateResult{Empty: true}, nil
 	}
 
+	kst := s.Kostst[kstID]
+	retailID := common.FormatRetailStoreID(kst["KST_CODE"])
+	seqNum, err := sequence.Build(retailID, h.BusinessDay, sequence.DocFiscalDocFC)
+	if err != nil {
+		return nil, fmt.Errorf("fiscaldoc_fc sequence: %w", err)
+	}
+
 	x := common.NewXMLBuilder()
-	totalDocs, totalLines, seq := 0, 0, 1
+	totalDocs, totalLines := 0, 0
 
 	for _, lfs := range candidates {
 		lfsID := lfs["LFS_ID"]
 		lines := s.LieferposByLFS[lfsID]
-		kst := s.Kostst[kstID]
 		liefer := s.Liefer[lfs["LF_ID"]]
-		retailID := common.FormatRetailStoreID(kst["KST_CODE"])
-		seqNum := common.BuildSequenceNumber12(retailID, seq)
-		seq++
 		totalDocs++
 		totalLines += len(lines)
 		writeFCDoc(x, h, retailID, seqNum, lfs, liefer, lines, s)

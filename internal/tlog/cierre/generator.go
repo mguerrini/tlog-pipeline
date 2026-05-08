@@ -5,6 +5,7 @@ import (
 
 	"github.com/opessa/tlog-pipeline/internal/db"
 	"github.com/opessa/tlog-pipeline/internal/naming"
+	"github.com/opessa/tlog-pipeline/internal/sequence"
 	"github.com/opessa/tlog-pipeline/internal/tlog"
 	"github.com/opessa/tlog-pipeline/internal/tlog/common"
 )
@@ -47,7 +48,10 @@ func (Generator) Generate(s *db.Store, h *common.HeaderCtx, kstID string) (*tlog
 	kst := s.Kostst[kstID]
 	kstCode := kst["KST_CODE"]
 	retailID := common.FormatRetailStoreID(kstCode)
-	seqNum := common.BuildSequenceNumber11(retailID, 1)
+	seqNum, err := sequence.Build(retailID, h.BusinessDay, sequence.DocCierre)
+	if err != nil {
+		return nil, fmt.Errorf("cierre sequence: %w", err)
+	}
 
 	x := common.NewXMLBuilder()
 	writeCierreHeader(x, h, retailID, seqNum)
