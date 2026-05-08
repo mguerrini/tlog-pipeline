@@ -23,6 +23,9 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 	if !d.Cfg.CreateDB.Enabled {
 		return b.Skip("disabled in config")
 	}
+	if d.Cfg.CreateDB.SQL {
+		return b.Skip("create_db.sql = true (flujo SQL)")
+	}
 
 	sep := d.Cfg.CreateDB.Separator
 	if sep == "" {

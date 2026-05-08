@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	WorkstationID    = "0"
-	Period           = "0"
-	Subperiod        = "0"
-	DocumentTypeCode = "InventoryFiscalDoc"
-	ReceiptType      = "FC"
+	WorkstationID                 = "0"
+	Period                        = "0"
+	Subperiod                     = "0"
+	DocumentTypeCode              = "InventoryFiscalDoc"
+	ReceiptType                   = "FC"
 	InventoryControlDocumentState = "4"
 	FiscalReceiptFlag             = "true"
 	ItemBrand                     = "0"
@@ -45,6 +45,7 @@ func (Generator) Generate(s *db.Store, h *common.HeaderCtx, kstID string) (*tlog
 			continue
 		}
 		lfsID := row["LFS_ID"]
+
 		lines := s.LieferposByLFS[lfsID]
 		if len(lines) == 0 {
 			continue
@@ -82,15 +83,19 @@ func filterFC(row db.Row) bool {
 		return false
 	}
 	status, ok := db.AsInt(row["LFS_STATUS"])
+
 	if !ok || status != 42 {
 		return false
 	}
 	rts, _ := db.AsInt(row["LFS_RTS"])
+
 	if rts == 1 {
 		return false
 	}
+
 	netto, _ := db.AsFloat(row["LFS_NETTO"])
 	brutto, _ := db.AsFloat(row["LFS_BRUTTO"])
+
 	return netto > 0 && brutto > 0
 }
 

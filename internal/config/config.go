@@ -52,6 +52,9 @@ type CreateDB struct {
 	Separator        string `json:"separator"`
 	FolderSource     string `json:"folder_source"`
 	FolderTargetRoot string `json:"folder_target_root"`
+	// SQL: si true, después de create_db se ejecuta create_sql_db y el pipeline
+	// termina ahí (modo debug — genera un .db SQLite con schema tipado).
+	SQL bool `json:"sql"`
 }
 
 type CreateXML struct {

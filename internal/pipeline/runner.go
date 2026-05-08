@@ -46,6 +46,13 @@ func (r *Runner) RunDay(ctx context.Context, d *DayCtx, onlyStep string) error {
 		}
 		d.Log.Info("step completado",
 			"step", step.Name(), "status", result.Status, "dur", dur)
+
+		// Modo debug: el step pidió detener el pipeline aquí.
+		if result.StopAfter {
+			d.Log.Info("pipeline detenido por StopAfter", "step", step.Name())
+			_ = status.save(statusPath)
+			return nil
+		}
 	}
 
 	_ = status.save(statusPath)

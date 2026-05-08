@@ -50,7 +50,8 @@
     "enabled": true,
     "separator": ",",
     "folder_source": "",
-    "folder_target_root": ""
+    "folder_target_root": "",
+    "sql": true
   },
   "create_xml": {
     "enabled": true,

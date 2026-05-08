@@ -29,6 +29,9 @@ type StepResult struct {
 	FinishedAt time.Time
 	Meta       StepMeta
 	Err        error
+	// StopAfter: si true, el Runner detiene la ejecución tras este step
+	// (los siguientes se saltan). El status del día sigue siendo "ok".
+	StopAfter bool
 }
 
 // DayCtx es el contexto de un día en ejecución: config + día + store + logger.
