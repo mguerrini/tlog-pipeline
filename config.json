@@ -14,6 +14,16 @@
     "target_root": "./output",
     "finished_root": "./finished"
   },
+  "output": {
+    "cierre": true,
+    "inventory_reception": false,
+    "inventory_fiscaldoc_fc": false,
+    "inventory_fiscaldoc_nc": false,
+    "inventory_return": false,
+    "inventory_adjustment": false,
+    "inventory_count": false,
+    "inventory_transfer": false
+  },
   "process": {
     "mode": "ALL",
     "execution_mode": "PARALLEL",
@@ -54,7 +64,7 @@
     "sql": true
   },
   "create_xml": {
-    "enabled": true,
+    "enabled": false,
     "folder_source": "",
     "folder_target_root": ""
   },

@@ -71,7 +71,7 @@ func Load(srcDir, dbPath string) (*LoadResult, error) {
 	}
 	defer db.Close()
 
-	if err := applyDDL(db, ddl); err != nil {
+	if err := applyDDL(db, buildDDL()); err != nil {
 		return nil, fmt.Errorf("aplicar DDL: %w", err)
 	}
 

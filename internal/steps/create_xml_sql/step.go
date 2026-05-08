@@ -1,21 +1,23 @@
 // Package create_xml_sql implementa el step de generación de XMLs para el
-// flujo SQL: lee la DB SQLite producida por create_sql_db, hidrata un db.Store
-// equivalente y reusa los generators existentes.
+// flujo SQL: abre la DB SQLite producida por create_sql_db y delega en los
+// generators SQL de internal/tlogsql, que ejecutan queries directas.
 // Solo se ejecuta si create_db.sql = true.
 package create_xml_sql
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"path/filepath"
 
+	_ "modernc.org/sqlite"
+
 	"github.com/opessa/tlog-pipeline/internal/naming"
 	"github.com/opessa/tlog-pipeline/internal/pipeline"
-	"github.com/opessa/tlog-pipeline/internal/sqldb"
 	"github.com/opessa/tlog-pipeline/internal/timeutil"
 	"github.com/opessa/tlog-pipeline/internal/tlog/common"
-	"github.com/opessa/tlog-pipeline/internal/tlog/factory"
+	"github.com/opessa/tlog-pipeline/internal/tlogsql"
 )
 
 // Step implementa el step "create_xml_sql".
@@ -43,12 +45,12 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 		return b.Fail(fmt.Errorf("DB SQLite no encontrada en %s (¿create_sql_db corrió?): %w", dbPath, err))
 	}
 
-	d.Log.Info("create_xml_sql: hidratando store desde DB SQLite", "db", dbPath)
-	store, err := sqldb.LoadStore(dbPath)
+	d.Log.Info("create_xml_sql: abriendo DB SQLite", "db", dbPath)
+	conn, err := sql.Open("sqlite", dbPath)
 	if err != nil {
-		return b.Fail(fmt.Errorf("hidratar store desde sqlite: %w", err))
+		return b.Fail(fmt.Errorf("abrir sqlite: %w", err))
 	}
-	d.Store = store
+	defer conn.Close()
 
 	beginDT, err := timeutil.ApplyOffset(d.Day, d.Cfg.Process.BeginDateOffset)
 	if err != nil {
@@ -59,22 +61,24 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 		return b.Fail(fmt.Errorf("end_date_offset inválido: %w", err))
 	}
 
-	kostst := store.Tables["KOSTST"]
-	if kostst == nil {
-		return b.Fail(fmt.Errorf("tabla KOSTST no encontrada en DB SQLite"))
+	retails, err := tlogsql.AllRetails(ctx, conn)
+	if err != nil {
+		return b.Fail(fmt.Errorf("listar retails: %w", err))
+	}
+	if len(retails) == 0 {
+		return b.Fail(fmt.Errorf("no hay filas en KOSTST"))
 	}
 
 	namer := naming.DefaultNamer{}
-	generators := factory.AllGenerators()
+	generators := tlogsql.AllGenerators()
 	totalXMLs := 0
 	totalEmpty := 0
 
-	for _, kstRow := range kostst.Rows {
-		kstID := kstRow["KST_ID"]
-		if kstID == "" {
+	for _, retail := range retails {
+		if retail.KstID == "" {
 			continue
 		}
-		retailCode := common.FormatRetailStoreID(kstRow["KST_CODE"])
+		retailCode := common.FormatRetailStoreID(retail.KstCode)
 
 		h := &common.HeaderCtx{
 			BusinessDay:   d.Day,
@@ -88,15 +92,15 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 		}
 
 		for _, gen := range generators {
-			result, err := gen.Generate(store, h, kstID)
+			result, err := gen.Generate(ctx, conn, h, retail.KstID)
 			if err != nil {
-				d.Log.Error("error generando TLOG",
-					"type", gen.Type(), "kst_id", kstID, "err", err)
+				d.Log.Error("error generando TLOG SQL",
+					"type", gen.Type(), "kst_id", retail.KstID, "err", err)
 				continue
 			}
 			if result == nil || result.Empty {
 				totalEmpty++
-				d.Log.Info("tlog vacío", "type", gen.Type(), "kst_id", kstID)
+				d.Log.Info("tlog vacío", "type", gen.Type(), "kst_id", retail.KstID)
 				continue
 			}
 
