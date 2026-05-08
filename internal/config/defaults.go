@@ -19,6 +19,17 @@ func applyDefaults(c *Config) {
 	if c.CreateDB.Separator == "" {
 		c.CreateDB.Separator = ","
 	}
+	// Si no se configuró ningún log (sección omitida en el JSON), habilitarlos
+	// todos para mantener compatibilidad con configs previas.
+	l := c.Logs
+	if !l.PipelineEnabled && !l.DayStatusEnabled && !l.SQLDBLoad && !l.OrphansReport {
+		c.Logs = Logs{
+			PipelineEnabled:  true,
+			DayStatusEnabled: true,
+			SQLDBLoad:        true,
+			OrphansReport:    true,
+		}
+	}
 	// Si no se configuró ningún output (sección omitida en el JSON), generar
 	// los 8 TLOGs para mantener compatibilidad con configs previas.
 	o := c.Output

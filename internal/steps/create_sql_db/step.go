@@ -42,12 +42,14 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 		return b.Fail(fmt.Errorf("sqldb.Load: %w", err))
 	}
 
-	// Escribir reporte Markdown
-	mdContent := sqldb.WriteReportMD(result, d.Day)
-	if err := os.WriteFile(reportPath, []byte(mdContent), 0o644); err != nil {
-		d.Log.Warn("no se pudo escribir reporte sqldb", "err", err)
-	} else {
-		d.Log.Info("reporte sqldb generado", "path", reportPath)
+	// Escribir reporte Markdown (si logs.sql_db_load = true)
+	if d.Cfg.Logs.SQLDBLoad {
+		mdContent := sqldb.WriteReportMD(result, d.Day)
+		if err := os.WriteFile(reportPath, []byte(mdContent), 0o644); err != nil {
+			d.Log.Warn("no se pudo escribir reporte sqldb", "err", err)
+		} else {
+			d.Log.Info("reporte sqldb generado", "path", reportPath)
+		}
 	}
 
 	// Loguear stats
@@ -69,7 +71,9 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 	}
 
 	b.SetMeta("db_path", dbPath)
-	b.SetMeta("report_path", reportPath)
+	if d.Cfg.Logs.SQLDBLoad {
+		b.SetMeta("report_path", reportPath)
+	}
 	b.SetMeta("overall_ok", result.OverallOK)
 
 	// Contar totales para el meta

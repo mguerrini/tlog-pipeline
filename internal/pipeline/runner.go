@@ -20,6 +20,14 @@ func NewRunner(steps []Step, log *slog.Logger) *Runner {
 	return &Runner{GlobalSteps: steps, log: log}
 }
 
+// saveStatus persiste el DayStatus a disco si logs.day_status_enabled = true.
+func saveStatus(d *DayCtx, status *DayStatus, path string) {
+	if !d.Cfg.Logs.DayStatusEnabled {
+		return
+	}
+	_ = status.save(path)
+}
+
 // RunDay procesa un día completo y actualiza el DayStatus.
 func (r *Runner) RunDay(ctx context.Context, d *DayCtx, onlyStep string) error {
 	dayStr := d.Day.Format("20060102")
@@ -41,7 +49,7 @@ func (r *Runner) RunDay(ctx context.Context, d *DayCtx, onlyStep string) error {
 		dur := result.FinishedAt.Sub(result.StartedAt).Round(time.Millisecond)
 		if result.Status == StatusFailed {
 			d.Log.Error("step fallido", "step", step.Name(), "err", result.Err, "dur", dur)
-			_ = status.save(statusPath)
+			saveStatus(d, status, statusPath)
 			return fmt.Errorf("step %s fallido: %w", step.Name(), result.Err)
 		}
 		d.Log.Info("step completado",
@@ -50,7 +58,7 @@ func (r *Runner) RunDay(ctx context.Context, d *DayCtx, onlyStep string) error {
 		// Modo debug: el step pidió detener el pipeline aquí.
 		if result.StopAfter {
 			d.Log.Info("pipeline detenido por StopAfter", "step", step.Name())
-			_ = status.save(statusPath)
+			saveStatus(d, status, statusPath)
 			return nil
 		}
 	}

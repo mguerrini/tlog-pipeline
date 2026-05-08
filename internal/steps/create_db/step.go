@@ -83,8 +83,10 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 	orphanReport := db.RunOrphanCheck(store, d.Day, nil)
 	orphanFile := filepath.Join(d.OutDir,
 		fmt.Sprintf("%s_orphans.md", timeutil.FormatCompact(d.Day)))
-	if err := db.WriteOrphanReportMD(orphanReport, orphanFile); err != nil {
-		d.Log.Warn("no se pudo escribir orphan report", "err", err)
+	if d.Cfg.Logs.OrphansReport {
+		if err := db.WriteOrphanReportMD(orphanReport, orphanFile); err != nil {
+			d.Log.Warn("no se pudo escribir orphan report", "err", err)
+		}
 	}
 
 	// Log por relación
@@ -106,15 +108,21 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 			d.Log.Info("orphan_check", "relation", rel, "rows", res.RowsTotal, "orphans", 0)
 		}
 	}
-	d.Log.Info("orphan_summary",
+	summaryArgs := []any{
 		"status", orphanReport.OverallStatus,
 		"relations_with_issues", orphanReport.CountOrphanRelations(),
-		"file", filepath.Base(orphanFile))
+	}
+	if d.Cfg.Logs.OrphansReport {
+		summaryArgs = append(summaryArgs, "file", filepath.Base(orphanFile))
+	}
+	d.Log.Info("orphan_summary", summaryArgs...)
 
 	b.SetMeta("orphans_status", orphanReport.OverallStatus)
 	b.SetMeta("orphans_relations_with_issues", orphanReport.CountOrphanRelations())
 	b.SetMeta("orphans_total_rows", orphanReport.TotalOrphanRows())
-	b.SetMeta("orphans_report_file", filepath.Base(orphanFile))
+	if d.Cfg.Logs.OrphansReport {
+		b.SetMeta("orphans_report_file", filepath.Base(orphanFile))
+	}
 
 	return b.OK()
 }

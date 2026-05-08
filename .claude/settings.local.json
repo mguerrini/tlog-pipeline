@@ -3,7 +3,9 @@
     "allow": [
       "Bash(go build *)",
       "Bash(go vet *)",
-      "Bash(go test *)"
+      "Bash(go test *)",
+      "PowerShell(go build *)",
+      "PowerShell(go test *)"
     ]
   }
 }

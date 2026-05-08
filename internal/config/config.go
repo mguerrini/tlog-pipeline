@@ -57,6 +57,15 @@ func (o Output) Enabled(t naming.TLOGType) bool {
 	return false
 }
 
+// Logs habilita / deshabilita la escritura de los archivos de log y reporte
+// que el pipeline produce por día.
+type Logs struct {
+	PipelineEnabled  bool `json:"pipeline_enabled"`   // AAAAMMDD_pipeline.log
+	DayStatusEnabled bool `json:"day_status_enabled"` // AAAAMMDD_day_status.json
+	SQLDBLoad        bool `json:"sql_db_load"`        // AAAAMMDD_sqldb_load.md
+	OrphansReport    bool `json:"orphans_report"`     // AAAAMMDD_orphans.md
+}
+
 type Process struct {
 	Mode                  string `json:"mode"`              // ALL | DAY
 	ExecutionMode         string `json:"execution_mode"`    // PARALLEL | SERIAL
@@ -126,6 +135,7 @@ type Config struct {
 	FTPTarget    FTP          `json:"ftp_target"`
 	LocalFolders LocalFolders `json:"local_folders"`
 	Output       Output       `json:"output"`
+	Logs         Logs         `json:"logs"`
 	Process      Process      `json:"process"`
 	FTPDownload  FTPDownload  `json:"ftp_download"`
 	ReadDays     ReadDays     `json:"read_days"`

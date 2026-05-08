@@ -104,9 +104,12 @@ func (c *Coordinator) processDay(ctx context.Context, day time.Time) error {
 		return nil
 	}
 
-	// Logger con archivo por día
-	logPath := filepath.Join(outDir, dayStr+"_pipeline.log")
+	// Logger con archivo por día (si está habilitado en config)
 	_ = os.MkdirAll(outDir, 0o755)
+	logPath := ""
+	if c.cfg.Logs.PipelineEnabled {
+		logPath = filepath.Join(outDir, dayStr+"_pipeline.log")
+	}
 	dayLog, closer, err := logger.New(slog.LevelInfo, logPath)
 	if err != nil {
 		dayLog = c.log // fallback al log global
