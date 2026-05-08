@@ -92,6 +92,9 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 		}
 
 		for _, gen := range generators {
+			if !d.Cfg.Output.Enabled(gen.Type()) {
+				continue
+			}
 			result, err := gen.Generate(ctx, conn, h, retail.KstID)
 			if err != nil {
 				d.Log.Error("error generando TLOG SQL",

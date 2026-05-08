@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+
+	"github.com/opessa/tlog-pipeline/internal/naming"
 )
 
 type FTP struct {
@@ -17,6 +19,42 @@ type LocalFolders struct {
 	SourceRoot   string `json:"source_root"`
 	TargetRoot   string `json:"target_root"`
 	FinishedRoot string `json:"finished_root"`
+}
+
+// Output controla qué TLOGs (XMLs) se generan en create_xml / create_xml_sql.
+// Cada flag corresponde a un naming.TLOGType.
+type Output struct {
+	Cierre               bool `json:"cierre"`
+	InventoryReception   bool `json:"inventory_reception"`
+	InventoryFiscalDocFC bool `json:"inventory_fiscaldoc_fc"`
+	InventoryFiscalDocNC bool `json:"inventory_fiscaldoc_nc"`
+	InventoryReturn      bool `json:"inventory_return"`
+	InventoryAdjustment  bool `json:"inventory_adjustment"`
+	InventoryCount       bool `json:"inventory_count"`
+	InventoryTransfer    bool `json:"inventory_transfer"`
+}
+
+// Enabled indica si el TLOG de tipo t debe generarse según la configuración.
+func (o Output) Enabled(t naming.TLOGType) bool {
+	switch t {
+	case naming.TLOGCierre:
+		return o.Cierre
+	case naming.TLOGReception:
+		return o.InventoryReception
+	case naming.TLOGFiscalDocFC:
+		return o.InventoryFiscalDocFC
+	case naming.TLOGFiscalDocNC:
+		return o.InventoryFiscalDocNC
+	case naming.TLOGReturn:
+		return o.InventoryReturn
+	case naming.TLOGAdjustment:
+		return o.InventoryAdjustment
+	case naming.TLOGCount:
+		return o.InventoryCount
+	case naming.TLOGTransfer:
+		return o.InventoryTransfer
+	}
+	return false
 }
 
 type Process struct {
@@ -87,6 +125,7 @@ type Config struct {
 	FTPSource    FTP          `json:"ftp_source"`
 	FTPTarget    FTP          `json:"ftp_target"`
 	LocalFolders LocalFolders `json:"local_folders"`
+	Output       Output       `json:"output"`
 	Process      Process      `json:"process"`
 	FTPDownload  FTPDownload  `json:"ftp_download"`
 	ReadDays     ReadDays     `json:"read_days"`

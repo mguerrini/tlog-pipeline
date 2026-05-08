@@ -19,6 +19,23 @@ func applyDefaults(c *Config) {
 	if c.CreateDB.Separator == "" {
 		c.CreateDB.Separator = ","
 	}
+	// Si no se configuró ningún output (sección omitida en el JSON), generar
+	// los 8 TLOGs para mantener compatibilidad con configs previas.
+	o := c.Output
+	if !o.Cierre && !o.InventoryReception && !o.InventoryFiscalDocFC &&
+		!o.InventoryFiscalDocNC && !o.InventoryReturn && !o.InventoryAdjustment &&
+		!o.InventoryCount && !o.InventoryTransfer {
+		c.Output = Output{
+			Cierre:               true,
+			InventoryReception:   true,
+			InventoryFiscalDocFC: true,
+			InventoryFiscalDocNC: true,
+			InventoryReturn:      true,
+			InventoryAdjustment:  true,
+			InventoryCount:       true,
+			InventoryTransfer:    true,
+		}
+	}
 	if len(c.ReadFiles.ExpectedFiles) == 0 {
 		c.ReadFiles.ExpectedFiles = []string{
 			"Kostst_*.csv",

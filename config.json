@@ -24,6 +24,11 @@
     "inventory_count": false,
     "inventory_transfer": false
   },
+  "logs": {
+    "pipeline_enabled": true,
+    "day_status_enabled": true,
+    "sql_db_load": true
+  },
   "process": {
     "mode": "ALL",
     "execution_mode": "PARALLEL",
