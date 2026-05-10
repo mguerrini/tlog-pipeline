@@ -6,12 +6,20 @@ import (
 	"github.com/opessa/tlog-pipeline/internal/tlog/common"
 )
 
-// GenerateResult devuelve metadata sobre la generación.
-type GenerateResult struct {
+// GeneratedFile representa un archivo XML producido por un generador.
+// Cada archivo contiene exactamente una <Transaction> identificada por SeqNum.
+type GeneratedFile struct {
+	SeqNum     string
 	XMLContent string
-	Empty      bool
-	NumDocs    int
 	NumLines   int
+}
+
+// GenerateResult devuelve los archivos producidos y metadata agregada.
+type GenerateResult struct {
+	Files    []GeneratedFile
+	Empty    bool
+	NumDocs  int
+	NumLines int
 }
 
 // Generator es la interfaz que implementan los 8 mappers.

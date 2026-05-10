@@ -101,20 +101,22 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 					"type", gen.Type(), "kst_id", retail.KstID, "err", err)
 				continue
 			}
-			if result == nil || result.Empty {
+			if result == nil || result.Empty || len(result.Files) == 0 {
 				totalEmpty++
 				d.Log.Info("tlog vacío", "type", gen.Type(), "kst_id", retail.KstID)
 				continue
 			}
 
-			filename := namer.XMLFile(retailCode, d.Day, gen.Type())
-			outPath := filepath.Join(d.OutDir, filename)
-			if err := os.WriteFile(outPath, []byte(result.XMLContent), 0o644); err != nil {
-				return b.Fail(fmt.Errorf("escribir %s: %w", filename, err))
+			for _, f := range result.Files {
+				filename := namer.XMLFile(gen.Type(), f.SeqNum)
+				outPath := filepath.Join(d.OutDir, filename)
+				if err := os.WriteFile(outPath, []byte(f.XMLContent), 0o644); err != nil {
+					return b.Fail(fmt.Errorf("escribir %s: %w", filename, err))
+				}
+				totalXMLs++
+				d.Log.Info("xml generado",
+					"file", filename, "lines", f.NumLines)
 			}
-			totalXMLs++
-			d.Log.Info("xml generado",
-				"file", filename, "docs", result.NumDocs, "lines", result.NumLines)
 		}
 	}
 

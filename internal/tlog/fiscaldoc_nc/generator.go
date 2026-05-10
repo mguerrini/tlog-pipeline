@@ -60,24 +60,32 @@ func (Generator) Generate(s *db.Store, h *common.HeaderCtx, kstID string) (*tlog
 
 	kst := s.Kostst[kstID]
 	retailID := common.FormatRetailStoreID(kst["KST_CODE"])
-	seqNum, err := sequence.Build(retailID, h.BusinessDay, sequence.DocFiscalDocNC)
-	if err != nil {
-		return nil, fmt.Errorf("fiscaldoc_nc sequence: %w", err)
-	}
 
-	x := common.NewXMLBuilder()
-	totalDocs, totalLines := 0, 0
+	var files []tlog.GeneratedFile
+	totalLines := 0
 
 	for _, lfs := range candidates {
 		lfsID := lfs["LFS_ID"]
 		lines := s.LieferposByLFS[lfsID]
 		liefer := s.Liefer[lfs["LF_ID"]]
-		totalDocs++
-		totalLines += len(lines)
+		seqNum, err := sequence.Build(h.BusinessDay, sequence.DocFiscalDocNC, len(files))
+		if err != nil {
+			return nil, fmt.Errorf("fiscaldoc_nc sequence: %w", err)
+		}
+		x := common.NewXMLBuilder()
 		writeNCDoc(x, h, retailID, seqNum, lfs, liefer, lines, s)
+		files = append(files, tlog.GeneratedFile{
+			SeqNum:     seqNum,
+			XMLContent: x.String(),
+			NumLines:   len(lines),
+		})
+		totalLines += len(lines)
 	}
 
-	return &tlog.GenerateResult{XMLContent: x.String(), NumDocs: totalDocs, NumLines: totalLines}, nil
+	if len(files) == 0 {
+		return &tlog.GenerateResult{Empty: true}, nil
+	}
+	return &tlog.GenerateResult{Files: files, NumDocs: len(files), NumLines: totalLines}, nil
 }
 
 func filterNC(row db.Row) bool {

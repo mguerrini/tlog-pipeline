@@ -67,15 +67,6 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 	b.SetMeta("rows_loaded", totalRows)
 	b.SetMeta("tables_loaded", len(store.Tables))
 
-	// Guardar snapshot opcional
-	if d.Cfg.Process.KeepDBAfterRun {
-		snapshotPath := filepath.Join(d.OutDir,
-			fmt.Sprintf("%s_pipeline.db.json", timeutil.FormatCompact(d.Day)))
-		if err := store.SaveSnapshot(snapshotPath); err != nil {
-			d.Log.Warn("no se pudo guardar snapshot de DB", "err", err)
-		}
-	}
-
 	// ── Chequeo de huérfanos ──────────────────────────────────────────────
 	if err := os.MkdirAll(d.OutDir, 0o755); err != nil {
 		d.Log.Warn("no se pudo crear out_dir para orphan report", "err", err)

@@ -67,13 +67,9 @@ ORDER BY lfs.LFS_ID`
 		return nil, err
 	}
 	retailID := common.FormatRetailStoreID(kst["KST_CODE"])
-	seqNum, err := sequence.Build(retailID, h.BusinessDay, sequence.DocFiscalDocFC)
-	if err != nil {
-		return nil, fmt.Errorf("fiscaldoc_fc sequence: %w", err)
-	}
 
-	x := common.NewXMLBuilder()
-	totalDocs, totalLines := 0, 0
+	var files []tlog.GeneratedFile
+	totalLines := 0
 
 	for _, lfs := range candidates {
 		lines, err := receptionLines(ctx, conn, lfs["LFS_ID"])
@@ -90,18 +86,27 @@ ORDER BY lfs.LFS_ID`
 		if liefer == nil {
 			liefer = map[string]string{}
 		}
-		totalDocs++
-		totalLines += len(lines)
+		seqNum, err := sequence.Build(h.BusinessDay, sequence.DocFiscalDocFC, len(files))
+		if err != nil {
+			return nil, fmt.Errorf("fiscaldoc_fc sequence: %w", err)
+		}
+		x := common.NewXMLBuilder()
 		writeFCDoc(x, h, retailID, seqNum, lfs, liefer, lines)
+		files = append(files, tlog.GeneratedFile{
+			SeqNum:     seqNum,
+			XMLContent: x.String(),
+			NumLines:   len(lines),
+		})
+		totalLines += len(lines)
 	}
 
-	if totalDocs == 0 {
+	if len(files) == 0 {
 		return &tlog.GenerateResult{Empty: true}, nil
 	}
 	return &tlog.GenerateResult{
-		XMLContent: x.String(),
-		NumDocs:    totalDocs,
-		NumLines:   totalLines,
+		Files:    files,
+		NumDocs:  len(files),
+		NumLines: totalLines,
 	}, nil
 }
 

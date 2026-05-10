@@ -1,13 +1,13 @@
 // Package sequence implementa el algoritmo de construcción y descomposición
 // del campo SEQUENCENUMBER usado en los TLOG OCPRA.
 //
-// Formato:
+// Formato (12 dígitos):
 //
-//	SU      (12 díg): [RETAILID:6][AA:2][NUMERO_ARCHIVO:4]   (Reception..FiscalDocNC)
-//	Bridge  (11 díg): [RETAILID:5][AA:2][NUMERO_ARCHIVO:4]   (Cierre)
+//	[9:1][AAMMDD:6][DOC:1][CONTADOR:4]
 //
-// Donde NUMERO_ARCHIVO = (DDD-1)*8 + DocumentNumber, con DDD = día del año
-// (1..366) y DocumentNumber el índice del tipo de archivo (0..7).
+// Donde DOC es el índice del tipo de archivo (0..7) y CONTADOR es un
+// secuencial por (día × tipo) que arranca en 0 y se incrementa para cada
+// documento adicional del mismo tipo en el mismo día.
 //
 // Ver docs/SEQUENCENUMBER.md para la especificación completa.
 package sequence
@@ -15,7 +15,6 @@ package sequence
 import (
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 )
 
@@ -57,56 +56,42 @@ func (d DocumentNumber) String() string {
 	}
 }
 
-// Origin distingue los dos formatos de SEQUENCENUMBER.
-type Origin int
-
 const (
-	OriginSU     Origin = iota // 12 dígitos (Reception..FiscalDocNC)
-	OriginBridge               // 11 dígitos (Cierre)
-)
-
-const (
-	retailWidthSU     = 6
-	retailWidthBridge = 5
+	prefix         = '9'
+	totalLen       = 12
+	counterMaxPlus = 10000 // contador 4 dígitos: 0..9999
 )
 
 // Decoded contiene los componentes lógicos extraídos de un SEQUENCENUMBER.
 type Decoded struct {
-	Origin         Origin
-	RetailID       string
 	Year           int
-	DayOfYear      int
+	Month          int
+	Day            int
 	DocumentNumber DocumentNumber
-	NumeroArchivo  int
+	Counter        int
 }
 
-// BusinessDayDate reconstruye la fecha (medianoche UTC) a partir de Year y
-// DayOfYear.
+// BusinessDayDate reconstruye la fecha (medianoche UTC).
 func (d Decoded) BusinessDayDate() time.Time {
-	return time.Date(d.Year, time.January, d.DayOfYear, 0, 0, 0, 0, time.UTC)
+	return time.Date(d.Year, time.Month(d.Month), d.Day, 0, 0, 0, 0, time.UTC)
 }
 
-// Build construye el SEQUENCENUMBER. El origen (SU vs Bridge) se infiere
-// del DocumentNumber: Cierre→Bridge (11 díg), resto→SU (12 díg).
-func Build(retailID string, businessDayDate time.Time, doc DocumentNumber) (string, error) {
+// Build construye el SEQUENCENUMBER con el formato 9AAMMDD<DOC><CONTADOR4>.
+//
+// counter es el secuencial por (día × tipo) que arranca en 0. El llamador
+// debe pasar 0 para el primer documento del tipo en el día, 1 para el
+// segundo, etc.
+func Build(businessDayDate time.Time, doc DocumentNumber, counter int) (string, error) {
 	if doc < DocReception || doc > DocCierre {
 		return "", fmt.Errorf("sequence: documentNumber fuera de rango: %d", int(doc))
 	}
-	retailWidth := retailWidthSU
-	if doc == DocCierre {
-		retailWidth = retailWidthBridge
+	if counter < 0 || counter >= counterMaxPlus {
+		return "", fmt.Errorf("sequence: contador fuera de rango [0,%d]: %d", counterMaxPlus-1, counter)
 	}
-	if !isAllDigits(retailID) {
-		return "", fmt.Errorf("sequence: retailID no es numérico: %q", retailID)
-	}
-	if len(retailID) > retailWidth {
-		return "", fmt.Errorf("sequence: retailID %q excede el ancho %d del tramo", retailID, retailWidth)
-	}
-	retailPadded := padLeftZero(retailID, retailWidth)
 	aa := businessDayDate.Year() % 100
-	ddd := businessDayDate.YearDay() // 1..366
-	numeroArchivo := (ddd-1)*8 + int(doc)
-	return fmt.Sprintf("%s%02d%04d", retailPadded, aa, numeroArchivo), nil
+	mm := int(businessDayDate.Month())
+	dd := businessDayDate.Day()
+	return fmt.Sprintf("%c%02d%02d%02d%d%04d", prefix, aa, mm, dd, int(doc), counter), nil
 }
 
 // Decode descompone un SEQUENCENUMBER en sus componentes lógicos.
@@ -117,44 +102,38 @@ func Decode(seq string, yearWindowStart int) (Decoded, error) {
 	if !isAllDigits(seq) {
 		return d, errors.New("sequence: contiene caracteres no numéricos")
 	}
-	var retailWidth int
-	switch len(seq) {
-	case 12:
-		d.Origin = OriginSU
-		retailWidth = retailWidthSU
-	case 11:
-		d.Origin = OriginBridge
-		retailWidth = retailWidthBridge
-	default:
-		return d, fmt.Errorf("sequence: longitud inválida %d (esperado 11 ó 12)", len(seq))
+	if len(seq) != totalLen {
+		return d, fmt.Errorf("sequence: longitud inválida %d (esperado %d)", len(seq), totalLen)
 	}
-	d.RetailID = seq[:retailWidth]
-	aa, err := atoiDigits(seq[retailWidth : retailWidth+2])
-	if err != nil {
-		return d, err
+	if seq[0] != prefix {
+		return d, fmt.Errorf("sequence: prefijo inválido %q (esperado %q)", seq[0], prefix)
 	}
-	numero, err := atoiDigits(seq[retailWidth+2:])
-	if err != nil {
-		return d, err
-	}
-	d.NumeroArchivo = numero
-	d.DayOfYear = numero/8 + 1
-	d.DocumentNumber = DocumentNumber(numero % 8)
+	aa, _ := atoiDigits(seq[1:3])
+	mm, _ := atoiDigits(seq[3:5])
+	dd, _ := atoiDigits(seq[5:7])
+	docDigit, _ := atoiDigits(seq[7:8])
+	counter, _ := atoiDigits(seq[8:12])
 
-	if d.DocumentNumber == DocCierre && d.Origin != OriginBridge {
-		return d, fmt.Errorf("sequence: documentNumber=Cierre incompatible con origen SU (12 díg)")
-	}
-	if d.DocumentNumber != DocCierre && d.Origin != OriginSU {
-		return d, fmt.Errorf("sequence: documentNumber=%s incompatible con origen Bridge (11 díg)", d.DocumentNumber)
+	if docDigit > 7 {
+		return d, fmt.Errorf("sequence: documentNumber fuera de rango: %d", docDigit)
 	}
 
 	d.Year = expandAA(aa, yearWindowStart)
+	d.Month = mm
+	d.Day = dd
+	d.DocumentNumber = DocumentNumber(docDigit)
+	d.Counter = counter
 
-	if d.DayOfYear < 1 || d.DayOfYear > 366 {
-		return d, fmt.Errorf("sequence: dayOfYear %d fuera de [1,366]", d.DayOfYear)
+	if mm < 1 || mm > 12 {
+		return d, fmt.Errorf("sequence: mes inválido %d", mm)
 	}
-	if d.DayOfYear == 366 && !isLeapYear(d.Year) {
-		return d, fmt.Errorf("sequence: dayOfYear=366 no válido en año no bisiesto %d", d.Year)
+	if dd < 1 || dd > 31 {
+		return d, fmt.Errorf("sequence: día inválido %d", dd)
+	}
+	// Validar fecha real (ej: 31 de febrero).
+	check := time.Date(d.Year, time.Month(mm), dd, 0, 0, 0, 0, time.UTC)
+	if check.Year() != d.Year || int(check.Month()) != mm || check.Day() != dd {
+		return d, fmt.Errorf("sequence: fecha inválida %04d-%02d-%02d", d.Year, mm, dd)
 	}
 	return d, nil
 }
@@ -173,10 +152,6 @@ func expandAA(aa, yearWindowStart int) int {
 	return candidate
 }
 
-func isLeapYear(y int) bool {
-	return (y%4 == 0 && y%100 != 0) || y%400 == 0
-}
-
 func isAllDigits(s string) bool {
 	if s == "" {
 		return false
@@ -187,13 +162,6 @@ func isAllDigits(s string) bool {
 		}
 	}
 	return true
-}
-
-func padLeftZero(s string, width int) string {
-	if len(s) >= width {
-		return s
-	}
-	return strings.Repeat("0", width-len(s)) + s
 }
 
 func atoiDigits(s string) (int, error) {

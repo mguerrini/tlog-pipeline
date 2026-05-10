@@ -56,7 +56,7 @@ ORDER BY dt.ART_ID`
 	}
 	kstCode := kst["KST_CODE"]
 	retailID := common.FormatRetailStoreID(kstCode)
-	seqNum, err := sequence.Build(retailID, h.BusinessDay, sequence.DocCierre)
+	seqNum, err := sequence.Build(h.BusinessDay, sequence.DocCierre, 0)
 	if err != nil {
 		return nil, fmt.Errorf("cierre sequence: %w", err)
 	}
@@ -70,9 +70,13 @@ ORDER BY dt.ART_ID`
 	x.Close() // Transaction
 
 	return &tlog.GenerateResult{
-		XMLContent: x.String(),
-		NumDocs:    1,
-		NumLines:   len(items),
+		Files: []tlog.GeneratedFile{{
+			SeqNum:     seqNum,
+			XMLContent: x.String(),
+			NumLines:   len(items),
+		}},
+		NumDocs:  1,
+		NumLines: len(items),
 	}, nil
 }
 

@@ -57,13 +57,9 @@ func (Generator) Generate(s *db.Store, h *common.HeaderCtx, kstID string) (*tlog
 
 	kst := s.Kostst[kstID]
 	retailID := common.FormatRetailStoreID(kst["KST_CODE"])
-	seqNum, err := sequence.Build(retailID, h.BusinessDay, sequence.DocAdjustment)
-	if err != nil {
-		return nil, fmt.Errorf("adjustment sequence: %w", err)
-	}
 
-	x := common.NewXMLBuilder()
-	totalDocs, totalLines := 0, 0
+	var files []tlog.GeneratedFile
+	totalLines := 0
 
 	for _, inv := range candidates {
 		invID := inv["INV_ID"]
@@ -71,15 +67,24 @@ func (Generator) Generate(s *db.Store, h *common.HeaderCtx, kstID string) (*tlog
 		if len(lines) == 0 {
 			continue
 		}
-		totalDocs++
-		totalLines += len(lines)
+		seqNum, err := sequence.Build(h.BusinessDay, sequence.DocAdjustment, len(files))
+		if err != nil {
+			return nil, fmt.Errorf("adjustment sequence: %w", err)
+		}
+		x := common.NewXMLBuilder()
 		writeAdjustmentDoc(x, h, retailID, seqNum, inv, lines, s)
+		files = append(files, tlog.GeneratedFile{
+			SeqNum:     seqNum,
+			XMLContent: x.String(),
+			NumLines:   len(lines),
+		})
+		totalLines += len(lines)
 	}
 
-	if totalDocs == 0 {
+	if len(files) == 0 {
 		return &tlog.GenerateResult{Empty: true}, nil
 	}
-	return &tlog.GenerateResult{XMLContent: x.String(), NumDocs: totalDocs, NumLines: totalLines}, nil
+	return &tlog.GenerateResult{Files: files, NumDocs: len(files), NumLines: totalLines}, nil
 }
 
 func writeAdjustmentDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum string,

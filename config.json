@@ -34,7 +34,6 @@
     "mode": "ALL",
     "execution_mode": "PARALLEL",
     "parallel_retails_per_day": false,
-    "keep_db_after_run": true,
     "begin_date_offset": "22:00:01",
     "end_date_offset": "22:00:00",
     "operator_id": "admin"
@@ -85,9 +84,10 @@
     "folder_target": ""
   },
   "local_clean": {
-    "enabled": false,
+    "enabled": true,
     "folder_source": "",
     "folder_target": "",
-    "delete_source": false
+    "delete_source": true,
+    "delete_database": true
   }
 }

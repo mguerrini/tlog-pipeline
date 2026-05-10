@@ -14,43 +14,14 @@ const (
 	TLOGCierre      TLOGType = "Cierre"
 )
 
-// TLOGOrder define el orden canónico para el sufijo NNNN del nombre del XML.
-// La posición en este slice (1-based) determina el NNNN del archivo generado.
+// TLOGOrder define el orden canónico de generación de los TLOG.
 var TLOGOrder = []TLOGType{
-	TLOGReception,   // 0001
-	TLOGReturn,      // 0002
-	TLOGTransfer,    // 0003
-	TLOGAdjustment,  // 0004
-	TLOGCount,       // 0005
-	TLOGFiscalDocFC, // 0006
-	TLOGFiscalDocNC, // 0007
-	TLOGCierre,      // 0008
-}
-
-// tlogOriginalName mapea cada TLOGType al nombre del archivo original
-// que se usa como segmento del nombre del XML generado.
-var tlogOriginalName = map[TLOGType]string{
-	TLOGReception:   "INVENTORY_RECEPTION",
-	TLOGReturn:      "INVENTORY_RETURN",
-	TLOGTransfer:    "INVENTORY_TRANSFER",
-	TLOGAdjustment:  "INVENTORY_ADJUSTMENT",
-	TLOGCount:       "INVENTORY_COUNT",
-	TLOGFiscalDocFC: "INVENTORY_FISCAL_DOC_FC",
-	TLOGFiscalDocNC: "INVENTORY_FISCAL_DOC_NC",
-	TLOGCierre:      "CIERRE",
-}
-
-// indexOf devuelve la posición 1-based de t dentro de TLOGOrder. 0 si no está.
-func indexOf(t TLOGType) int {
-	for i, v := range TLOGOrder {
-		if v == t {
-			return i + 1
-		}
-	}
-	return 0
-}
-
-// originalNameOf devuelve el nombre del archivo original asociado a t.
-func originalNameOf(t TLOGType) string {
-	return tlogOriginalName[t]
+	TLOGReception,
+	TLOGReturn,
+	TLOGTransfer,
+	TLOGAdjustment,
+	TLOGCount,
+	TLOGFiscalDocFC,
+	TLOGFiscalDocNC,
+	TLOGCierre,
 }

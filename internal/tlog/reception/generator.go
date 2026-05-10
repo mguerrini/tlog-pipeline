@@ -45,27 +45,35 @@ func (Generator) Generate(s *db.Store, h *common.HeaderCtx, kstID string) (*tlog
 
 	kst := s.Kostst[kstID]
 	retailID := common.FormatRetailStoreID(kst["KST_CODE"])
-	seqNum, err := sequence.Build(retailID, h.BusinessDay, sequence.DocReception)
-	if err != nil {
-		return nil, fmt.Errorf("reception sequence: %w", err)
-	}
 
-	x := common.NewXMLBuilder()
-	totalDocs, totalLines := 0, 0
+	var files []tlog.GeneratedFile
+	totalLines := 0
 
 	for _, lfs := range candidates {
 		lfsID := lfs["LFS_ID"]
 		lines := s.LieferposByLFS[lfsID]
 		liefer := s.Liefer[lfs["LF_ID"]]
-		totalDocs++
-		totalLines += len(lines)
+		seqNum, err := sequence.Build(h.BusinessDay, sequence.DocReception, len(files))
+		if err != nil {
+			return nil, fmt.Errorf("reception sequence: %w", err)
+		}
+		x := common.NewXMLBuilder()
 		writeReceptionDoc(x, h, retailID, seqNum, lfs, liefer, lines, s)
+		files = append(files, tlog.GeneratedFile{
+			SeqNum:     seqNum,
+			XMLContent: x.String(),
+			NumLines:   len(lines),
+		})
+		totalLines += len(lines)
 	}
 
+	if len(files) == 0 {
+		return &tlog.GenerateResult{Empty: true}, nil
+	}
 	return &tlog.GenerateResult{
-		XMLContent: x.String(),
-		NumDocs:    totalDocs,
-		NumLines:   totalLines,
+		Files:    files,
+		NumDocs:  len(files),
+		NumLines: totalLines,
 	}, nil
 }
 

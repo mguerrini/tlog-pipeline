@@ -104,7 +104,7 @@ Copiar y editar `config.json` (está junto al binario en runtime):
 | `process.begin_date_offset` | Offset HH:MM:SS para `BeginDateTime` en los TLOG | `00:00:00` |
 | `process.end_date_offset` | Offset HH:MM:SS para `EndDateTime` en los TLOG | `23:59:59` |
 | `process.operator_id` | `OperatorID` y `User` en todos los TLOG | `admin` |
-| `process.keep_db_after_run` | Guarda snapshot JSON de la store en memory | `false` |
+| `local_clean.delete_database` | Borra la BD SQLite (`*_pipeline.db`) del output al cerrar | `true` |
 
 ---
 
@@ -239,11 +239,11 @@ Por cada día procesado en `target_root/AAAAMMDD/`:
 
 | Archivo | Descripción |
 |---|---|
-| `[KST_CODE]-AAAAMMDD-NNNN.xml` | TLOG OCPRA generado (uno por tipo y retail con datos) |
+| `TLOG_<Tipo>_<SequenceNumber>.xml` | TLOG OCPRA generado (uno por documento) |
 | `AAAAMMDD_day_status.json` | Estado de cada step con metadata |
 | `AAAAMMDD_orphans.md` | Reporte de integridad referencial (18 relaciones FK) |
 | `AAAAMMDD_pipeline.log` | Log estructurado JSON del día |
-| `AAAAMMDD_pipeline.db.json` | Snapshot de la store (solo si `keep_db_after_run=true`) |
+| `AAAAMMDD_pipeline.db` | BD SQLite intermedia (eliminada por `local_clean.delete_database=true`) |
 
 ---
 

@@ -11,14 +11,6 @@
 //   - Los lookups por PK se construyen en `BuildIndexes`.
 package db
 
-import (
-	"encoding/json"
-	"fmt"
-	"os"
-	"path/filepath"
-	"sort"
-)
-
 // Row es un registro genérico (columna→valor).
 type Row map[string]string
 
@@ -106,23 +98,3 @@ func groupBy(t *Table, keyCol string) map[string][]Row {
 	return out
 }
 
-// SaveSnapshot escribe un JSON con todas las tablas para diagnóstico.
-// Es opcional; el pipeline puede omitirlo si keep_db_after_run = false.
-func (s *Store) SaveSnapshot(path string) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return err
-	}
-	type snapshot struct {
-		Tables []*Table `json:"tables"`
-	}
-	tables := make([]*Table, 0, len(s.Tables))
-	for _, t := range s.Tables {
-		tables = append(tables, t)
-	}
-	sort.Slice(tables, func(i, j int) bool { return tables[i].Name < tables[j].Name })
-	b, err := json.MarshalIndent(snapshot{Tables: tables}, "", "  ")
-	if err != nil {
-		return fmt.Errorf("marshal snapshot: %w", err)
-	}
-	return os.WriteFile(path, b, 0o644)
-}

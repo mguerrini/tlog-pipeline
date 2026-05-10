@@ -219,7 +219,7 @@ func (s *Step) Run(ctx context.Context, in pipeline.StepInput) pipeline.StepResu
 | `ftp_download` | `cfg.FTPSource` + `cfg.FTPDownload` + flags `--ftp-disabled` |
 | `read_days` | `cfg.ReadDays` + `cfg.LocalFolders.SourceRoot` |
 | `read_files` | `cfg.ReadFiles` + día + paths |
-| `create_db` | `cfg.CreateDB` + `cfg.Process.KeepDBAfterRun` |
+| `create_db` | `cfg.CreateDB` |
 | `create_xml` | `cfg.CreateXML` + retail + paths |
 | `local_clean` | `cfg.LocalClean` + `cfg.LocalFolders` + flag `--delete-source` |
 | `ftp_upload` | `cfg.FTPTarget` + `cfg.FTPUpload` + retail |
@@ -339,7 +339,6 @@ Al finalizar `local_clean` exitosamente, el `_day_status.json` se **copia** a `f
     "mode": "ALL",
     "execution_mode": "PARALLEL",
     "parallel_retails_per_day": false,
-    "keep_db_after_run": false,
     "begin_date_offset": "00:00:00",
     "end_date_offset": "23:59:59",
     "operator_id": "admin"
@@ -401,7 +400,7 @@ Al finalizar `local_clean` exitosamente, el `_day_status.json` se **copia** a `f
 | Sintaxis JSON corregida (comas, dos puntos, comillas) | el sample tenía errores de parsing |
 | Eliminado `start_step_name` | se reemplaza por `enabled` por step + `--step` |
 | Agregado `parallel_retails_per_day` | paralelismo dentro del día |
-| Agregado `keep_db_after_run` | qué hacer con la DB intermedia |
+| Agregado `local_clean.delete_database` | qué hacer con la BD SQLite intermedia |
 | Agregado `begin_date_offset`, `end_date_offset`, `operator_id` | comunes a todos los TLOG |
 | `local_folders.source_root` pasa de array a string | unificar tipo |
 | Agregado `read_files.expected_files` | validación explícita de archivos requeridos |
