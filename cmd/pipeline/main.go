@@ -19,6 +19,7 @@ import (
 	"github.com/opessa/tlog-pipeline/internal/steps/ftp_upload"
 	"github.com/opessa/tlog-pipeline/internal/steps/local_clean"
 	"github.com/opessa/tlog-pipeline/internal/steps/read_files"
+	"github.com/opessa/tlog-pipeline/internal/steps/split_by_date"
 	"github.com/opessa/tlog-pipeline/internal/timeutil"
 )
 
@@ -65,6 +66,7 @@ func main() {
 	// Orden de steps según arquitectura
 	steps := []pipeline.Step{
 		ftp_download.Step{},
+		split_by_date.Step{},
 		read_files.Step{},
 		create_db.Step{},
 		create_sql_db.Step{},

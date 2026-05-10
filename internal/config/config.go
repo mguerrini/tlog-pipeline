@@ -16,6 +16,7 @@ type FTP struct {
 }
 
 type LocalFolders struct {
+	All          string `json:"all"`
 	SourceRoot   string `json:"source_root"`
 	TargetRoot   string `json:"target_root"`
 	FinishedRoot string `json:"finished_root"`
@@ -143,6 +144,12 @@ type FTPDownload struct {
 	FolderRootTarget string `json:"folder_root_target"`
 }
 
+type SplitByDate struct {
+	Enabled          bool   `json:"enabled"`
+	FolderRootSource string `json:"folder_root_source"`
+	FolderRootTarget string `json:"folder_root_target"`
+}
+
 type ReadDays struct {
 	Enabled          bool   `json:"enabled"`
 	FolderSourceRoot string `json:"folder_source_root"`
@@ -193,20 +200,21 @@ type FTPEnd struct {
 
 // Config es el modelo completo de config.json.
 type Config struct {
-	FTPSource    FTP          `json:"ftp_source"`
-	FTPTarget    FTP          `json:"ftp_target"`
-	LocalFolders LocalFolders `json:"local_folders"`
-	Output       *Output      `json:"output"`
-	Logs         *Logs        `json:"logs"`
-	Process      Process      `json:"process"`
-	FTPDownload  FTPDownload  `json:"ftp_download"`
-	ReadDays     ReadDays     `json:"read_days"`
-	ReadFiles    ReadFiles    `json:"read_files"`
-	CreateDB     CreateDB     `json:"create_db"`
-	CreateXML    CreateXML    `json:"create_xml"`
-	FTPUpload    FTPUpload    `json:"ftp_upload"`
-	LocalClean   LocalClean   `json:"local_clean"`
-	FTPEnd       FTPEnd       `json:"ftp_end"`
+	FTPSource     FTP           `json:"ftp_source"`
+	FTPTarget     FTP           `json:"ftp_target"`
+	LocalFolders  LocalFolders  `json:"local_folders"`
+	Output        *Output       `json:"output"`
+	Logs          *Logs         `json:"logs"`
+	Process       Process       `json:"process"`
+	FTPDownload   FTPDownload   `json:"ftp_download"`
+	SplitByDate   SplitByDate   `json:"split_by_date"`
+	ReadDays      ReadDays      `json:"read_days"`
+	ReadFiles     ReadFiles     `json:"read_files"`
+	CreateDB      CreateDB      `json:"create_db"`
+	CreateXML     CreateXML     `json:"create_xml"`
+	FTPUpload     FTPUpload     `json:"ftp_upload"`
+	LocalClean    LocalClean    `json:"local_clean"`
+	FTPEnd        FTPEnd        `json:"ftp_end"`
 }
 
 // Load lee config.json y aplica defaults a campos vacíos.

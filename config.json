@@ -10,6 +10,7 @@
     "pass": ""
   },
   "local_folders": {
+    "all": "./appdata/all",
     "source_root": "./appdata/input",
     "target_root": "./appdata/output",
     "finished_root": "./appdata/finished"
@@ -40,6 +41,11 @@
   },
   "ftp_download": {
     "enabled": false,
+    "folder_root_source": "",
+    "folder_root_target": ""
+  },
+  "split_by_date": {
+    "enabled": true,
     "folder_root_source": "",
     "folder_root_target": ""
   },

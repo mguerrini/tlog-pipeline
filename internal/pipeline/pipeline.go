@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -46,7 +47,14 @@ func (c *Coordinator) Run(ctx context.Context) error {
 		days = []time.Time{c.onlyDay}
 	} else {
 		var err error
-		days, err = findDays(c.cfg.LocalFolders.SourceRoot)
+		allDir := ""
+		if c.cfg.SplitByDate.Enabled {
+			allDir = c.cfg.SplitByDate.FolderRootSource
+			if allDir == "" {
+				allDir = c.cfg.LocalFolders.All
+			}
+		}
+		days, err = findDays(c.cfg.LocalFolders.SourceRoot, allDir)
 		if err != nil {
 			return fmt.Errorf("read_days: %w", err)
 		}
@@ -99,9 +107,14 @@ func (c *Coordinator) processDay(ctx context.Context, day time.Time) error {
 	dayDir := filepath.Join(c.cfg.LocalFolders.SourceRoot, dayStr)
 	outDir := filepath.Join(c.cfg.LocalFolders.TargetRoot, dayStr)
 
+	// Si la carpeta del día no existe, normalmente skip — pero si
+	// split_by_date está habilitado, ese step la creará moviendo CSVs
+	// desde "all/", así que dejamos que el runner siga adelante.
 	if _, err := os.Stat(dayDir); os.IsNotExist(err) {
-		c.log.Warn("carpeta del día no existe, skip", "dir", dayDir)
-		return nil
+		if !c.cfg.SplitByDate.Enabled {
+			c.log.Warn("carpeta del día no existe, skip", "dir", dayDir)
+			return nil
+		}
 	}
 
 	// Logger con archivo por día (si está habilitado en config)
@@ -141,13 +154,20 @@ func numCPU() int {
 	return 4
 }
 
-// findDays escanea root buscando sub-carpetas con nombre AAAAMMDD.
-func findDays(root string) ([]time.Time, error) {
-	entries, err := os.ReadDir(root)
-	if err != nil {
-		return nil, fmt.Errorf("leer source_root %s: %w", root, err)
+// findDays descubre los días a procesar combinando dos fuentes:
+//   - sub-carpetas AAAAMMDD bajo sourceRoot (input/AAAAMMDD/)
+//   - últimos 8 caracteres del basename de los CSVs en allDir (si != "")
+//
+// La segunda fuente existe para que split_by_date tenga días que procesar
+// cuando todavía no se creó la carpeta input/AAAAMMDD/ — ese step es
+// justamente quien la crea. Si allDir == "", se usa solo la primera.
+func findDays(sourceRoot, allDir string) ([]time.Time, error) {
+	seen := map[string]time.Time{}
+
+	entries, err := os.ReadDir(sourceRoot)
+	if err != nil && !os.IsNotExist(err) {
+		return nil, fmt.Errorf("leer source_root %s: %w", sourceRoot, err)
 	}
-	var days []time.Time
 	for _, e := range entries {
 		if !e.IsDir() || !reDay.MatchString(e.Name()) {
 			continue
@@ -156,11 +176,45 @@ func findDays(root string) ([]time.Time, error) {
 		if err != nil {
 			continue
 		}
-		sub := filepath.Join(root, e.Name())
+		sub := filepath.Join(sourceRoot, e.Name())
 		subs, err := os.ReadDir(sub)
 		if err != nil || len(subs) == 0 {
 			continue
 		}
+		seen[e.Name()] = t
+	}
+
+	if allDir != "" {
+		if files, err := os.ReadDir(allDir); err == nil {
+			for _, f := range files {
+				if f.IsDir() {
+					continue
+				}
+				name := f.Name()
+				ext := filepath.Ext(name)
+				if !strings.EqualFold(ext, ".csv") {
+					continue
+				}
+				base := strings.TrimSuffix(name, ext)
+				if len(base) < 8 {
+					continue
+				}
+				date := base[len(base)-8:]
+				if !reDay.MatchString(date) {
+					continue
+				}
+				if _, dup := seen[date]; dup {
+					continue
+				}
+				if t, err := timeutil.ParseDay(date); err == nil {
+					seen[date] = t
+				}
+			}
+		}
+	}
+
+	days := make([]time.Time, 0, len(seen))
+	for _, t := range seen {
 		days = append(days, t)
 	}
 	sort.Slice(days, func(i, j int) bool { return days[i].Before(days[j]) })
