@@ -54,6 +54,9 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 	generators := factory.AllGenerators()
 	totalXMLs := 0
 	totalEmpty := 0
+	// counters[TLOGType] guarda el próximo CONTADOR del SEQUENCENUMBER para
+	// cada tipo de doc, compartido entre todos los KST_IDs del día.
+	counters := make(map[naming.TLOGType]int)
 
 	for _, kstRow := range kostst.Rows {
 		kstID := kstRow["KST_ID"]
@@ -77,7 +80,7 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 			if !d.Cfg.Output.Enabled(gen.Type()) {
 				continue
 			}
-			result, err := gen.Generate(d.Store, h, kstID)
+			result, err := gen.Generate(d.Store, h, kstID, counters[gen.Type()])
 			if err != nil {
 				d.Log.Error("error generando TLOG",
 					"type", gen.Type(), "kst_id", kstID, "err", err)
@@ -99,6 +102,7 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 				d.Log.Info("xml generado",
 					"file", filename, "lines", f.NumLines)
 			}
+			counters[gen.Type()] += result.NumDocs
 		}
 	}
 

@@ -31,7 +31,7 @@ type Generator struct{}
 
 func (Generator) Type() naming.TLOGType { return naming.TLOGReturn }
 
-func (Generator) Generate(s *db.Store, h *common.HeaderCtx, kstID string) (*tlog.GenerateResult, error) {
+func (Generator) Generate(s *db.Store, h *common.HeaderCtx, kstID string, startCounter int) (*tlog.GenerateResult, error) {
 	lfsTable := s.Tables["LIEFERSCHEIN"]
 	if lfsTable == nil {
 		return &tlog.GenerateResult{Empty: true}, nil
@@ -66,7 +66,7 @@ func (Generator) Generate(s *db.Store, h *common.HeaderCtx, kstID string) (*tlog
 		lfsID := lfs["LFS_ID"]
 		lines := s.LieferposByLFS[lfsID]
 		liefer := s.Liefer[lfs["LF_ID"]]
-		seqNum, err := sequence.Build(h.BusinessDay, sequence.DocReturn, len(files))
+		seqNum, err := sequence.Build(h.BusinessDay, sequence.DocReturn, startCounter+len(files))
 		if err != nil {
 			return nil, fmt.Errorf("return sequence: %w", err)
 		}

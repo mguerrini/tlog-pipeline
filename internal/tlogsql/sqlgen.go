@@ -21,9 +21,14 @@ import (
 )
 
 // Generator es la interfaz de los generators SQL.
+//
+// startCounter es el valor inicial del CONTADOR del SEQUENCENUMBER para esta
+// llamada. El step llama a Generate una vez por KST_ID y va incrementando el
+// contador con result.NumDocs, de modo que el SEQUENCENUMBER sea único por
+// (día × tipo) a lo largo de todos los KST_IDs.
 type Generator interface {
 	Type() naming.TLOGType
-	Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string) (*tlog.GenerateResult, error)
+	Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, startCounter int) (*tlog.GenerateResult, error)
 }
 
 // queryRows ejecuta una query y devuelve cada fila como map[string]string.

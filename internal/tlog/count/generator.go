@@ -33,7 +33,7 @@ type Generator struct{}
 
 func (Generator) Type() naming.TLOGType { return naming.TLOGCount }
 
-func (Generator) Generate(s *db.Store, h *common.HeaderCtx, kstID string) (*tlog.GenerateResult, error) {
+func (Generator) Generate(s *db.Store, h *common.HeaderCtx, kstID string, startCounter int) (*tlog.GenerateResult, error) {
 	invTable := s.Tables["INVENTUR"]
 	if invTable == nil {
 		return &tlog.GenerateResult{Empty: true}, nil
@@ -66,7 +66,7 @@ func (Generator) Generate(s *db.Store, h *common.HeaderCtx, kstID string) (*tlog
 		if len(lines) == 0 {
 			continue
 		}
-		seqNum, err := sequence.Build(h.BusinessDay, sequence.DocCount, len(files))
+		seqNum, err := sequence.Build(h.BusinessDay, sequence.DocCount, startCounter+len(files))
 		if err != nil {
 			return nil, fmt.Errorf("count sequence: %w", err)
 		}

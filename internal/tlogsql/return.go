@@ -40,7 +40,7 @@ type ReturnGenerator struct{}
 
 func (ReturnGenerator) Type() naming.TLOGType { return naming.TLOGReturn }
 
-func (ReturnGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string) (*tlog.GenerateResult, error) {
+func (ReturnGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, startCounter int) (*tlog.GenerateResult, error) {
 	const candidatesSQL = `
 		SELECT DISTINCT l.LFS_ID, K.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO, L2.LF_VERT, l.LFS_NAME, l.LFS_DATUM,
 			l.LFS_INFO, l.LFS_NETTO, l.LFS_MWST
@@ -76,7 +76,7 @@ func (ReturnGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.Hea
 			continue
 		}
 
-		seqNum, err := sequence.Build(h.BusinessDay, sequence.DocReturn, len(files))
+		seqNum, err := sequence.Build(h.BusinessDay, sequence.DocReturn, startCounter+len(files))
 		if err != nil {
 			return nil, fmt.Errorf("return sequence: %w", err)
 		}

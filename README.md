@@ -239,7 +239,7 @@ Por cada día procesado en `target_root/AAAAMMDD/`:
 
 | Archivo | Descripción |
 |---|---|
-| `TLOG_<Tipo>_<SequenceNumber>.xml` | TLOG OCPRA generado (uno por documento) |
+| `TLOG_<Tipo>_<KstCode>_<SequenceNumber>.xml` | TLOG OCPRA generado (uno por documento) |
 | `AAAAMMDD_day_status.json` | Estado de cada step con metadata |
 | `AAAAMMDD_orphans.md` | Reporte de integridad referencial (18 relaciones FK) |
 | `AAAAMMDD_pipeline.log` | Log estructurado JSON del día |

@@ -31,7 +31,7 @@ type CierreGenerator struct{}
 
 func (CierreGenerator) Type() naming.TLOGType { return naming.TLOGCierre }
 
-func (CierreGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string) (*tlog.GenerateResult, error) {
+func (CierreGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, startCounter int) (*tlog.GenerateResult, error) {
 	const itemsSQL = `
 SELECT dt.KST_ID, dt.ART_ID, dt.DAY_DATE,
        dt.DAY_SOHBEG, dt.DAY_SOHEND, dt.DAY_SOHINV,
@@ -56,7 +56,7 @@ ORDER BY dt.ART_ID`
 	}
 	kstCode := kst["KST_CODE"]
 	retailID := common.FormatRetailStoreID(kstCode)
-	seqNum, err := sequence.Build(h.BusinessDay, sequence.DocCierre, 0)
+	seqNum, err := sequence.Build(h.BusinessDay, sequence.DocCierre, startCounter)
 	if err != nil {
 		return nil, fmt.Errorf("cierre sequence: %w", err)
 	}

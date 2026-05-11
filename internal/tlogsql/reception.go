@@ -38,7 +38,7 @@ type ReceptionGenerator struct{}
 
 func (ReceptionGenerator) Type() naming.TLOGType { return naming.TLOGReception }
 
-func (ReceptionGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string) (*tlog.GenerateResult, error) {
+func (ReceptionGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, startCounter int) (*tlog.GenerateResult, error) {
 	const candidatesSQL = `
 		SELECT DISTINCT l.LFS_ID, K.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO, L2.LF_VERT, l.LFS_NAME, l.LFS_DATUM
 		FROM LIEFERSCHEIN l
@@ -72,7 +72,7 @@ func (ReceptionGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.
 			continue
 		}
 
-		seqNum, err := sequence.Build(h.BusinessDay, sequence.DocReception, len(files))
+		seqNum, err := sequence.Build(h.BusinessDay, sequence.DocReception, startCounter+len(files))
 		if err != nil {
 			return nil, fmt.Errorf("reception sequence: %w", err)
 		}

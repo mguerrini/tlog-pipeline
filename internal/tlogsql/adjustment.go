@@ -40,7 +40,7 @@ type AdjustmentGenerator struct{}
 
 func (AdjustmentGenerator) Type() naming.TLOGType { return naming.TLOGAdjustment }
 
-func (AdjustmentGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string) (*tlog.GenerateResult, error) {
+func (AdjustmentGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, startCounter int) (*tlog.GenerateResult, error) {
 	const candidatesSQL = `
 SELECT DISTINCT I.INV_ID, K.KST_CODE, I.INV_NAME, I.CHG_ZEIT
 FROM main.INVENTUR I
@@ -68,7 +68,7 @@ ORDER BY I.INV_ID`
 		if len(lines) == 0 {
 			continue
 		}
-		seqNum, err := sequence.Build(h.BusinessDay, sequence.DocAdjustment, len(files))
+		seqNum, err := sequence.Build(h.BusinessDay, sequence.DocAdjustment, startCounter+len(files))
 		if err != nil {
 			return nil, fmt.Errorf("adjustment sequence: %w", err)
 		}

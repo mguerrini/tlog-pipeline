@@ -5,7 +5,8 @@
       "Bash(go vet *)",
       "Bash(go test *)",
       "PowerShell(go build *)",
-      "PowerShell(go test *)"
+      "PowerShell(go test *)",
+      "Bash(awk *)"
     ]
   }
 }

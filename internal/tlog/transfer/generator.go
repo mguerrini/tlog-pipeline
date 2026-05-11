@@ -23,10 +23,11 @@ func (Generator) Type() naming.TLOGType { return naming.TLOGTransfer }
 
 // Generate retorna Empty=true porque la tabla LAGERBEW no está disponible.
 // Cuando LAGERBEW sea incluida en el export, implementar el mapper aquí.
-func (Generator) Generate(s *db.Store, h *common.HeaderCtx, kstID string) (*tlog.GenerateResult, error) {
+func (Generator) Generate(s *db.Store, h *common.HeaderCtx, kstID string, startCounter int) (*tlog.GenerateResult, error) {
 	_ = s
 	_ = h
 	_ = kstID
+	_ = startCounter
 	// LAGERBEW no está en los CSVs del proyecto. No se generan XMLs.
 	return &tlog.GenerateResult{Empty: true}, nil
 }

@@ -40,7 +40,7 @@ type FiscalDocFCGenerator struct{}
 
 func (FiscalDocFCGenerator) Type() naming.TLOGType { return naming.TLOGFiscalDocFC }
 
-func (FiscalDocFCGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string) (*tlog.GenerateResult, error) {
+func (FiscalDocFCGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, startCounter int) (*tlog.GenerateResult, error) {
 	const candidatesSQL = `
 		SELECT DISTINCT l.LFS_ID, K.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO, L2.LF_VERT, l.LFS_NAME, l.LFS_DATUM,
 			l.LFS_INFO, l.LFS_NETTO, l.LFS_MWST
@@ -74,7 +74,7 @@ func (FiscalDocFCGenerator) Generate(ctx context.Context, conn *sql.DB, h *commo
 		if len(lines) == 0 {
 			continue
 		}
-		seqNum, err := sequence.Build(h.BusinessDay, sequence.DocFiscalDocFC, len(files))
+		seqNum, err := sequence.Build(h.BusinessDay, sequence.DocFiscalDocFC, startCounter+len(files))
 		if err != nil {
 			return nil, fmt.Errorf("fiscaldoc_fc sequence: %w", err)
 		}
