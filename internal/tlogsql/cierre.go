@@ -54,8 +54,8 @@ ORDER BY dt.ART_ID`
 	if err != nil {
 		return nil, err
 	}
-	kstCode := kst["KST_CODE"]
-	retailID := common.FormatRetailStoreID(kstCode)
+	retailID := common.FormatRetailStoreID(kst["KST_CODE"])
+	locationCode := kst["KST_LOCID"]
 	seqNum, err := sequence.Build(h.BusinessDay, sequence.DocCierre, startCounter)
 	if err != nil {
 		return nil, fmt.Errorf("cierre sequence: %w", err)
@@ -64,7 +64,7 @@ ORDER BY dt.ART_ID`
 	x := common.NewXMLBuilder()
 	writeCierreHeader(x, h, retailID, seqNum)
 	for i, row := range items {
-		writeCierreItem(x, row, kstCode, i+1)
+		writeCierreItem(x, row, locationCode, i+1)
 	}
 	x.Close() // ItemList
 	x.Close() // Transaction
@@ -98,7 +98,7 @@ func writeCierreHeader(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqN
 	x.Open("ItemList")
 }
 
-func writeCierreItem(x *common.XMLBuilder, row map[string]string, kstCode string, itemSeq int) {
+func writeCierreItem(x *common.XMLBuilder, row map[string]string, locationCode string, itemSeq int) {
 	artNummer := row["ART_NUMMER"]
 	if artNummer == "" {
 		artNummer = row["ART_ID"] // fallback
@@ -111,11 +111,12 @@ func writeCierreItem(x *common.XMLBuilder, row map[string]string, kstCode string
 	qtyTrsfOut, _ := db.AsFloat(row["DAY_QTYTRSFOUT"])
 	qtyUsage, _ := db.AsFloat(row["DAY_QTYUSAGE"])
 	qtyInv, _ := db.AsFloat(row["DAY_QTYINV"])
-	sohInv, _ := db.AsFloat(row["DAY_SOHINV"])
+	//	sohInv, _ := db.AsFloat(row["DAY_SOHINV"])
+	sohEnd, _ := db.AsFloat(row["DAY_SOHEND"])
 
 	x.Open("Item")
 	x.Element("STOCK_SEQ_NUMBER", cierreStockSeqNumber)
-	x.Element("LOCATION_CODE", kstCode)
+	x.Element("LOCATION_CODE", locationCode)
 	x.Element("REVENUE_CENTER", cierreRevenueCenter)
 	x.Element("ITEM_INVENTORY_STATE", cierreItemInventoryState)
 	x.Element("ITEM_SEQ_NUMBER", fmt.Sprintf("%d", itemSeq))
@@ -129,6 +130,6 @@ func writeCierreItem(x *common.XMLBuilder, row map[string]string, kstCode string
 	x.Element("TRANSFEROUT_UNIT_COUNT", common.FormatDecimal4(qtyTrsfOut))
 	x.Element("ADJUSTMENTIN_UNIT_COUNT", common.FormatDecimal4(qtyUsage))
 	x.Element("ADJUSTMENTOUT_UNIT_COUNT", common.FormatDecimal4(qtyInv))
-	x.Element("CURRENT_UNIT_COUNT", common.FormatDecimal4(sohInv))
+	x.Element("CURRENT_UNIT_COUNT", common.FormatDecimal4(sohEnd))
 	x.Close()
 }

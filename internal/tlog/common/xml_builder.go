@@ -53,16 +53,20 @@ func (x *XMLBuilder) Close() {
 // Si value es vacío, escribe <Name/>.
 func (x *XMLBuilder) Element(name, value string) {
 	x.sb.WriteString(x.indent)
-	if value == "" {
-		x.sb.WriteString("<")
-		x.sb.WriteString(name)
-		x.sb.WriteString("/>\n")
-		return
-	}
+	/*
+		if value == "" {
+			x.sb.WriteString("<")
+			x.sb.WriteString(name)
+			x.sb.WriteString("/>\n")
+			return
+		}
+	*/
 	x.sb.WriteString("<")
 	x.sb.WriteString(name)
 	x.sb.WriteString(">")
-	x.sb.WriteString(escape(value))
+	if value != "" {
+		x.sb.WriteString(escape(value))
+	}
 	x.sb.WriteString("</")
 	x.sb.WriteString(name)
 	x.sb.WriteString(">\n")

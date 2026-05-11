@@ -37,7 +37,7 @@
     "parallel_retails_per_day": false,
     "begin_date_offset": "22:00:01",
     "end_date_offset": "22:00:00",
-    "operator_id": "admin"
+    "operator_id": "RY99999"
   },
   "ftp_download": {
     "enabled": false,
