@@ -40,7 +40,7 @@ ORDER BY lfp.LFP_POS
 <BusinessDayDate>                  Calculado = fecha del nombre del archivo (YYYYMMDD)
 <Period>                           Valor Fijo = "0"
 <Subperiod>                        Valor Fijo = "0"
-<BeginDateTime>                    Calculado = BusinessDayDate + BEGIN_DATE_OFFSET (config)
+<BeginDateTime>                    Calculado = (BusinessDayDate - 1 día) + BEGIN_DATE_OFFSET (config)
 <EndDateTime>                      Calculado = BusinessDayDate + END_DATE_OFFSET (config)
 <OperatorID>                       Calculado = config.process.operator_id
 <SerialFormID>                     Calculado = igual que SequenceNumber
@@ -118,7 +118,7 @@ ORDER BY lfp.LFP_POS
 <BusinessDayDate>                  Calculado = fecha del nombre del archivo (YYYYMMDD)
 <Period>                           Valor Fijo = "0"
 <Subperiod>                        Valor Fijo = "0"
-<BeginDateTime>                    Calculado = BusinessDayDate + BEGIN_DATE_OFFSET (config)
+<BeginDateTime>                    Calculado = (BusinessDayDate - 1 día) + BEGIN_DATE_OFFSET (config)
 <EndDateTime>                      Calculado = BusinessDayDate + END_DATE_OFFSET (config)
 <OperatorID>                       Calculado = config.process.operator_id
 <SerialFormID>                     Calculado = igual que SequenceNumber
@@ -196,7 +196,7 @@ ORDER BY lfp.LFP_POS
 <BusinessDayDate>                  Calculado = fecha del nombre del archivo (YYYYMMDD)
 <Period>                           Valor Fijo = "0"
 <Subperiod>                        Valor Fijo = "0"
-<BeginDateTime>                    Calculado = BusinessDayDate + BEGIN_DATE_OFFSET (config)
+<BeginDateTime>                    Calculado = (BusinessDayDate - 1 día) + BEGIN_DATE_OFFSET (config)
 <EndDateTime>                      Calculado = BusinessDayDate + END_DATE_OFFSET (config)
 <OperatorID>                       Calculado = config.process.operator_id
 <SerialFormID>                     Calculado = igual que SequenceNumber
@@ -284,7 +284,7 @@ ORDER BY lfp.LFP_POS
 <BusinessDayDate>                  Calculado = fecha del nombre del archivo (YYYYMMDD)
 <Period>                           Valor Fijo = "0"
 <Subperiod>                        Valor Fijo = "0"
-<BeginDateTime>                    Calculado = BusinessDayDate + BEGIN_DATE_OFFSET (config)
+<BeginDateTime>                    Calculado = (BusinessDayDate - 1 día) + BEGIN_DATE_OFFSET (config)
 <EndDateTime>                      Calculado = BusinessDayDate + END_DATE_OFFSET (config)
 <OperatorID>                       Calculado = config.process.operator_id
 <SerialFormID>                     Calculado = igual que SequenceNumber
@@ -366,7 +366,7 @@ ORDER BY inv.ART_ID
 <BusinessDayDate>                  Calculado = fecha del nombre del archivo (YYYYMMDD)
 <Period>                           Valor Fijo = "0"
 <Subperiod>                        Valor Fijo = "0"
-<BeginDateTime>                    Calculado = BusinessDayDate + BEGIN_DATE_OFFSET (config)
+<BeginDateTime>                    Calculado = (BusinessDayDate - 1 día) + BEGIN_DATE_OFFSET (config)
 <EndDateTime>                      Calculado = BusinessDayDate + END_DATE_OFFSET (config)
 <OperatorID>                       Calculado = config.process.operator_id
 <SerialFormID>                     Calculado = igual que SequenceNumber
@@ -437,7 +437,7 @@ ORDER BY inv.ART_ID
 <BusinessDayDate>                  Calculado = fecha del nombre del archivo (YYYYMMDD)
 <Period>                           Valor Fijo = "0"
 <Subperiod>                        Valor Fijo = "0"
-<BeginDateTime>                    Calculado = BusinessDayDate + BEGIN_DATE_OFFSET (config)
+<BeginDateTime>                    Calculado = (BusinessDayDate - 1 día) + BEGIN_DATE_OFFSET (config)
 <EndDateTime>                      Calculado = BusinessDayDate + END_DATE_OFFSET (config)
 <OperatorID>                       Calculado = config.process.operator_id
 <SerialFormID>                     Calculado = igual que SequenceNumber
@@ -490,7 +490,7 @@ Campos usados: `KST_CODE` (RetailStoreID), `KST_LOCID` (LOCATION_CODE en cada it
 **Query Items**
 ```sql
 SELECT dt.KST_ID, dt.ART_ID, dt.DAY_DATE,
-       dt.DAY_SOHBEG, dt.DAY_SOHEND, dt.DAY_SOHINV,
+       dt.DAY_SOHBEG, dt.DAY_SOHEND,
        dt.DAY_QTYPURCH, dt.DAY_QTYTRSFIN, dt.DAY_QTYTRSFOUT,
        dt.DAY_QTYUSAGE, dt.DAY_QTYSOLD, dt.DAY_QTYINV,
        art.ART_NUMMER, art.ART_NAME
@@ -507,13 +507,11 @@ ORDER BY dt.ART_ID
 <WORKSTATIONID>     Valor Fijo = "0"
 <SEQUENCENUMBER>    Calculado = sequence.Build(BusinessDay, DocCierre, contador)
 <BUSINESSDAYDATE>   Calculado = fecha del nombre del archivo (YYYYMMDD)
-<BEGINDATETIME>     Calculado = BusinessDayDate + BEGIN_DATE_OFFSET (config)
+<BEGINDATETIME>     Calculado = (BusinessDayDate - 1 día) + BEGIN_DATE_OFFSET (config)
 <ENDDATETIME>       Calculado = BusinessDayDate + END_DATE_OFFSET (config)
 <OPERATORID>        Calculado = config.process.operator_id
 <PERIODO>           Valor Fijo = "0"
 <SUBPERIOD>         Valor Fijo = "0"
-<PERIODCODE>        Valor Fijo = ""
-<SUBPERIODCODE>     Valor Fijo = ""
 <TYPECODE>          Valor Fijo = "BusinessEOD"
 <TYPEID>            Valor Fijo = "63"
 ```
@@ -536,5 +534,5 @@ ORDER BY dt.ART_ID
 <TRANSFEROUT_UNIT_COUNT>     Query Items = DAY_QTYTRSFOUT con 4 decimales
 <ADJUSTMENTIN_UNIT_COUNT>    Query Items = DAY_QTYUSAGE con 4 decimales
 <ADJUSTMENTOUT_UNIT_COUNT>   Query Items = DAY_QTYINV con 4 decimales
-<CURRENT_UNIT_COUNT>         Query Items = DAY_SOHINV con 4 decimales
+<CURRENT_UNIT_COUNT>         Query Items = DAY_SOHEND con 4 decimales
 ```

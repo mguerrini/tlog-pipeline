@@ -39,6 +39,7 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 	if err != nil {
 		return b.Fail(fmt.Errorf("begin_date_offset inválido: %w", err))
 	}
+	beginDT = beginDT.AddDate(0, 0, -1)
 	endDT, err := timeutil.ApplyOffset(d.Day, d.Cfg.Process.EndDateOffset)
 	if err != nil {
 		return b.Fail(fmt.Errorf("end_date_offset inválido: %w", err))

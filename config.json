@@ -33,7 +33,7 @@
   },
   "process": {
     "mode": "ALL",
-    "execution_mode": "PARALLEL",
+    "execution_mode": "SERIAL",
     "parallel_retails_per_day": false,
     "begin_date_offset": "22:00:01",
     "end_date_offset": "22:00:00",
