@@ -17,12 +17,12 @@
   },
   "output": {
     "cierre": true,
-    "inventory_reception": false,
-    "inventory_fiscaldoc_fc": false,
-    "inventory_fiscaldoc_nc": false,
-    "inventory_return": false,
-    "inventory_adjustment": false,
-    "inventory_count": false,
+    "inventory_reception": true,
+    "inventory_fiscaldoc_fc": true,
+    "inventory_fiscaldoc_nc": true,
+    "inventory_return": true,
+    "inventory_adjustment": true,
+    "inventory_count": true,
     "inventory_transfer": false
   },
   "logs": {
