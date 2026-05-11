@@ -1,3 +1,4 @@
+//go:generate goversioninfo -o resource.syso versioninfo.json
 package main
 
 import (
@@ -23,7 +24,17 @@ import (
 	"github.com/opessa/tlog-pipeline/internal/timeutil"
 )
 
+// Version se inyecta en build time vía -ldflags "-X main.Version=..."
+var Version = "1.0.0"
+
 func main() {
+	for _, a := range os.Args[1:] {
+		if a == "--version" || a == "-version" || a == "-v" {
+			fmt.Println("tlog-pipeline", Version)
+			return
+		}
+	}
+
 	flags := config.ParseFlags()
 
 	// Cargar config
@@ -48,6 +59,7 @@ func main() {
 	defer closer.Close()
 
 	log.Info("tlog-pipeline iniciado",
+		"version", Version,
 		"config", flags.ConfigPath,
 		"mode", cfg.Process.Mode,
 		"execution_mode", cfg.Process.ExecutionMode,
