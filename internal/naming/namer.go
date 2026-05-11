@@ -7,7 +7,7 @@ import (
 
 // FileNamer abstrae la convención de nombres de archivos del pipeline.
 type FileNamer interface {
-	XMLFile(t TLOGType, seqNum string) string
+	XMLFile(t TLOGType, kstCode, seqNum string) string
 	DayStatusFile(day time.Time) string
 	RetailStatusFile(day time.Time) string
 	DBFile(day time.Time) string
@@ -18,9 +18,9 @@ type FileNamer interface {
 // DefaultNamer aplica la convención del proyecto.
 type DefaultNamer struct{}
 
-// XMLFile devuelve el nombre del XML: TLOG_<Tipo>_<SequenceNumber>.xml.
-func (DefaultNamer) XMLFile(t TLOGType, seqNum string) string {
-	return fmt.Sprintf("TLOG_%s_%s.xml", string(t), seqNum)
+// XMLFile devuelve el nombre del XML: TLOG_<Tipo>_<KstCode>_<SequenceNumber>.xml.
+func (DefaultNamer) XMLFile(t TLOGType, kstCode, seqNum string) string {
+	return fmt.Sprintf("TLOG_%s_%s_%s.xml", string(t), kstCode, seqNum)
 }
 
 func (DefaultNamer) DayStatusFile(day time.Time) string {

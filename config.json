@@ -93,7 +93,7 @@
     "enabled": true,
     "folder_source": "",
     "folder_target": "",
-    "delete_source": true,
-    "delete_database": true
+    "delete_source": false,
+    "delete_database": false
   }
 }

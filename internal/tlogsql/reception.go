@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"math"
+	"time"
 
 	"github.com/opessa/tlog-pipeline/internal/db"
 	"github.com/opessa/tlog-pipeline/internal/naming"
@@ -39,12 +40,15 @@ func (ReceptionGenerator) Type() naming.TLOGType { return naming.TLOGReception }
 
 func (ReceptionGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string) (*tlog.GenerateResult, error) {
 	const candidatesSQL = `
-SELECT DISTINCT lfs.*
-FROM LIEFERSCHEIN lfs
-JOIN LIEFERPOS lfp ON lfp.LFS_ID = lfs.LFS_ID
-WHERE lfs.LFS_STATUS = 42
-  AND lfp.KST_ID = ?
-ORDER BY lfs.LFS_ID`
+		SELECT DISTINCT l.LFS_ID, K.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO, L2.LF_VERT, l.LFS_NAME, l.LFS_DATUM
+		FROM LIEFERSCHEIN l
+			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
+			INNER JOIN LIEFER L2 ON lpo.LF_ID = L2.LF_ID
+			INNER JOIN main.KOSTST K on K.KST_ID = lpo.KST_ID
+		WHERE lpo.KST_ID = ? AND l.LFS_STATUS = 37 AND COALESCE(l.LFS_RTS, 0) <> 1
+		GROUP BY l.LFS_NAME
+		ORDER BY l.LFS_NAME
+`
 
 	candidates, err := queryRows(ctx, conn, candidatesSQL, kstID)
 	if err != nil {
@@ -54,11 +58,7 @@ ORDER BY lfs.LFS_ID`
 		return &tlog.GenerateResult{Empty: true}, nil
 	}
 
-	kst, err := fetchKostst(ctx, conn, kstID)
-	if err != nil {
-		return nil, err
-	}
-	retailID := common.FormatRetailStoreID(kst["KST_CODE"])
+	retailID := common.FormatRetailStoreID(candidates[0]["KST_CODE"])
 
 	var files []tlog.GeneratedFile
 	totalLines := 0
@@ -71,20 +71,13 @@ ORDER BY lfs.LFS_ID`
 		if len(lines) == 0 {
 			continue
 		}
-		liefer, err := selectOne(ctx, conn, `SELECT * FROM LIEFER WHERE LF_ID = ?`, lfs["LF_ID"])
-		if err != nil {
-			return nil, err
-		}
-		if liefer == nil {
-			liefer = map[string]string{}
-		}
 
 		seqNum, err := sequence.Build(h.BusinessDay, sequence.DocReception, len(files))
 		if err != nil {
 			return nil, fmt.Errorf("reception sequence: %w", err)
 		}
 		x := common.NewXMLBuilder()
-		writeReceptionDoc(x, h, retailID, seqNum, lfs, liefer, lines)
+		writeReceptionDoc(x, h, retailID, seqNum, lfs, lines)
 		files = append(files, tlog.GeneratedFile{
 			SeqNum:     seqNum,
 			XMLContent: x.String(),
@@ -125,7 +118,7 @@ ORDER BY lfp.LFP_POS`
 }
 
 func writeReceptionDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum string,
-	lfs, liefer map[string]string, lines []map[string]string) {
+	lfs map[string]string, lines []map[string]string) {
 
 	state := mapLFSStatusReception(lfs["LFS_STATUS"])
 	fiscalFlag := "false"
@@ -133,6 +126,10 @@ func writeReceptionDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqN
 		fiscalFlag = "true"
 	}
 	brutto, _ := db.AsFloat(lfs["LFS_BRUTTO"])
+	receiptDate := h.FormatARTimestamp(h.BeginDateTime)
+	if t, err := time.Parse("2006-01-02 15:04:05", lfs["LFS_DATUM"]); err == nil {
+		receiptDate = h.FormatARTimestamp(t)
+	}
 
 	x.Open("Transaction")
 	x.Element("RetailStoreID", retailID)
@@ -160,7 +157,7 @@ func writeReceptionDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqN
 	x.Element("LastUpdateDate", h.FormatARTimestamp(h.BeginDateTime))
 	x.EmptyElement("Originator")
 	x.Element("SourceRetailStore", retailID)
-	x.Element("Supplier", liefer["LF_VERT"])
+	x.Element("Supplier", lfs["LF_VERT"])
 	x.EmptyElement("OrderDocumentType")
 	x.Element("User", h.OperatorID)
 	x.EmptyElement("ICDQuantity")
@@ -170,7 +167,7 @@ func writeReceptionDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqN
 	x.Element("ReceiptNumber", lfs["LFS_NAME"])
 	x.Element("FiscalReceiptFlag", fiscalFlag)
 	x.EmptyElement("ReceiptType")
-	x.Element("ReceiptDate", h.FormatARTimestamp(h.BeginDateTime))
+	x.Element("ReceiptDate", receiptDate)
 	x.EmptyElement("CAINumber")
 	x.EmptyElement("CAIDate")
 	x.EmptyElement("PagesQuantity")

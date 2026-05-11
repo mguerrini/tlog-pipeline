@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/opessa/tlog-pipeline/internal/db"
 	"github.com/opessa/tlog-pipeline/internal/naming"
@@ -41,10 +42,11 @@ func (CountGenerator) Type() naming.TLOGType { return naming.TLOGCount }
 
 func (CountGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string) (*tlog.GenerateResult, error) {
 	const candidatesSQL = `
-SELECT *
-FROM INVENTUR
-WHERE KST_ID = ? AND INV_STATUS = 8 AND INV_TYP = 4
-ORDER BY INV_ID`
+SELECT DISTINCT I.INV_ID, K.KST_CODE, I.INV_NAME, I.CHG_ZEIT, I.INV_DATUM
+FROM main.INVENTUR I
+	INNER JOIN main.KOSTST K ON I.KST_ID = K.KST_ID
+WHERE I.KST_ID = ? AND I.INV_STATUS = 8 AND I.INV_TYP = 4
+ORDER BY I.INV_ID`
 	candidates, err := queryRows(ctx, conn, candidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("count candidatos: %w", err)
@@ -53,11 +55,7 @@ ORDER BY INV_ID`
 		return &tlog.GenerateResult{Empty: true}, nil
 	}
 
-	kst, err := fetchKostst(ctx, conn, kstID)
-	if err != nil {
-		return nil, err
-	}
-	retailID := common.FormatRetailStoreID(kst["KST_CODE"])
+	retailID := common.FormatRetailStoreID(candidates[0]["KST_CODE"])
 
 	var files []tlog.GeneratedFile
 	totalLines := 0
@@ -97,6 +95,11 @@ ORDER BY INV_ID`
 func writeCountDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum string,
 	inv map[string]string, lines []map[string]string) {
 
+	createTimestamp := h.FormatARTimestamp(h.BeginDateTime)
+	if t, err := time.Parse("2006-01-02 15:04:05", inv["CHG_ZEIT"]); err == nil {
+		createTimestamp = h.FormatARTimestamp(t)
+	}
+
 	x.Open("Transaction")
 	x.Element("RetailStoreID", retailID)
 	x.Element("WorkstationID", countWorkstationID)
@@ -116,7 +119,7 @@ func writeCountDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum s
 	x.Element("DocumentTypeCode", countDocumentTypeCode)
 	x.Element("InventoryControlDocumentState", countInventoryDocState)
 	x.EmptyElement("contractReferenceNumber")
-	x.Element("CreateDateTimestamp", h.FormatARTimestamp(h.BeginDateTime))
+	x.Element("CreateDateTimestamp", createTimestamp)
 	x.Element("DestinationRetailStoreID", retailID)
 	x.Element("ExpectedDeliveryDate", h.FormatARTimestamp(h.BeginDateTime))
 	x.EmptyElement("ICDAmount")

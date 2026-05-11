@@ -90,7 +90,7 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 			}
 
 			for _, f := range result.Files {
-				filename := namer.XMLFile(gen.Type(), f.SeqNum)
+				filename := namer.XMLFile(gen.Type(), retailCode, f.SeqNum)
 				outPath := filepath.Join(d.OutDir, filename)
 				if err := os.WriteFile(outPath, []byte(f.XMLContent), 0o644); err != nil {
 					return b.Fail(fmt.Errorf("escribir %s: %w", filename, err))
