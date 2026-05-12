@@ -4,8 +4,8 @@
 //
 // Es un step de la fase 2. Lee target_root/AAAAMMDD/ftp_status.json: sólo
 // trabaja si uploaded=true (no tiene sentido archivar sin subir) y aún no se
-// marcó source_deleted. Si el step está deshabilitado, marca source_deleted=true
-// sin tocar nada remoto, para que local_clean pueda seguir.
+// marcó source_deleted. Si el step está deshabilitado, no hace nada — no toca
+// el ftp_status ni los archivos remotos.
 package ftp_end
 
 import (
@@ -16,7 +16,6 @@ import (
 	"os"
 	"path"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/pkg/sftp"
@@ -33,6 +32,10 @@ func (Step) Name() string { return "ftp_end" }
 func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 	b := pipeline.NewResult()
 
+	if !d.Cfg.FTPEnd.Enabled {
+		return b.SetMeta("reason", "disabled in config").Skip("disabled in config")
+	}
+
 	status, err := pipeline.LoadFtpStatus(d.OutDir)
 	if err != nil {
 		return b.Fail(fmt.Errorf("leer ftp_status: %w", err))
@@ -42,14 +45,6 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 	}
 	if status.SourceDeleted {
 		return b.SetMeta("reason", "already done").Skip("source ya archivado")
-	}
-
-	if !d.Cfg.FTPEnd.Enabled {
-		status.MarkSourceDeleted()
-		if err := status.Save(d.OutDir); err != nil {
-			return b.Fail(fmt.Errorf("guardar ftp_status: %w", err))
-		}
-		return b.SetMeta("reason", "disabled — marked source_deleted").Skip("disabled in config")
 	}
 
 	src := d.Cfg.FtpFolders.SourceRoot
@@ -94,30 +89,43 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 		return b.Fail(fmt.Errorf("crear destino remoto %s: %w", dstDayDir, err))
 	}
 
-	entries, err := client.ReadDir(src)
+	srcDayDir, err := findSourceDayDir(client, src, d.Day)
 	if err != nil {
-		return b.Fail(fmt.Errorf("listar %s: %w", src, err))
+		return b.Fail(err)
+	}
+	if srcDayDir == "" {
+		d.Log.Info("ftp_end: carpeta origen del día no existe, nada para mover", "src", src, "day", dayStr)
+		status.MarkSourceDeleted()
+		if err := status.Save(d.OutDir); err != nil {
+			return b.Fail(fmt.Errorf("guardar ftp_status: %w", err))
+		}
+		return b.SetMeta("reason", "source day folder not found").Skip("nada para archivar")
+	}
+
+	dayEntries, err := client.ReadDir(srcDayDir)
+	if err != nil {
+		return b.Fail(fmt.Errorf("listar %s: %w", srcDayDir, err))
 	}
 
 	var moved int
-	for _, e := range entries {
+	for _, e := range dayEntries {
 		if e.IsDir() {
 			continue
 		}
 		if err := ctx.Err(); err != nil {
 			return b.Fail(err)
 		}
-		name := e.Name()
-		if !matchesDayCSV(name, dayStr) {
-			continue
-		}
-		from := path.Join(src, name)
-		to := path.Join(dstDayDir, name)
+		from := path.Join(srcDayDir, e.Name())
+		to := path.Join(dstDayDir, e.Name())
 		if err := moveRemote(client, from, to); err != nil {
 			return b.Fail(fmt.Errorf("mover %s -> %s: %w", from, to, err))
 		}
 		moved++
 		d.Log.Info("ftp_end: movido", "from", from, "to", to)
+	}
+
+	if err := client.RemoveDirectory(srcDayDir); err != nil {
+		d.Log.Warn("ftp_end: no se pudo eliminar carpeta origen", "dir", srcDayDir, "err", err)
 	}
 
 	status.MarkSourceDeleted()
@@ -142,18 +150,29 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 	return b.OK()
 }
 
-// matchesDayCSV es true si name es un .csv cuyo basename termina en AAAAMMDD —
-// el patrón que usa todo el pipeline para identificar archivos del día.
-func matchesDayCSV(name, dayStr string) bool {
-	const ext = ".csv"
-	if len(name) < len(ext) || !strings.EqualFold(name[len(name)-len(ext):], ext) {
-		return false
+// findSourceDayDir busca dentro de src la subcarpeta cuyo nombre representa
+// day, aceptando tanto AAAAMMDD como AAAA-MM-DD (los dos formatos en los que
+// ftp_download crea subcarpetas remotas). Devuelve el path remoto absoluto, o
+// "" si no existe ninguna que matchee — caso en el que no hay nada para
+// archivar.
+func findSourceDayDir(c *sftp.Client, src string, day time.Time) (string, error) {
+	entries, err := c.ReadDir(src)
+	if err != nil {
+		return "", fmt.Errorf("listar %s: %w", src, err)
 	}
-	base := name[:len(name)-len(ext)]
-	if len(base) < len(dayStr) {
-		return false
+	for _, e := range entries {
+		if !e.IsDir() {
+			continue
+		}
+		t, err := timeutil.ParseDay(e.Name())
+		if err != nil {
+			continue
+		}
+		if t.Equal(day) {
+			return path.Join(src, e.Name()), nil
+		}
 	}
-	return strings.HasSuffix(base, dayStr)
+	return "", nil
 }
 
 // moveRemote intenta rename SFTP (atómico, mismo volumen); si el server lo
@@ -183,4 +202,3 @@ func moveRemote(c *sftp.Client, from, to string) error {
 	}
 	return c.Remove(from)
 }
-

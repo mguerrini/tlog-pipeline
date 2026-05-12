@@ -14,7 +14,7 @@
   "ftp_folders": {
     "source_root": "/SFTPYPF/YPF_Breakpoint_TLOG_Test/Input",
     "finished_root": "/SFTPYPF/YPF_Breakpoint_TLOG_Test/Finished",
-    "target_root": "/SFTPYPF/YPF_Breakpoint_TLOG_Test/Uploded"
+    "target_root": "/SFTPYPF/YPF_Breakpoint_TLOG_Test/Uploaded"
   },
   "local_folders": {
     "all": "./appdata/all",
@@ -47,7 +47,7 @@
     "operator_id": "RY99999"
   },
   "ftp_download": {
-    "enabled": false,
+    "enabled": true,
     "split_by_date": true
   },
   "split_by_date": {
@@ -78,15 +78,15 @@
     "enabled": true
   },
   "ftp_upload": {
-    "enabled": false
+    "enabled": true
   },
   "ftp_end": {
-    "enabled": false,
+    "enabled": true,
     "delete_local_source": true
   },
   "local_clean": {
     "enabled": true,
-    "delete_source": true,
-    "delete_database": true
+    "delete_source": false,
+    "delete_database": false
   }
 }

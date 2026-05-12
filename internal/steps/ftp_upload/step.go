@@ -18,6 +18,7 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pkg/sftp"
@@ -105,8 +106,9 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 	return b.OK()
 }
 
-// uploadDir sube recursivamente localDir a remoteDir, saltando ftp_status.json
-// (es estado de orquestación local, no parte del entregable).
+// uploadDir sube recursivamente los .xml de localDir a remoteDir. El resto de
+// los archivos (ftp_status.json, .db, .log, .md, etc.) son estado local o
+// artefactos intermedios — no forman parte del entregable.
 func uploadDir(ctx context.Context, client *sftp.Client, localDir, remoteDir string, log *slog.Logger) (int, int64, error) {
 	var uploaded int
 	var totalBytes int64
@@ -124,14 +126,14 @@ func uploadDir(ctx context.Context, client *sftp.Client, localDir, remoteDir str
 		if rel == "." {
 			return nil
 		}
-		if !fi.IsDir() && filepath.Base(p) == pipeline.FtpStatusFile {
-			return nil
-		}
 		remotePath := path.Join(remoteDir, filepath.ToSlash(rel))
 		if fi.IsDir() {
 			if err := client.MkdirAll(remotePath); err != nil {
 				return fmt.Errorf("mkdir remoto %s: %w", remotePath, err)
 			}
+			return nil
+		}
+		if !strings.EqualFold(filepath.Ext(p), ".xml") {
 			return nil
 		}
 		n, err := uploadFile(client, p, remotePath)
