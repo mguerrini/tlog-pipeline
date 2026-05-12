@@ -184,7 +184,7 @@ func writeReturnLine(x *common.XMLBuilder, line map[string]string, detSeq int) {
 
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
-	x.Element("Item", line["ART_NR"])
+	x.Element("Item", line["ART_NUMMER"])
 	x.Element("UomUnits", common.FormatDecimal4(float64(db.MustAsInt(line["VPK_ID1"]))))
 	x.Element("ItemBrand", returnItemBrand)
 	x.Element("ItemDescription", line["ART_NAME"])

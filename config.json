@@ -26,7 +26,7 @@
     "cierre": true,
     "inventory_reception": true,
     "inventory_fiscaldoc_fc": true,
-    "inventory_fiscaldoc_nc": true,
+    "inventory_fiscaldoc_nc": false,
     "inventory_return": true,
     "inventory_adjustment": true,
     "inventory_count": true,
@@ -47,7 +47,7 @@
     "operator_id": "RY99999"
   },
   "ftp_download": {
-    "enabled": true,
+    "enabled": false,
     "split_by_date": true
   },
   "split_by_date": {
@@ -78,15 +78,15 @@
     "enabled": true
   },
   "ftp_upload": {
-    "enabled": true
+    "enabled": false
   },
   "ftp_end": {
-    "enabled": true,
+    "enabled": false,
     "delete_local_source": true
   },
   "local_clean": {
     "enabled": true,
-    "delete_source": false,
-    "delete_database": false
+    "delete_source": true,
+    "delete_database": true
   }
 }

@@ -53,14 +53,6 @@ func (x *XMLBuilder) Close() {
 // Si value es vacío, escribe <Name/>.
 func (x *XMLBuilder) Element(name, value string) {
 	x.sb.WriteString(x.indent)
-	/*
-		if value == "" {
-			x.sb.WriteString("<")
-			x.sb.WriteString(name)
-			x.sb.WriteString("/>\n")
-			return
-		}
-	*/
 	x.sb.WriteString("<")
 	x.sb.WriteString(name)
 	x.sb.WriteString(">")
@@ -77,7 +69,10 @@ func (x *XMLBuilder) EmptyElement(name string) {
 	x.sb.WriteString(x.indent)
 	x.sb.WriteString("<")
 	x.sb.WriteString(name)
-	x.sb.WriteString("/>\n")
+	x.sb.WriteString(">")
+	x.sb.WriteString("</")
+	x.sb.WriteString(name)
+	x.sb.WriteString(">\n")
 }
 
 // Comment escribe un comentario inline.

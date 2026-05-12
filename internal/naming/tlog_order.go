@@ -9,7 +9,7 @@ const (
 	TLOGTransfer    TLOGType = "Transfer"
 	TLOGAdjustment  TLOGType = "Adjustment"
 	TLOGCount       TLOGType = "Count"
-	TLOGFiscalDocFC TLOGType = "FiscalDocFC"
+	TLOGFiscalDocFC TLOGType = "FiscalDoc"
 	TLOGFiscalDocNC TLOGType = "FiscalDocNC"
 	TLOGCierre      TLOGType = "Cierre"
 )

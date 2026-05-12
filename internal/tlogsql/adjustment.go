@@ -15,21 +15,21 @@ import (
 )
 
 const (
-	adjustmentDocumentTypeCode    = "InventoryAdjustment"
-	adjustmentInventoryAdjType    = "CORRECTIVE_ADJUSTMENT"
-	adjustmentInventoryDocState   = "2"
-	adjustmentFiscalReceiptFlag   = "false"
-	adjustmentWorkstationID       = "0"
-	adjustmentPeriod              = "0"
-	adjustmentSubperiod           = "0"
-	adjustmentItemBrand           = "0"
-	adjustmentDestLocation        = "DEP1_OS"
-	adjustmentSourceLocation      = "DEP1_OS"
-	adjustmentUnitSales           = "0.0000"
-	adjustmentSalesTotal          = "0.0000"
-	adjustmentStock               = "0.0000"
-	adjustmentDailyAvg            = "0.0000"
-	adjustmentSuggestedPO         = "0.0000"
+	adjustmentDocumentTypeCode  = "InventoryAdjustment"
+	adjustmentInventoryAdjType  = "CORRECTIVE_ADJUSTMENT"
+	adjustmentInventoryDocState = "2"
+	adjustmentFiscalReceiptFlag = "false"
+	adjustmentWorkstationID     = "0"
+	adjustmentPeriod            = "0"
+	adjustmentSubperiod         = "0"
+	adjustmentItemBrand         = "0"
+	adjustmentDestLocation      = "DEP1_OS"
+	adjustmentSourceLocation    = "DEP1_OS"
+	adjustmentUnitSales         = "0.0000"
+	adjustmentSalesTotal        = "0.0000"
+	adjustmentStock             = "0.0000"
+	adjustmentDailyAvg          = "0.0000"
+	adjustmentSuggestedPO       = "0.0000"
 )
 
 // AdjustmentGenerator implementa TLOG_INVENTORY_ADJUSTMENT con SQL.
@@ -96,13 +96,14 @@ ORDER BY I.INV_ID`
 // ARTIKEL para arrastrar ART_NUMMER y ART_NAME.
 func invposartLines(ctx context.Context, conn *sql.DB, invID string) ([]map[string]string, error) {
 	const linesSQL = `
-SELECT inv.INV_ID, inv.ART_ID, inv.VPK_ID, inv.INP_IST, inv.INP_SOLL,
-       inv.INP_EKP, inv.INP_VKP,
-       art.ART_NUMMER, art.ART_NAME
-FROM INVPOSART inv
-LEFT JOIN ARTIKEL art ON art.ART_ID = inv.ART_ID
-WHERE inv.INV_ID = ?
-ORDER BY inv.ART_ID`
+		SELECT distinct inv.INV_ID, inv.ART_ID, inv.VPK_ID, inv.INP_IST, inv.INP_SOLL,
+			   inv.INP_EKP, inv.INP_VKP, 
+			   art.ART_NUMMER, art.ART_NAME, art.ART_NR, art.CHG_ZEIT
+		FROM INVPOSART inv
+				 LEFT JOIN ARTIKEL art ON art.ART_ID = inv.ART_ID
+		WHERE inv.INV_ID = ?
+		ORDER BY inv.ART_ID
+		`
 	rows, err := queryRows(ctx, conn, linesSQL, invID)
 	if err != nil {
 		return nil, fmt.Errorf("invposart INV=%s: %w", invID, err)
@@ -136,7 +137,7 @@ func writeAdjustmentDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seq
 	x.Element("SerialFormID", seqNum)
 	x.Element("DocumentTypeCode", adjustmentDocumentTypeCode)
 	x.Element("InventoryControlDocumentState", adjustmentInventoryDocState)
-	x.EmptyElement("contractReferenceNumber")
+	x.Element("contractReferenceNumber", "Generado desde la Web")
 	x.Element("CreateDateTimestamp", createTimestamp)
 	x.Element("DestinationRetailStoreID", retailID)
 	x.Element("ExpectedDeliveryDate", h.FormatARTimestamp(h.BeginDateTime))
@@ -151,7 +152,7 @@ func writeAdjustmentDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seq
 	x.EmptyElement("ICDTotSalesAmount")
 	x.EmptyElement("Frequency")
 	x.Element("InventoryAdjustmentType", adjustmentInventoryAdjType)
-	x.Element("ReceiptNumber", inv["INV_NAME"])
+	x.EmptyElement("ReceiptNumber")
 	x.Element("FiscalReceiptFlag", adjustmentFiscalReceiptFlag)
 	x.EmptyElement("ReceiptType")
 	x.Element("ReceiptDate", h.FormatARTimestamp(h.BeginDateTime))
@@ -191,9 +192,9 @@ func writeAdjustmentLine(x *common.XMLBuilder, line map[string]string, detSeq in
 	// invposartLines y/o el schema de ARTIKEL.
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
-	x.Element("Item", line["ART_NR"])
+	x.Element("Item", line["ART_NUMMER"])
 	x.Element("UomUnits", common.FormatDecimal4(float64(db.MustAsInt(line["VPK_ID"]))))
-	x.Element("ItemBrand", adjustmentItemBrand)
+	x.EmptyElement("ItemBrand")
 	x.Element("ItemDescription", line["ART_NAME"])
 	x.Element("UnitBaseCostAmount", common.FormatDecimal4(ekp))
 	x.Element("UnitCount", common.FormatDecimal4(variance))

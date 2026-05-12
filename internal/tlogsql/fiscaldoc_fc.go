@@ -49,7 +49,7 @@ func (FiscalDocFCGenerator) Generate(ctx context.Context, conn *sql.DB, h *commo
 			INNER JOIN main.KOSTST K ON lpo.KST_ID1 = K.KST_ID
 			INNER JOIN main.LIEFER L2 ON lpo.LF_ID = L2.LF_ID
 		WHERE lpo.KST_ID = ? AND l.LFS_STATUS = 42
-			  AND COALESCE(l.LFS_RTS, 0) = 1 AND l.LFS_NETTO > 0 AND l.LFS_BRUTTO > 0
+			  AND COALESCE(l.LFS_RTS, 0) <> 1 AND l.LFS_NETTO > 0 AND l.LFS_BRUTTO > 0
 		GROUP BY l.LFS_NAME
 		ORDER BY l.LFS_NAME
 `
@@ -179,7 +179,7 @@ func writeFCLine(x *common.XMLBuilder, line map[string]string, detSeq int) {
 
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
-	x.Element("Item", line["ART_NR"])
+	x.Element("Item", line["ART_NUMMER"])
 	x.Element("UomUnits", common.FormatDecimal4(float64(db.MustAsInt(line["VPK_ID1"]))))
 	x.Element("ItemBrand", fcItemBrand)
 	x.Element("ItemDescription", line["ART_NAME"])

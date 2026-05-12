@@ -15,18 +15,19 @@ import (
 )
 
 const (
-	receptionDocumentTypeCode = "InventoryReception"
-	receptionWorkstationID    = "0"
-	receptionPeriod           = "0"
-	receptionSubperiod        = "0"
-	receptionItemBrand        = "0"
-	receptionDestLocation     = "DEP1_OS"
-	receptionSourceLocation   = "DEP1_OS"
-	receptionUnitSales        = "0.0000"
-	receptionSalesTotal       = "0.0000"
-	receptionStock            = "0.0000"
-	receptionDailyAvg         = "0.0000"
-	receptionSuggestedPO      = "0.0000"
+	receptionInventoryDocState = "7"
+	receptionDocumentTypeCode  = "InventoryReception"
+	receptionWorkstationID     = "0"
+	receptionPeriod            = "0"
+	receptionSubperiod         = "0"
+	receptionItemBrand         = "0"
+	receptionDestLocation      = "DEP1_OS"
+	receptionSourceLocation    = "DEP1_OS"
+	receptionUnitSales         = "0.0000"
+	receptionSalesTotal        = "0.0000"
+	receptionStock             = "0.0000"
+	receptionDailyAvg          = "0.0000"
+	receptionSuggestedPO       = "0.0000"
 )
 
 // ReceptionGenerator implementa el TLOG_INVENTORY_RECEPTION usando SQL.
@@ -103,7 +104,7 @@ func (ReceptionGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.
 // usarlo en writeReceptionLine.
 func receptionLines(ctx context.Context, conn *sql.DB, lfsID string) ([]map[string]string, error) {
 	const linesSQL = `
-SELECT lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE,
+SELECT distinct lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE,
        lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1,
        art.ART_NAME, art.ART_NUMMER
 FROM LIEFERPOS lfp
@@ -119,12 +120,6 @@ ORDER BY lfp.LFP_POS`
 
 func writeReceptionDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum string,
 	lfs map[string]string, lines []map[string]string) {
-
-	state := mapLFSStatusReception(lfs["LFS_STATUS"])
-	fiscalFlag := "false"
-	if state == "7" {
-		fiscalFlag = "true"
-	}
 	brutto, _ := db.AsFloat(lfs["LFS_BRUTTO"])
 	receiptDate := h.FormatARTimestamp(h.BeginDateTime)
 	if t, err := time.Parse("2006-01-02 15:04:05", lfs["LFS_DATUM"]); err == nil {
@@ -148,7 +143,7 @@ func writeReceptionDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqN
 	x.Open("InventoryControlTransaction")
 	x.Element("SerialFormID", seqNum)
 	x.Element("DocumentTypeCode", receptionDocumentTypeCode)
-	x.Element("InventoryControlDocumentState", state)
+	x.Element("InventoryControlDocumentState", receptionInventoryDocState)
 	x.EmptyElement("contractReferenceNumber")
 	x.Element("CreateDateTimestamp", h.FormatARTimestamp(h.BeginDateTime))
 	x.Element("DestinationRetailStoreID", retailID)
@@ -165,7 +160,7 @@ func writeReceptionDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqN
 	x.EmptyElement("Frequency")
 	x.EmptyElement("InventoryAdjustmentType")
 	x.Element("ReceiptNumber", lfs["LFS_NAME"])
-	x.Element("FiscalReceiptFlag", fiscalFlag)
+	x.Element("FiscalReceiptFlag", "TRUE")
 	x.EmptyElement("ReceiptType")
 	x.Element("ReceiptDate", receiptDate)
 	x.EmptyElement("CAINumber")
@@ -201,7 +196,7 @@ func writeReceptionLine(x *common.XMLBuilder, line map[string]string, detSeq int
 
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
-	x.Element("Item", line["ART_NR"])
+	x.Element("Item", line["ART_NUMMER"])
 	x.Element("UomUnits", common.FormatDecimal4(float64(db.MustAsInt(line["VPK_ID1"]))))
 	x.Element("ItemBrand", receptionItemBrand)
 	x.Element("ItemDescription", line["ART_NAME"])
@@ -224,7 +219,7 @@ func writeReceptionLine(x *common.XMLBuilder, line map[string]string, detSeq int
 func mapLFSStatusReception(s string) string {
 	v, _ := db.AsInt(s)
 	if v == 42 || v == 37 {
-		return "4"
+		return "7"
 	}
-	return "7"
+	return "4"
 }

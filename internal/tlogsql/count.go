@@ -14,21 +14,21 @@ import (
 )
 
 const (
-	countDocumentTypeCode    = "InventoryCount"
-	countInventoryAdjType    = "CORRECTIVE_ADJUSTMENT"
-	countInventoryDocState   = "2"
-	countFiscalReceiptFlag   = "false"
-	countWorkstationID       = "0"
-	countPeriod              = "0"
-	countSubperiod           = "0"
-	countItemBrand           = "0"
-	countDestLocation        = "DEP1_OS"
-	countSourceLocation      = "DEP1_OS"
-	countUnitSales           = "0.0000"
-	countSalesTotal          = "0.0000"
-	countStock               = "0.0000"
-	countDailyAvg            = "0.0000"
-	countSuggestedPO         = "0.0000"
+	countDocumentTypeCode  = "InventoryCount"
+	countInventoryAdjType  = "CORRECTIVE_ADJUSTMENT"
+	countInventoryDocState = "2"
+	countFiscalReceiptFlag = "false"
+	countWorkstationID     = "0"
+	countPeriod            = "0"
+	countSubperiod         = "0"
+	countItemBrand         = "0"
+	countDestLocation      = "DEP1_OS"
+	countSourceLocation    = "DEP1_OS"
+	countUnitSales         = "0.0000"
+	countSalesTotal        = "0.0000"
+	countStock             = "0.0000"
+	countDailyAvg          = "0.0000"
+	countSuggestedPO       = "0.0000"
 )
 
 // CountGenerator implementa TLOG_INVENTORY_COUNT con SQL.
@@ -168,7 +168,7 @@ func writeCountLine(x *common.XMLBuilder, line map[string]string, detSeq int) {
 	// el schema SQLite). Mismo comportamiento (queda vacío en SQL).
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
-	x.Element("Item", line["ART_NR"])
+	x.Element("Item", line["ART_NUMMER"])
 	x.Element("UomUnits", common.FormatDecimal4(float64(db.MustAsInt(line["VPK_ID"]))))
 	x.Element("ItemBrand", countItemBrand)
 	x.Element("ItemDescription", line["ART_NAME"])
