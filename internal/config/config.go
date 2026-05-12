@@ -11,6 +11,7 @@ import (
 
 type FTP struct {
 	URL      string `json:"url"`
+	Port     int    `json:"port"`
 	Username string `json:"username"`
 	Pass     string `json:"pass"`
 }
@@ -20,6 +21,16 @@ type LocalFolders struct {
 	SourceRoot   string `json:"source_root"`
 	TargetRoot   string `json:"target_root"`
 	FinishedRoot string `json:"finished_root"`
+}
+
+// FtpFolders agrupa las rutas remotas usadas por los steps de FTP. Centraliza
+// la configuración para que ningún step tenga que repetir folder_source_root /
+// folder_target_root: ftp_download usa SourceRoot, ftp_upload usa TargetRoot y
+// ftp_end mueve archivos de SourceRoot a FinishedRoot.
+type FtpFolders struct {
+	SourceRoot   string `json:"source_root"`
+	FinishedRoot string `json:"finished_root"`
+	TargetRoot   string `json:"target_root"`
 }
 
 // Output controla qué TLOGs (XMLs) se generan en create_xml / create_xml_sql.
@@ -138,83 +149,79 @@ type Process struct {
 	OperatorID            string `json:"operator_id"`
 }
 
+// Cada step toma sus rutas de cfg.FtpFolders / cfg.LocalFolders y solo expone
+// los flags de comportamiento que le son propios (enabled, separator, etc.).
 type FTPDownload struct {
-	Enabled          bool   `json:"enabled"`
-	FolderRootSource string `json:"folder_root_source"`
-	FolderRootTarget string `json:"folder_root_target"`
+	Enabled bool `json:"enabled"`
+	// SplitByDate: si true, los archivos remotos están todos juntos bajo
+	// ftp_folders.source_root y se bajan a local_folders.all (después un
+	// split_by_date local los reparte por día). Si false, los archivos remotos
+	// ya están agrupados en subcarpetas con nombre de fecha (AAAAMMDD o
+	// AAAA-MM-DD) y se bajan a local_folders.source_root/AAAAMMDD/ — el formato
+	// AAAA-MM-DD se normaliza a AAAAMMDD al crear la carpeta local.
+	SplitByDate bool `json:"split_by_date"`
 }
 
 type SplitByDate struct {
-	Enabled          bool   `json:"enabled"`
-	FolderRootSource string `json:"folder_root_source"`
-	FolderRootTarget string `json:"folder_root_target"`
+	Enabled bool `json:"enabled"`
 }
 
 type ReadDays struct {
-	Enabled          bool   `json:"enabled"`
-	FolderSourceRoot string `json:"folder_source_root"`
+	Enabled bool `json:"enabled"`
 }
 
 type ReadFiles struct {
-	Enabled          bool     `json:"enabled"`
-	FolderSource     string   `json:"folder_source"`
-	FolderTargetRoot string   `json:"folder_target_root"`
-	ExpectedFiles    []string `json:"expected_files"`
+	Enabled       bool     `json:"enabled"`
+	ExpectedFiles []string `json:"expected_files"`
 }
 
 type CreateDB struct {
-	Enabled          bool   `json:"enabled"`
-	Separator        string `json:"separator"`
-	FolderSource     string `json:"folder_source"`
-	FolderTargetRoot string `json:"folder_target_root"`
+	Enabled   bool   `json:"enabled"`
+	Separator string `json:"separator"`
 	// SQL: si true, después de create_db se ejecuta create_sql_db y el pipeline
 	// termina ahí (modo debug — genera un .db SQLite con schema tipado).
 	SQL bool `json:"sql"`
 }
 
 type CreateXML struct {
-	Enabled          bool   `json:"enabled"`
-	FolderSource     string `json:"folder_source"`
-	FolderTargetRoot string `json:"folder_target_root"`
+	Enabled bool `json:"enabled"`
 }
 
 type FTPUpload struct {
-	Enabled      bool   `json:"enabled"`
-	FolderSource string `json:"folder_source"`
-	FolderTarget string `json:"folder_target"`
+	Enabled bool `json:"enabled"`
 }
 
 type LocalClean struct {
-	Enabled        bool   `json:"enabled"`
-	FolderSource   string `json:"folder_source"`
-	FolderTarget   string `json:"folder_target"`
-	DeleteSource   bool   `json:"delete_source"`
-	DeleteDatabase bool   `json:"delete_database"`
+	Enabled        bool `json:"enabled"`
+	DeleteSource   bool `json:"delete_source"`
+	DeleteDatabase bool `json:"delete_database"`
 }
 
 type FTPEnd struct {
-	Enabled      bool   `json:"enabled"`
-	FolderSource string `json:"folder_source"`
-	FolderTarget string `json:"folder_target"`
+	Enabled bool `json:"enabled"`
+	// DeleteLocalSource: si true, una vez que ftp_end completó el archivado
+	// remoto borra también la carpeta local target_root/AAAAMMDD entera.
+	DeleteLocalSource bool `json:"delete_local_source"`
 }
 
 // Config es el modelo completo de config.json.
 type Config struct {
-	FTPSource     FTP           `json:"ftp_source"`
-	FTPTarget     FTP           `json:"ftp_target"`
-	LocalFolders  LocalFolders  `json:"local_folders"`
-	Output        *Output       `json:"output"`
-	Logs          *Logs         `json:"logs"`
-	Process       Process       `json:"process"`
-	FTPDownload   FTPDownload   `json:"ftp_download"`
-	SplitByDate   SplitByDate   `json:"split_by_date"`
-	ReadDays      ReadDays      `json:"read_days"`
-	ReadFiles     ReadFiles     `json:"read_files"`
-	CreateDB      CreateDB      `json:"create_db"`
-	CreateXML     CreateXML     `json:"create_xml"`
-	FTPUpload     FTPUpload     `json:"ftp_upload"`
-	LocalClean    LocalClean    `json:"local_clean"`
-	FTPEnd        FTPEnd        `json:"ftp_end"`
+	FTPSource    FTP          `json:"ftp_source"`
+	FTPTarget    FTP          `json:"ftp_target"`
+	FtpFolders   FtpFolders   `json:"ftp_folders"`
+	LocalFolders LocalFolders `json:"local_folders"`
+	Output       *Output      `json:"output"`
+	Logs         *Logs        `json:"logs"`
+	Process      Process      `json:"process"`
+	FTPDownload  FTPDownload  `json:"ftp_download"`
+	SplitByDate  SplitByDate  `json:"split_by_date"`
+	ReadDays     ReadDays     `json:"read_days"`
+	ReadFiles    ReadFiles    `json:"read_files"`
+	CreateDB     CreateDB     `json:"create_db"`
+	CreateXML    CreateXML    `json:"create_xml"`
+	FTPUpload    FTPUpload    `json:"ftp_upload"`
+	LocalClean   LocalClean   `json:"local_clean"`
+	FTPEnd       FTPEnd       `json:"ftp_end"`
 }
 
 // Load lee config.json y aplica defaults a campos vacíos.

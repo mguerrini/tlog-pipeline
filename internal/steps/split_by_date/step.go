@@ -28,10 +28,7 @@ func (Step) Run(_ context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 		return b.Skip("disabled in config")
 	}
 
-	src := d.Cfg.SplitByDate.FolderRootSource
-	if src == "" {
-		src = d.Cfg.LocalFolders.All
-	}
+	src := d.Cfg.LocalFolders.All
 	if src == "" {
 		return b.Skip("source vacío (local_folders.all)")
 	}

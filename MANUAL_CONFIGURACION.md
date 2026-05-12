@@ -24,6 +24,15 @@ Sin flags, el pipeline procesa **todos los días** que encuentre en `local_folde
 ### `local_folders`
 Las cuatro rutas de arriba. **Obligatorio** definir `source_root` y `target_root`.
 
+### `ftp_folders`
+Rutas **remotas** que usan los steps `ftp_*`. Centralizadas para que ningún step las repita.
+
+| Campo | Lo usa |
+|---|---|
+| `source_root` | `ftp_download` (de dónde bajar). |
+| `target_root` | `ftp_upload` (a dónde subir los XMLs). |
+| `finished_root` | `ftp_end` (a dónde mover los CSVs ya procesados). |
+
 ### `process`
 Cómo se procesan los días.
 
@@ -57,21 +66,21 @@ Activa la escritura de archivos de log/reporte por día (todos opcionales):
 
 Cada step tiene su propia sección con al menos `enabled`. Si `enabled: false` el step se saltea.
 
-| Step | Qué hace |
-|---|---|
-| `ftp_download` | Baja CSVs desde un FTP a `local_folders.all`. |
-| `split_by_date` | Mueve los CSVs de `all/` a `source_root/AAAAMMDD/` según los últimos 8 dígitos del nombre. |
-| `read_files` | Valida que estén los CSVs esperados (`expected_files`) en la carpeta del día. |
-| `create_db` | Carga los CSVs en una base. Si `sql: true`, genera además un SQLite tipado (modo debug — el pipeline termina ahí). |
-| `create_xml` / `create_xml_sql` | Generan los TLOGs XML según los flags de `output`. |
-| `ftp_upload` | Sube los XMLs al FTP de destino. |
-| `ftp_end` | Step final FTP (notificación / cierre). |
-| `local_clean` | Limpia las carpetas locales. Con `delete_source: true` borra los CSVs de input; con `delete_database: true` borra la SQLite. |
+| Step | Flags propios | Qué hace |
+|---|---|---|
+| `ftp_download` | `enabled`, `split_by_date` | Baja CSVs desde `ftp_folders.source_root`. Si `split_by_date: true`, asume los archivos sueltos en remoto y los deja en `local_folders.all` (los reparte el step `split_by_date` local). Si `false`, asume sub-carpetas remotas con fecha (`AAAAMMDD` o `AAAA-MM-DD`) y baja a `local_folders.source_root/AAAAMMDD/`. |
+| `split_by_date` | `enabled` | Mueve los CSVs de `all/` a `source_root/AAAAMMDD/` según los últimos 8 dígitos del nombre. |
+| `read_files` | `enabled`, `expected_files` | Valida que estén los CSVs esperados en la carpeta del día. |
+| `create_db` | `enabled`, `separator`, `sql` | Carga los CSVs en una base. Si `sql: true`, genera además un SQLite tipado (modo debug — el pipeline termina ahí). El `separator` es el delimitador de los CSVs de entrada (típicamente `|`). |
+| `create_xml` / `create_xml_sql` | `enabled` | Generan los TLOGs XML según los flags de `output`. |
+| `ftp_upload` | `enabled` | Sube los XMLs a `ftp_folders.target_root`. |
+| `ftp_end` | `enabled`, `delete_local_source` | Archiva los CSVs procesados moviéndolos en remoto a `ftp_folders.finished_root`. Con `delete_local_source: true` borra además la carpeta local `target_root/AAAAMMDD/` entera. |
+| `local_clean` | `enabled`, `delete_source`, `delete_database` | Limpia las carpetas locales. Con `delete_source: true` borra los CSVs de input; con `delete_database: true` borra la SQLite. |
 
-> Las rutas `folder_source` / `folder_target` dentro de cada step suelen ir vacías — caen al default derivado de `local_folders`. Solo se usan para sobrescribir la ruta de un step en particular.
+> Las rutas que usa cada step ya no se configuran por step — vienen de `local_folders` (rutas locales) y `ftp_folders` (rutas remotas).
 
 ### `ftp_source` / `ftp_target`
-Credenciales FTP (`url`, `username`, `pass`). Se usan en los steps `ftp_*`.
+Credenciales FTP/SFTP (`url`, `port`, `username`, `pass`). Se usan en los steps `ftp_*`. `port` típicamente `22` para SFTP, `21` para FTP plano.
 
 ### `read_files.expected_files`
 Lista de patrones glob que deben existir en la carpeta del día. Si falta alguno, el step falla. Si la lista se omite, se usa la default (los 11 CSVs del proyecto).

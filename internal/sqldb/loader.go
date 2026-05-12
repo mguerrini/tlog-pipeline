@@ -56,9 +56,13 @@ var expectedCounts = map[string]int64{
 	"INVENTUR": 1, "INVPOSART": 1022, "HIS_VERBRAUCH": 1, "DAILYTOTALS": 438,
 }
 
-// Load carga todos los CSVs de srcDir en una DB SQLite en dbPath.
-// Devuelve el resultado con stats, conteos y chequeos de FK.
-func Load(srcDir, dbPath string) (*LoadResult, error) {
+// Load carga todos los CSVs de srcDir en una DB SQLite en dbPath usando sep
+// como separador de campos (default "," si vacío). Devuelve el resultado con
+// stats, conteos y chequeos de FK.
+func Load(srcDir, dbPath, sep string) (*LoadResult, error) {
+	if sep == "" {
+		sep = ","
+	}
 	if err := os.MkdirAll(filepath.Dir(dbPath), 0o755); err != nil {
 		return nil, fmt.Errorf("crear directorio para DB: %w", err)
 	}
@@ -100,7 +104,7 @@ func Load(srcDir, dbPath string) (*LoadResult, error) {
 		}
 
 		t0 := time.Now()
-		header, rows, err := csvio.Read(path, ",")
+		header, rows, err := csvio.Read(path, sep)
 		if err != nil {
 			result.Stats = append(result.Stats, TableStat{
 				Table: ts.sqliteName, CSVFile: path,

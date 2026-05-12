@@ -345,8 +345,8 @@ Al finalizar `local_clean` exitosamente, el `_day_status.json` se **copia** a `f
   },
   "ftp_download": {
     "enabled": false,
-    "folder_root_source": "",
-    "folder_root_target": ""
+    "folder_source_root": "",
+    "folder_target_root": ""
   },
   "read_days": {
     "enabled": true,

@@ -15,7 +15,6 @@ import (
 	"github.com/opessa/tlog-pipeline/internal/steps/create_sql_db"
 	"github.com/opessa/tlog-pipeline/internal/steps/create_xml"
 	"github.com/opessa/tlog-pipeline/internal/steps/create_xml_sql"
-	"github.com/opessa/tlog-pipeline/internal/steps/ftp_download"
 	"github.com/opessa/tlog-pipeline/internal/steps/ftp_end"
 	"github.com/opessa/tlog-pipeline/internal/steps/ftp_upload"
 	"github.com/opessa/tlog-pipeline/internal/steps/local_clean"
@@ -75,21 +74,27 @@ func main() {
 		}
 	}
 
-	// Orden de steps según arquitectura
-	steps := []pipeline.Step{
-		ftp_download.Step{},
+	// Fase 1: download + generación de XML per-día. ftp_download corre una
+	// sola vez antes (pre-step global en el Coordinator) — los demás se
+	// ejecutan por día sobre source_root/AAAAMMDD → target_root/AAAAMMDD.
+	phase1Steps := []pipeline.Step{
 		split_by_date.Step{},
 		read_files.Step{},
 		create_db.Step{},
 		create_sql_db.Step{},
 		create_xml_sql.Step{},
 		create_xml.Step{},
+	}
+	// Fase 2: upload + cierre. Per-día sobre target_root/AAAAMMDD, gobernada
+	// por ftp_status.json en cada carpeta. Siempre corre, incluso si la fase 1
+	// no produjo días nuevos.
+	phase2Steps := []pipeline.Step{
 		ftp_upload.Step{},
 		ftp_end.Step{},
 		local_clean.Step{},
 	}
 
-	coord := pipeline.NewCoordinator(cfg, steps, onlyDay, flags.Step, log)
+	coord := pipeline.NewCoordinator(cfg, phase1Steps, phase2Steps, onlyDay, flags.Step, log)
 	ctx := context.Background()
 
 	if err := coord.Run(ctx); err != nil {

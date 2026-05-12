@@ -35,9 +35,14 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 	dbPath := filepath.Join(d.OutDir, dayStr+"_pipeline.db")
 	reportPath := filepath.Join(d.OutDir, dayStr+"_sqldb_load.md")
 
-	d.Log.Info("create_sql_db: generando DB SQLite tipada", "db", dbPath)
+	sep := d.Cfg.CreateDB.Separator
+	if sep == "" {
+		sep = ","
+	}
 
-	result, err := sqldb.Load(d.DayDir, dbPath)
+	d.Log.Info("create_sql_db: generando DB SQLite tipada", "db", dbPath, "sep", sep)
+
+	result, err := sqldb.Load(d.DayDir, dbPath, sep)
 	if err != nil {
 		return b.Fail(fmt.Errorf("sqldb.Load: %w", err))
 	}

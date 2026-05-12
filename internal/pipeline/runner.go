@@ -21,8 +21,13 @@ func NewRunner(steps []Step, log *slog.Logger) *Runner {
 }
 
 // saveStatus persiste el DayStatus a disco si logs.day_status_enabled = true.
+// Si OutDir ya no existe (p. ej. local_clean lo eliminó al final de la fase 2),
+// no escribe nada para no recrear un directorio fantasma con sólo este archivo.
 func saveStatus(d *DayCtx, status *DayStatus, path string) {
 	if !d.Cfg.Logs.DayStatusEnabled {
+		return
+	}
+	if _, err := os.Stat(d.OutDir); os.IsNotExist(err) {
 		return
 	}
 	_ = status.save(path)

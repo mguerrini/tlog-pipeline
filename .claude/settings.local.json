@@ -12,7 +12,10 @@
       "PowerShell(.\\\\tlog-gen.exe --version; Write-Host \"---\"; \\(Get-Item .\\\\tlog-gen.exe\\).VersionInfo | Format-List FileVersion, ProductVersion, CompanyName, FileDescription, ProductName, LegalCopyright)",
       "Bash(Get-ChildItem -Path \"C:\\\\Localdata\\\\Proyectos\\\\LUIS\\\\go\\\\tlog-pipeline\" -Recurse -Force)",
       "Bash(Select-Object FullName)",
-      "Bash(Sort-Object FullName)"
+      "Bash(Sort-Object FullName)",
+      "Bash(go env *)",
+      "Bash(go get *)",
+      "Bash(go mod *)"
     ]
   }
 }

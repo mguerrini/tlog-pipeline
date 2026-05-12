@@ -1,13 +1,20 @@
 {
   "ftp_source": {
-    "url": "",
-    "username": "",
-    "pass": ""
+    "url": "ypf-sftp.oracleindustry.com",
+    "port": 22,
+    "username": "SFTPYPF",
+    "pass": "@7xoDPllZq0rn7"
   },
   "ftp_target": {
-    "url": "",
-    "username": "",
-    "pass": ""
+    "url": "ypf-sftp.oracleindustry.com",
+    "port": 22,
+    "username": "SFTPYPF",
+    "pass": "@7xoDPllZq0rn7"
+  },
+  "ftp_folders": {
+    "source_root": "/SFTPYPF/YPF_Breakpoint_TLOG_Test/Input",
+    "finished_root": "/SFTPYPF/YPF_Breakpoint_TLOG_Test/Finished",
+    "target_root": "/SFTPYPF/YPF_Breakpoint_TLOG_Test/Uploded"
   },
   "local_folders": {
     "all": "./appdata/all",
@@ -41,18 +48,13 @@
   },
   "ftp_download": {
     "enabled": false,
-    "folder_root_source": "",
-    "folder_root_target": ""
+    "split_by_date": true
   },
   "split_by_date": {
-    "enabled": true,
-    "folder_root_source": "",
-    "folder_root_target": ""
+    "enabled": true
   },
   "read_files": {
     "enabled": true,
-    "folder_source": "",
-    "folder_target_root": "",
     "expected_files": [
       "Kostst_*.csv",
       "Liefer_*.csv",
@@ -69,30 +71,21 @@
   },
   "create_db": {
     "enabled": true,
-    "separator": ",",
-    "folder_source": "",
-    "folder_target_root": "",
+    "separator": "|",
     "sql": true
   },
   "create_xml": {
-    "enabled": true,
-    "folder_source": "",
-    "folder_target_root": ""
+    "enabled": true
   },
   "ftp_upload": {
-    "enabled": false,
-    "folder_source": "",
-    "folder_target": ""
+    "enabled": false
   },
   "ftp_end": {
     "enabled": false,
-    "folder_source": "",
-    "folder_target": ""
+    "delete_local_source": true
   },
   "local_clean": {
     "enabled": true,
-    "folder_source": "",
-    "folder_target": "",
     "delete_source": true,
     "delete_database": true
   }

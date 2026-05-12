@@ -17,7 +17,7 @@ func TestLoadSampleData(t *testing.T) {
 	srcDir := filepath.Join("..", "..", "sample_data", "20260505")
 	dbPath := filepath.Join(t.TempDir(), "pipeline.db")
 
-	res, err := Load(srcDir, dbPath)
+	res, err := Load(srcDir, dbPath, ",")
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
