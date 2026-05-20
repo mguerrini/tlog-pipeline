@@ -45,7 +45,7 @@ func main() {
 	flags.Apply(cfg)
 
 	if err := cfg.Validate(); err != nil {
-		fmt.Fprintf(os.Stderr, "config inválida: %v\n", err)
+		fmt.Fprintf(os.Stderr, "configuración inválida: %v\n", err)
 		os.Exit(1)
 	}
 
