@@ -175,8 +175,9 @@ type ReadDays struct {
 }
 
 type ReadFiles struct {
-	Enabled       bool     `json:"enabled"`
-	ExpectedFiles []string `json:"expected_files"`
+	Enabled       bool                `json:"enabled"`
+	ExpectedFiles []string            `json:"expected_files"`
+	ClearCols     map[string][]string `json:"clear_cols"` // tabla → columnas a vaciar antes de importar
 }
 
 type CreateDB struct {
