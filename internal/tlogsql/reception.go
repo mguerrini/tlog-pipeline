@@ -106,7 +106,9 @@ func receptionLines(ctx context.Context, conn *sql.DB, lfsID string) ([]map[stri
 	const linesSQL = `
 SELECT distinct lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE,
        lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1,
-       art.ART_NAME, art.ART_NUMMER
+       lfp.LFP_HACCPINFO, lfp.LFP_ABLAUFDT,
+       art.ART_NAME, art.ART_NUMMER,
+       art.ART_NR AS ART_ART_NR, art.ART_MWSTNR
 FROM LIEFERPOS lfp
 LEFT JOIN ARTIKEL art ON art.ART_ID = lfp.ART_NR
 WHERE lfp.LFS_ID = ?

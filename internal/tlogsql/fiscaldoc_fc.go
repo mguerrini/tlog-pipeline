@@ -79,13 +79,13 @@ func (FiscalDocFCGenerator) Generate(ctx context.Context, conn *sql.DB, h *commo
 			return nil, fmt.Errorf("fiscaldoc_fc sequence: %w", err)
 		}
 		x := common.NewXMLBuilder()
-		writeFCDoc(x, h, retailID, seqNum, lfs, lines)
+		kept := writeFCDoc(x, h, retailID, seqNum, lfs, lines)
 		files = append(files, tlog.GeneratedFile{
 			SeqNum:     seqNum,
 			XMLContent: x.String(),
-			NumLines:   len(lines),
+			NumLines:   kept,
 		})
-		totalLines += len(lines)
+		totalLines += kept
 	}
 
 	if len(files) == 0 {
@@ -99,14 +99,54 @@ func (FiscalDocFCGenerator) Generate(ctx context.Context, conn *sql.DB, h *commo
 }
 
 func writeFCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum string,
-	lfs map[string]string, lines []map[string]string) {
+	lfs map[string]string, lines []map[string]string) int {
 
 	netto, _ := db.AsFloat(lfs["LFS_NETTO"])
-	mwst, _ := db.AsFloat(lfs["LFS_MWST"])
 	brutto, _ := db.AsFloat(lfs["LFS_BRUTTO"])
 	receiptDate := h.FormatARTimestamp(h.BeginDateTime)
 	if t, err := time.Parse("2006-01-02 15:04:05", lfs["LFS_DATUM"]); err == nil {
 		receiptDate = h.FormatARTimestamp(t)
+	}
+
+	var (
+		cainumVal, caidateVal             string
+		haveCAI                           bool
+		taxAmountVal, ivaTaxVal, iibbVal  float64
+		haveTax, haveIva, haveIibb        bool
+		exemptSum, vatSum                 float64
+	)
+	for _, line := range lines {
+		ekp, _ := db.AsFloat(line["LFP_EKP"])
+		switch line["ART_ART_NR"] {
+		case "1120":
+			if !haveCAI {
+				cainumVal = line["LFP_HACCPINFO"]
+				caidateVal = line["LFP_ABLAUFDT"]
+				haveCAI = true
+			}
+		case "1100":
+			if !haveTax {
+				taxAmountVal = ekp
+				haveTax = true
+			}
+		case "1098":
+			if !haveIva {
+				ivaTaxVal = ekp
+				haveIva = true
+			}
+		case "1096":
+			if !haveIibb {
+				iibbVal = ekp
+				haveIibb = true
+			}
+		}
+		if v, ok := db.AsInt(line["ART_MWSTNR"]); ok {
+			if v == 0 {
+				exemptSum += ekp
+			} else {
+				vatSum += ekp
+			}
+		}
 	}
 
 	x.Open("Transaction")
@@ -146,26 +186,42 @@ func writeFCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum stri
 	x.Element("FiscalReceiptFlag", fcFiscalReceiptFlag)
 	x.Element("ReceiptType", fcReceiptType)
 	x.Element("ReceiptDate", receiptDate)
-	x.EmptyElement("CAINumber")
-	x.EmptyElement("CAIDate")
+	if haveCAI {
+		x.Element("CAINumber", cainumVal)
+		caidateOut := caidateVal
+		if t, err := time.Parse("2006-01-02 15:04:05", caidateVal); err == nil {
+			caidateOut = h.FormatARTimestamp(t)
+		}
+		x.Element("CAIDate", caidateOut)
+	} else {
+		x.EmptyElement("CAINumber")
+		x.EmptyElement("CAIDate")
+	}
 	x.EmptyElement("PagesQuantity")
 	x.Element("NetAmount", common.FormatDecimal4(netto))
-	x.Element("ExemptAmout", "0.0000")
-	x.Element("TaxAmount", "0.0000")
-	x.Element("VatAmount", common.FormatDecimal4(mwst))
+	x.Element("ExemptAmout", common.FormatDecimal4(exemptSum))
+	x.Element("TaxAmount", common.FormatDecimal4(taxAmountVal))
+	x.Element("VatAmount", common.FormatDecimal4(vatSum))
 	x.Element("ServicesVATAmount", "0.0000")
 	x.Element("DifferencialVATAmount", "0.0000")
-	x.Element("IvaTaxAmount", "0.0000")
-	x.Element("IIBBTaxAmount", "0.0000")
+	x.Element("IvaTaxAmount", common.FormatDecimal4(ivaTaxVal))
+	x.Element("IIBBTaxAmount", common.FormatDecimal4(iibbVal))
 	x.Element("TotalAmount", common.FormatDecimal4(brutto))
 
 	x.Open("InventoryControlDocumentLineItems")
-	for i, line := range lines {
-		writeFCLine(x, line, retailID, seqNum, i+1)
+	detSeq := 0
+	for _, line := range lines {
+		switch line["ART_ART_NR"] {
+		case "1120", "1100", "1098", "1096":
+			continue
+		}
+		detSeq++
+		writeFCLine(x, line, retailID, seqNum, detSeq)
 	}
 	x.Close()
 	x.Close()
 	x.Close()
+	return detSeq
 }
 
 func writeFCLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum string, detSeq int) {
