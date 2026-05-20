@@ -22,7 +22,7 @@ ORDER BY l.LFS_NAME
 
 **Query Items** (por cada `LFS_ID` del driver)
 ```sql
-SELECT lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE,
+SELECT DISTINCT lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE,
        lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1,
        art.ART_NAME, art.ART_NUMMER
 FROM LIEFERPOS lfp
@@ -45,7 +45,7 @@ ORDER BY lfp.LFP_POS
 <OperatorID>                       Calculado = config.process.operator_id
 <SerialFormID>                     Calculado = igual que SequenceNumber
 <DocumentTypeCode>                 Valor Fijo = "InventoryReception"
-<InventoryControlDocumentState>    Calculado = si LFS_STATUS IN (42, 37) → "4", sino → "7"
+<InventoryControlDocumentState>    Valor Fijo = "7"
 <CreateDateTimestamp>              Calculado = FormatARTimestamp(BeginDateTime)
 <DestinationRetailStoreID>         Query Driver = KST_CODE
 <ExpectedDeliveryDate>             Calculado = FormatARTimestamp(BeginDateTime)
@@ -55,7 +55,7 @@ ORDER BY lfp.LFP_POS
 <Supplier>                         Query Driver = LF_VERT
 <User>                             Calculado = config.process.operator_id
 <ReceiptNumber>                    Query Driver = LFS_NAME
-<FiscalReceiptFlag>                Calculado = si InventoryControlDocumentState == "7" → "true", sino → "false"
+<FiscalReceiptFlag>                Valor Fijo = "TRUE"
 <ReceiptDate>                      Query Driver = LFS_DATUM (parse "2006-01-02 15:04:05", FormatARTimestamp)
 ```
 
@@ -63,7 +63,7 @@ ORDER BY lfp.LFP_POS
 
 ```
 <DetSequenceNumber>       Calculado = índice 1..N por documento
-<Item>                    Query Items = ART_NR
+<Item>                    Query Items = ART_NUMMER (join ARTIKEL)
 <UomUnits>                Calculado = CAST(VPK_ID1 AS INT) con 4 decimales
 <ItemBrand>               Valor Fijo = "0"
 <ItemDescription>         Query Items = ART_NAME (join ARTIKEL)
@@ -100,7 +100,7 @@ ORDER BY l.LFS_NAME
 
 **Query Items** (mismo que Reception, por cada `LFS_ID` del driver)
 ```sql
-SELECT lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE,
+SELECT DISTINCT lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE,
        lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1,
        art.ART_NAME, art.ART_NUMMER
 FROM LIEFERPOS lfp
@@ -141,7 +141,7 @@ ORDER BY lfp.LFP_POS
 
 ```
 <DetSequenceNumber>       Calculado = índice 1..N por documento
-<Item>                    Query Items = ART_NR
+<Item>                    Query Items = ART_NUMMER (join ARTIKEL)
 <UomUnits>                Calculado = CAST(VPK_ID1 AS INT) con 4 decimales
 <ItemBrand>               Valor Fijo = "0"
 <ItemDescription>         Query Items = ART_NAME (join ARTIKEL)
@@ -171,14 +171,14 @@ FROM LIEFERSCHEIN l
     INNER JOIN KOSTST K ON lpo.KST_ID1 = K.KST_ID
     INNER JOIN LIEFER L2 ON lpo.LF_ID = L2.LF_ID
 WHERE lpo.KST_ID = ? AND l.LFS_STATUS = 42
-    AND COALESCE(l.LFS_RTS, 0) = 1 AND l.LFS_NETTO > 0 AND l.LFS_BRUTTO > 0
+    AND COALESCE(l.LFS_RTS, 0) <> 1 AND l.LFS_NETTO > 0 AND l.LFS_BRUTTO > 0
 GROUP BY l.LFS_NAME
 ORDER BY l.LFS_NAME
 ```
 
 **Query Items** (mismo que Reception, por cada `LFS_ID` del driver)
 ```sql
-SELECT lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE,
+SELECT DISTINCT lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE,
        lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1,
        art.ART_NAME, art.ART_NUMMER
 FROM LIEFERPOS lfp
@@ -229,7 +229,7 @@ ORDER BY lfp.LFP_POS
 
 ```
 <DetSequenceNumber>       Calculado = índice 1..N por documento
-<Item>                    Query Items = ART_NR
+<Item>                    Query Items = ART_NUMMER (join ARTIKEL)
 <UomUnits>                Calculado = CAST(VPK_ID1 AS INT) con 4 decimales
 <ItemBrand>               Valor Fijo = "0"
 <ItemDescription>         Query Items = ART_NAME (join ARTIKEL)
@@ -266,7 +266,7 @@ ORDER BY l.LFS_NAME
 
 **Query Items** (mismo que Reception, por cada `LFS_ID` del driver)
 ```sql
-SELECT lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE,
+SELECT DISTINCT lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE,
        lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1,
        art.ART_NAME, art.ART_NUMMER
 FROM LIEFERPOS lfp
@@ -315,9 +315,11 @@ ORDER BY lfp.LFP_POS
 
 **Mapeo — Detalle (`<inventoryControlDocumentMerchandiseLineItem>`)**
 
+> ⚠️ Este generador usa `line["ART_NR"]` en lugar de `line["ART_NR"]` — a diferencia de Reception, Return y FC que usan `ART_NUMMER`. El campo `ART_NR` proviene de `LIEFERPOS.ART_NR` directamente (no del join a ARTIKEL).
+
 ```
 <DetSequenceNumber>       Calculado = índice 1..N por documento
-<Item>                    Query Items = ART_NR
+<Item>                    Query Items = ART_NR (de LIEFERPOS, no del join ARTIKEL)
 <UomUnits>                Calculado = CAST(VPK_ID1 AS INT) con 4 decimales
 <ItemBrand>               Valor Fijo = "0"
 <ItemDescription>         Query Items = ART_NAME (join ARTIKEL)
@@ -348,9 +350,9 @@ ORDER BY I.INV_ID
 
 **Query Items** (por cada `INV_ID` del driver)
 ```sql
-SELECT inv.INV_ID, inv.ART_ID, inv.VPK_ID, inv.INP_IST, inv.INP_SOLL,
+SELECT DISTINCT inv.INV_ID, inv.ART_ID, inv.VPK_ID, inv.INP_IST, inv.INP_SOLL,
        inv.INP_EKP, inv.INP_VKP,
-       art.ART_NUMMER, art.ART_NAME
+       art.ART_NUMMER, art.ART_NAME, art.ART_NR, art.CHG_ZEIT
 FROM INVPOSART inv
 LEFT JOIN ARTIKEL art ON art.ART_ID = inv.ART_ID
 WHERE inv.INV_ID = ?
@@ -372,6 +374,7 @@ ORDER BY inv.ART_ID
 <SerialFormID>                     Calculado = igual que SequenceNumber
 <DocumentTypeCode>                 Valor Fijo = "InventoryAdjustment"
 <InventoryControlDocumentState>    Valor Fijo = "2"
+<contractReferenceNumber>          Valor Fijo = "Generado desde la Web"
 <CreateDateTimestamp>              Query Driver = CHG_ZEIT (parse "2006-01-02 15:04:05", FormatARTimestamp; fallback BeginDateTime)
 <DestinationRetailStoreID>         Query Driver = KST_CODE
 <ExpectedDeliveryDate>             Calculado = FormatARTimestamp(BeginDateTime)
@@ -379,7 +382,6 @@ ORDER BY inv.ART_ID
 <SourceRetailStore>                Query Driver = KST_CODE
 <User>                             Calculado = config.process.operator_id
 <InventoryAdjustmentType>          Valor Fijo = "CORRECTIVE_ADJUSTMENT"
-<ReceiptNumber>                    Query Driver = INV_NAME
 <FiscalReceiptFlag>                Valor Fijo = "false"
 <ReceiptDate>                      Calculado = FormatARTimestamp(BeginDateTime)
 ```
@@ -388,9 +390,8 @@ ORDER BY inv.ART_ID
 
 ```
 <DetSequenceNumber>       Calculado = índice 1..N por documento
-<Item>                    Query Items = ART_NR (campo inexistente en INVPOSART → siempre vacío)
+<Item>                    Query Items = ART_NUMMER (join ARTIKEL)
 <UomUnits>                Calculado = CAST(VPK_ID AS INT) con 4 decimales
-<ItemBrand>               Valor Fijo = "0"
 <ItemDescription>         Query Items = ART_NAME (join ARTIKEL)
 <UnitBaseCostAmount>      Query Items = INP_EKP con 4 decimales
 <UnitCount>               Calculado = INP_IST - INP_SOLL (varianza)
@@ -419,9 +420,9 @@ ORDER BY I.INV_ID
 
 **Query Items** (mismo que Adjustment, por cada `INV_ID` del driver)
 ```sql
-SELECT inv.INV_ID, inv.ART_ID, inv.VPK_ID, inv.INP_IST, inv.INP_SOLL,
+SELECT DISTINCT inv.INV_ID, inv.ART_ID, inv.VPK_ID, inv.INP_IST, inv.INP_SOLL,
        inv.INP_EKP, inv.INP_VKP,
-       art.ART_NUMMER, art.ART_NAME
+       art.ART_NUMMER, art.ART_NAME, art.ART_NR, art.CHG_ZEIT
 FROM INVPOSART inv
 LEFT JOIN ARTIKEL art ON art.ART_ID = inv.ART_ID
 WHERE inv.INV_ID = ?
@@ -459,7 +460,7 @@ ORDER BY inv.ART_ID
 
 ```
 <DetSequenceNumber>       Calculado = índice 1..N por documento
-<Item>                    Query Items = ART_NR (campo inexistente en INVPOSART → siempre vacío)
+<Item>                    Query Items = ART_NUMMER (join ARTIKEL)
 <UomUnits>                Calculado = CAST(VPK_ID AS INT) con 4 decimales
 <ItemBrand>               Valor Fijo = "0"
 <ItemDescription>         Query Items = ART_NAME (join ARTIKEL)
@@ -519,20 +520,20 @@ ORDER BY dt.ART_ID
 **Mapeo — Item (`<Item>` dentro de `<ItemList>`)**
 
 ```
-<STOCK_SEQ_NUMBER>           Valor Fijo = "1"
-<LOCATION_CODE>              Query KOSTST = KST_LOCID
-<REVENUE_CENTER>             Valor Fijo = "RCD"
-<ITEM_INVENTORY_STATE>       Valor Fijo = "OnSale"
-<ITEM_SEQ_NUMBER>            Calculado = índice 1..N por documento
-<ITEM_CODE>                  Query Items = ART_NUMMER (fallback ART_ID si ART_NUMMER vacío)
-<BEGIN_UNIT_COUNT>           Query Items = DAY_SOHBEG con 4 decimales
-<GROSS_SALE_UNIT_COUNT>      Query Items = DAY_QTYSOLD con 4 decimales
-<RETURN_UNIT_COUNT>          Valor Fijo = "0.0000"
-<RECEIVED_UNIT_COUNT>        Query Items = DAY_QTYPURCH con 4 decimales
+<STOCK_SEQ_NUMBER>            Valor Fijo = "1"
+<LOCATION_CODE>               Query KOSTST = KST_LOCID
+<REVENUE_CENTER>              Valor Fijo = "RCD"
+<ITEM_INVENTORY_STATE>        Valor Fijo = "OnSale"
+<ITEM_SEQ_NUMBER>             Calculado = índice 1..N por documento
+<ITEM_CODE>                   Query Items = ART_NUMMER (fallback ART_ID si ART_NUMMER vacío)
+<BEGIN_UNIT_COUNT>            Query Items = DAY_SOHBEG con 4 decimales
+<GROSS_SALE_UNIT_COUNT>       Query Items = DAY_QTYSOLD con 4 decimales
+<RETURN_UNIT_COUNT>           Valor Fijo = "0.0000"
+<RECEIVED_UNIT_COUNT>         Query Items = DAY_QTYPURCH con 4 decimales
 <RETURN_TO_VENTOR_UNIT_COUNT> Valor Fijo = "0.0000"
-<TRANSFERIN_UNIT_COUNT>      Query Items = DAY_QTYTRSFIN con 4 decimales
-<TRANSFEROUT_UNIT_COUNT>     Query Items = DAY_QTYTRSFOUT con 4 decimales
-<ADJUSTMENTIN_UNIT_COUNT>    Query Items = DAY_QTYUSAGE con 4 decimales
-<ADJUSTMENTOUT_UNIT_COUNT>   Query Items = DAY_QTYINV con 4 decimales
-<CURRENT_UNIT_COUNT>         Query Items = DAY_SOHEND con 4 decimales
+<TRANSFERIN_UNIT_COUNT>       Query Items = DAY_QTYTRSFIN con 4 decimales
+<TRANSFEROUT_UNIT_COUNT>      Query Items = DAY_QTYTRSFOUT con 4 decimales
+<ADJUSTMENTIN_UNIT_COUNT>     Query Items = DAY_QTYUSAGE con 4 decimales
+<ADJUSTMENTOUT_UNIT_COUNT>    Query Items = DAY_QTYINV con 4 decimales
+<CURRENT_UNIT_COUNT>          Query Items = DAY_SOHEND con 4 decimales
 ```
