@@ -46,7 +46,7 @@ func (ReceptionGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.
 			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
 			INNER JOIN LIEFER L2 ON lpo.LF_ID = L2.LF_ID
 			INNER JOIN main.KOSTST K on K.KST_ID = lpo.KST_ID
-		WHERE lpo.KST_ID = ? AND l.LFS_STATUS = 37 AND COALESCE(l.LFS_RTS, 0) <> 1
+		WHERE lpo.KST_ID = ? AND l.LFS_STATUS IN (37, 42) AND COALESCE(l.LFS_RTS, 0) <> 1 AND l.LFS_BRUTTO > 0 
 		GROUP BY l.LFS_NAME
 		ORDER BY l.LFS_NAME
 `
@@ -128,6 +128,12 @@ func writeReceptionDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqN
 		receiptDate = h.FormatARTimestamp(t)
 	}
 
+	state := mapLFSStatusReturn(lfs["LFS_STATUS"])
+	fiscalFlag := "false"
+	if state == "7" {
+		fiscalFlag = "true"
+	}
+
 	x.Open("Transaction")
 	x.Element("RetailStoreID", retailID)
 	x.Element("WorkstationID", receptionWorkstationID)
@@ -145,7 +151,7 @@ func writeReceptionDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqN
 	x.Open("InventoryControlTransaction")
 	x.Element("SerialFormID", seqNum)
 	x.Element("DocumentTypeCode", receptionDocumentTypeCode)
-	x.Element("InventoryControlDocumentState", receptionInventoryDocState)
+	x.Element("InventoryControlDocumentState", state)
 	x.EmptyElement("contractReferenceNumber")
 	x.Element("CreateDateTimestamp", h.FormatARTimestamp(h.BeginDateTime))
 	x.Element("DestinationRetailStoreID", retailID)
@@ -162,7 +168,7 @@ func writeReceptionDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqN
 	x.EmptyElement("Frequency")
 	x.EmptyElement("InventoryAdjustmentType")
 	x.Element("ReceiptNumber", lfs["LFS_NAME"])
-	x.Element("FiscalReceiptFlag", "TRUE")
+	x.Element("FiscalReceiptFlag", fiscalFlag)
 	x.EmptyElement("ReceiptType")
 	x.Element("ReceiptDate", receiptDate)
 	x.EmptyElement("CAINumber")
@@ -223,8 +229,13 @@ func writeReceptionLine(x *common.XMLBuilder, line map[string]string, retailID, 
 
 func mapLFSStatusReception(s string) string {
 	v, _ := db.AsInt(s)
-	if v == 42 || v == 37 {
+	if v == 42 {
+		return "4"
+	}
+
+	if v == 37 {
 		return "7"
 	}
-	return "4"
+
+	return ""
 }

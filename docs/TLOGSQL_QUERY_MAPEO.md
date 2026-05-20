@@ -17,13 +17,12 @@ Muestra el SQL ejecutado y cómo cada campo XML se obtiene.
 
 **Query Driver**
 ```sql
-SELECT DISTINCT l.LFS_ID, K.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO,
-       L2.LF_VERT, l.LFS_NAME, l.LFS_DATUM
+SELECT DISTINCT l.LFS_ID, K.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO, L2.LF_VERT, l.LFS_NAME, l.LFS_DATUM
 FROM LIEFERSCHEIN l
-    INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-    INNER JOIN LIEFER L2 ON lpo.LF_ID = L2.LF_ID
-    INNER JOIN KOSTST K ON K.KST_ID = lpo.KST_ID
-WHERE lpo.KST_ID = ? AND l.LFS_STATUS = 37 AND COALESCE(l.LFS_RTS, 0) <> 1
+         INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
+         INNER JOIN LIEFER L2 ON lpo.LF_ID = L2.LF_ID
+         INNER JOIN main.KOSTST K on K.KST_ID = lpo.KST_ID
+WHERE lpo.KST_ID = ? AND l.LFS_STATUS IN (37, 42) AND COALESCE(l.LFS_RTS, 0) <> 1 AND l.LFS_BRUTTO > 0
 GROUP BY l.LFS_NAME
 ORDER BY l.LFS_NAME
 ```
@@ -65,7 +64,7 @@ A COMPLETAR
 <OperatorID>                       Valor Fijo = config.process.operator_id
 <SerialFormID>                     Calculado = Igual al Tag SequenceNumber
 <DocumentTypeCode>                 Valor Fijo = "InventoryReception"
-<InventoryControlDocumentState>    Valor Fijo = "7"
+<InventoryControlDocumentState>    Calculado = si LFS_STATUS = 42 → "4"; si LFS_STATUS = 37 → "7"
 <CreateDateTimestamp>              Calculado = Igual al Tag BeginDateTime con formato "YYYY-MM-DD HH:MM:SS.000"
 <DestinationRetailStoreID>         Calculado = Igual al Tag RetailStoreID
 <ExpectedDeliveryDate>             Calculado = Igual al Tag BeginDateTime con formato "YYYY-MM-DD HH:MM:SS.000"
@@ -75,9 +74,12 @@ A COMPLETAR
 <Supplier>                         Query Driver = LF_VERT
 <User>                             Calculado = Igual al Tag OperatorID
 <ReceiptNumber>                    Query Driver = LFS_NAME
-<FiscalReceiptFlag>                Valor Fijo = "TRUE"
+<FiscalReceiptFlag>                Calculado = si InventoryControlDocumentState = "7" → "true"; sino → "false"
 <ReceiptDate>                      Query Driver = LFS_DATUM con formato "YYYY-MM-DD HH:MM:SS.000"; si no es fecha válida → Igual al Tag BeginDateTime con formato "YYYY-MM-DD HH:MM:SS.000"
 ```
+
+***NOTA:***
+InventoryControlDocumentState es siempre 7 porque el filtro del query es l.LFS_STATUS = 37
 
 **Cambios Mapeo Cabecera**
 
@@ -162,15 +164,13 @@ A COMPLETAR
 
 **Query Driver**
 ```sql
-SELECT DISTINCT l.LFS_ID, K.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO,
-       L2.LF_VERT, l.LFS_NAME, l.LFS_DATUM,
-       l.LFS_INFO, l.LFS_NETTO, l.LFS_MWST
+SELECT DISTINCT l.LFS_ID, K.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO, L2.LF_VERT, l.LFS_NAME, l.LFS_DATUM,
+                l.LFS_INFO, l.LFS_NETTO, l.LFS_MWST
 FROM LIEFERSCHEIN l
-    INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-    INNER JOIN KOSTST K ON lpo.KST_ID1 = K.KST_ID
-    INNER JOIN LIEFER L2 ON lpo.LF_ID = L2.LF_ID
-WHERE lpo.KST_ID = ? AND l.LFS_STATUS IN (37, 42)
-    AND l.LFS_BRUTTO < 0 AND COALESCE(l.LFS_RTS, 0) = 1
+         INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
+         INNER JOIN main.KOSTST K ON lpo.KST_ID1 = K.KST_ID
+         INNER JOIN main.LIEFER L2 ON lpo.LF_ID = L2.LF_ID
+WHERE lpo.KST_ID = ? AND l.LFS_STATUS IN (37, 42) AND COALESCE(l.LFS_RTS, 0) = 1 AND l.LFS_BRUTTO < 0
 GROUP BY l.LFS_NAME
 ORDER BY l.LFS_NAME
 ```

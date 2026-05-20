@@ -48,8 +48,7 @@ func (ReturnGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.Hea
 			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
 			INNER JOIN main.KOSTST K ON lpo.KST_ID1 = K.KST_ID
 			INNER JOIN main.LIEFER L2 ON lpo.LF_ID = L2.LF_ID
-		WHERE lpo.KST_ID = ? AND l.LFS_STATUS IN (37, 42)
-			AND l.LFS_BRUTTO < 0 AND COALESCE(l.LFS_RTS, 0) = 1
+		WHERE lpo.KST_ID = ? AND l.LFS_STATUS IN (37, 42) AND COALESCE(l.LFS_RTS, 0) = 1 AND l.LFS_BRUTTO < 0
 		GROUP BY l.LFS_NAME
 		ORDER BY l.LFS_NAME
 `
