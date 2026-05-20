@@ -26,7 +26,7 @@
     "cierre": true,
     "inventory_reception": true,
     "inventory_fiscaldoc_fc": true,
-    "inventory_fiscaldoc_nc": false,
+    "inventory_fiscaldoc_nc": true,
     "inventory_return": true,
     "inventory_adjustment": true,
     "inventory_count": true,
@@ -39,6 +39,7 @@
     "orphans_report": false
   },
   "process": {
+    "file_name_include_document_type": true,
     "mode": "ALL",
     "execution_mode": "SERIAL",
     "parallel_retails_per_day": false,

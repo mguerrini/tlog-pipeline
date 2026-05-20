@@ -51,7 +51,7 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 		return b.Fail(fmt.Errorf("tabla KOSTST no encontrada en store"))
 	}
 
-	namer := naming.DefaultNamer{}
+	namer := naming.DefaultNamer{IncludeDocumentType: d.Cfg.Process.FileNameIncludeDocumentType}
 	generators := factory.AllGenerators()
 	totalXMLs := 0
 	totalEmpty := 0

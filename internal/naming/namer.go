@@ -16,11 +16,20 @@ type FileNamer interface {
 }
 
 // DefaultNamer aplica la convención del proyecto.
-type DefaultNamer struct{}
+type DefaultNamer struct {
+	// IncludeDocumentType controla si el nombre del XML incluye el tipo de
+	// documento (Reception, Cierre, etc.). Mapea a process.file_name_include_document_type.
+	IncludeDocumentType bool
+}
 
-// XMLFile devuelve el nombre del XML: TLOG_<Tipo>_<KstCode>_<SequenceNumber>.xml.
-func (DefaultNamer) XMLFile(t TLOGType, kstCode, seqNum string) string {
-	return fmt.Sprintf("TLOG_%s_%s_%s.xml", string(t), kstCode, seqNum)
+// XMLFile devuelve el nombre del XML.
+// IncludeDocumentType=true  → TLOG_INVENTORY_<Tipo>_<KstCode>_<SequenceNumber>.xml
+// IncludeDocumentType=false → TLOG_INVENTORY_<KstCode>_<SequenceNumber>.xml
+func (n DefaultNamer) XMLFile(t TLOGType, kstCode, seqNum string) string {
+	if n.IncludeDocumentType {
+		return fmt.Sprintf("TLOG_INVENTORY_%s_%s_%s.xml", string(t), kstCode, seqNum)
+	}
+	return fmt.Sprintf("TLOG_INVENTORY_%s_%s.xml", kstCode, seqNum)
 }
 
 func (DefaultNamer) DayStatusFile(day time.Time) string {
