@@ -44,8 +44,8 @@ func (FiscalDocNCGenerator) Generate(ctx context.Context, conn *sql.DB, h *commo
 			l.LFS_INFO, l.LFS_NETTO, l.LFS_MWST, L2.LF_SACHB
 		FROM LIEFERSCHEIN l
 			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-			INNER JOIN main.KOSTST K ON lpo.KST_ID1 = K.KST_ID
-			INNER JOIN main.LIEFER L2 ON lpo.LF_ID = L2.LF_ID
+			INNER JOIN KOSTST K ON lpo.KST_ID1 = K.KST_ID
+			INNER JOIN LIEFER L2 ON lpo.LF_ID = L2.LF_ID
 		WHERE lpo.KST_ID = ? AND l.LFS_STATUS = 42
 			AND COALESCE(l.LFS_RTS, 0) = 1 AND l.LFS_NETTO < 0 AND l.LFS_BRUTTO < 0
 		GROUP BY l.LFS_NAME
@@ -76,8 +76,12 @@ func (FiscalDocNCGenerator) Generate(ctx context.Context, conn *sql.DB, h *commo
 		if err != nil {
 			return nil, fmt.Errorf("fiscaldoc_nc sequence: %w", err)
 		}
+		hdr, err := queryFiscalDocHeaderData(ctx, conn, h, lfs["LFS_ID"])
+		if err != nil {
+			return nil, fmt.Errorf("fiscaldoc_nc header %s: %w", lfs["LFS_ID"], err)
+		}
 		x := common.NewXMLBuilder()
-		writeNCDoc(x, h, retailID, seqNum, lfs, lines)
+		writeNCDoc(x, h, retailID, seqNum, lfs, lines, hdr)
 		files = append(files, tlog.GeneratedFile{
 			SeqNum:     seqNum,
 			XMLContent: x.String(),
@@ -97,54 +101,13 @@ func (FiscalDocNCGenerator) Generate(ctx context.Context, conn *sql.DB, h *commo
 }
 
 func writeNCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum string,
-	lfs map[string]string, lines []map[string]string) {
+	lfs map[string]string, lines []map[string]string, hdr fiscalDocHeaderData) {
 
 	netto, _ := db.AsFloat(lfs["LFS_NETTO"])
 	brutto, _ := db.AsFloat(lfs["LFS_BRUTTO"])
 	receiptDate := h.FormatARTimestamp(h.BeginDateTime)
 	if t, err := time.Parse("2006-01-02 15:04:05", lfs["LFS_DATUM"]); err == nil {
 		receiptDate = h.FormatARTimestamp(t)
-	}
-
-	var (
-		cainumVal, caidateVal            string
-		haveCAI                          bool
-		taxAmountVal, ivaTaxVal, iibbVal float64
-		haveTax, haveIva, haveIibb       bool
-		exemptSum, vatSum                float64
-	)
-	for _, line := range lines {
-		ekp, _ := db.AsFloat(line["LFP_EKP"])
-		switch line["ART_ART_NR"] {
-		case "1120":
-			if !haveCAI {
-				cainumVal = line["LFP_HACCPINFO"]
-				caidateVal = line["LFP_ABLAUFDT"]
-				haveCAI = true
-			}
-		case "1100":
-			if !haveTax {
-				taxAmountVal = ekp
-				haveTax = true
-			}
-		case "1098":
-			if !haveIva {
-				ivaTaxVal = ekp
-				haveIva = true
-			}
-		case "1096":
-			if !haveIibb {
-				iibbVal = ekp
-				haveIibb = true
-			}
-		}
-		if v, ok := db.AsInt(line["ART_MWSTNR"]); ok {
-			if v == 0 {
-				exemptSum += ekp
-			} else {
-				vatSum += ekp
-			}
-		}
 	}
 
 	x.Open("Transaction")
@@ -184,26 +147,17 @@ func writeNCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum stri
 	x.Element("FiscalReceiptFlag", ncFiscalReceiptFlag)
 	x.Element("ReceiptType", ncReceiptType)
 	x.Element("ReceiptDate", receiptDate)
-	if haveCAI {
-		x.Element("CAINumber", cainumVal)
-		caidateOut := caidateVal
-		if t, err := time.Parse("2006-01-02 15:04:05", caidateVal); err == nil {
-			caidateOut = h.FormatARTimestamp(t)
-		}
-		x.Element("CAIDate", caidateOut)
-	} else {
-		x.EmptyElement("CAINumber")
-		x.EmptyElement("CAIDate")
-	}
+	x.Element("CAINumber", hdr.CAINumber)
+	x.Element("CAIDate", hdr.CAIDate)
 	x.EmptyElement("PagesQuantity")
 	x.Element("NetAmount", common.FormatDecimal4(netto))
-	x.Element("ExemptAmout", common.FormatDecimal4(exemptSum))
-	x.Element("TaxAmount", common.FormatDecimal4(taxAmountVal))
-	x.Element("VatAmount", common.FormatDecimal4(vatSum))
+	x.Element("ExemptAmout", common.FormatDecimal4(hdr.ExemptAmount))
+	x.Element("TaxAmount", common.FormatDecimal4(hdr.TaxAmount))
+	x.Element("VatAmount", common.FormatDecimal4(hdr.VatAmount))
 	x.Element("ServicesVATAmount", "0.0000")
 	x.Element("DifferencialVATAmount", "0.0000")
-	x.Element("IvaTaxAmount", common.FormatDecimal4(ivaTaxVal))
-	x.Element("IIBBTaxAmount", common.FormatDecimal4(iibbVal))
+	x.Element("IvaTaxAmount", common.FormatDecimal4(hdr.IvaTaxAmount))
+	x.Element("IIBBTaxAmount", common.FormatDecimal4(hdr.IIBBTaxAmount))
 	x.Element("TotalAmount", common.FormatDecimal4(brutto))
 
 	x.Open("InventoryControlDocumentLineItems")

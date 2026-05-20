@@ -104,14 +104,14 @@ func (ReceptionGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.
 // usarlo en writeReceptionLine.
 func receptionLines(ctx context.Context, conn *sql.DB, lfsID string) ([]map[string]string, error) {
 	const linesSQL = `
-SELECT distinct lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE,
-       lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1,
-       lfp.LFP_HACCPINFO, lfp.LFP_ABLAUFDT,
-       art.ART_NAME, art.ART_NUMMER,
-       art.ART_NR AS ART_ART_NR, art.ART_MWSTNR
+SELECT distinct lfp.ART_NR, lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE,
+                lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1,
+                lfp.LFP_HACCPINFO, lfp.LFP_ABLAUFDT,
+                art.ART_NAME, art.ART_NUMMER,
+                art.ART_MWSTNR
 FROM LIEFERPOS lfp
-LEFT JOIN ARTIKEL art ON art.ART_ID = lfp.ART_NR
-WHERE lfp.LFS_ID = ?
+         LEFT JOIN ARTIKEL art ON art.ART_ID = lfp.ART_NR
+WHERE lfp.LFS_ID = 58 and lfp.ART_NR not in (1096, 1098, 1100, 1120)
 ORDER BY lfp.LFP_POS`
 	rows, err := queryRows(ctx, conn, linesSQL, lfsID)
 	if err != nil {
