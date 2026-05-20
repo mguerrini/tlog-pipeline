@@ -207,7 +207,7 @@ func writeAdjustmentLine(x *common.XMLBuilder, line map[string]string, retailID,
 	x.Element("CostTotalAmount", common.FormatDecimal4(math.Abs(costTotal)))
 	x.Element("UnitSalesAmount", adjustmentUnitSales)
 	x.Element("SalesTotalAmount", adjustmentSalesTotal)
-	x.Element("Stock", adjustmentStock)
+	x.Element("Stock", common.FormatDecimal4(ist))
 	x.Element("DailyAverageSales", adjustmentDailyAvg)
 	x.Element("SuggestedPurchaseOrder", adjustmentSuggestedPO)
 	x.EmptyElement("PickupCode")
