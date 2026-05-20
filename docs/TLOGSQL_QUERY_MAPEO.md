@@ -793,26 +793,23 @@ A COMPLETAR
 
 **Query Driver**
 ```sql
-SELECT DISTINCT I.INV_ID, K.KST_CODE, I.INV_NAME, I.CHG_ZEIT, I.INV_DATUM
-FROM INVENTUR I
-    INNER JOIN KOSTST K ON I.KST_ID = K.KST_ID
-WHERE I.KST_ID = ? AND I.INV_STATUS = 8 AND I.INV_TYP = 4
-ORDER BY I.INV_ID
+SELECT DISTINCT ????
+FROM HisVerbrauch h
+WHERE h.KST_ID = ? 
+ORDER BY h.VBR_NAME
 ```
 
 **Cambios Query Driver**
 
 A COMPLETAR
 
-**Query Items** (mismo que Adjustment, por cada `INV_ID` del driver)
+**Query Items**
 ```sql
-SELECT DISTINCT inv.INV_ID, inv.ART_ID, inv.VPK_ID, inv.INP_IST, inv.INP_SOLL,
-       inv.INP_EKP, inv.INP_VKP,
-       art.ART_NUMMER, art.ART_NAME, art.ART_NR, art.CHG_ZEIT
-FROM INVPOSART inv
-LEFT JOIN ARTIKEL art ON art.ART_ID = inv.ART_ID
-WHERE inv.INV_ID = ?
-ORDER BY inv.ART_ID
+SELECT DISTINCT ??
+FROM HisVerbrauch h
+INNER JOIN HisVerbrauchPos p ON h.VBR_ID = p.VBR_ID
+WHERE h.KST_ID = ?
+ORDER BY h.NEW_ZEIT
 ```
 
 **Cambios Query Items**
@@ -835,8 +832,8 @@ A COMPLETAR
 <OperatorID>                       Valor Fijo = config.process.operator_id
 <SerialFormID>                     Calculado = Igual al Tag SequenceNumber
 <DocumentTypeCode>                 Valor Fijo = "InventoryCount"
-<InventoryControlDocumentState>    Valor Fijo = "2"
-<CreateDateTimestamp>              Query Driver = CHG_ZEIT con formato "YYYY-MM-DD HH:MM:SS.000"; si no es fecha válida → Igual al Tag BeginDateTime con formato "YYYY-MM-DD HH:MM:SS.000"
+<InventoryControlDocumentState>    Valor Fijo = "4"
+<CreateDateTimestamp>              Query Driver = HisVerbrauch.CHG_ZEIT con formato "YYYY-MM-DD HH:MM:SS.000"; si no es fecha válida → Igual al Tag BeginDateTime con formato "YYYY-MM-DD HH:MM:SS.000"
 <DestinationRetailStoreID>         Calculado = Igual al Tag RetailStoreID
 <ExpectedDeliveryDate>             Calculado = Igual al Tag BeginDateTime con formato "YYYY-MM-DD HH:MM:SS.000"
 <LastUpdateDate>                   Calculado = Igual al Tag BeginDateTime con formato "YYYY-MM-DD HH:MM:SS.000"

@@ -158,6 +158,7 @@ func allSchemas() []*tableSchema {
 		inventur(),
 		invposart(),
 		hisVerbrauch(),
+		hisVerbrauchpos(),
 		dailytotals(),
 	}
 }
@@ -643,6 +644,30 @@ func hisVerbrauch() *tableSchema {
 			t("VBR_PARENTLIST"), t("VBR_REQUEST"), i("VBR_FROMPOS"),
 			i("VBR_ASKFORKST"), i("TFL_NR"), i("VBR_LISTLOCKED"),
 			i("VBR_DEPLETED"),
+		},
+	}
+}
+
+// ── HIS_VERBRAUCHPOS ───────────────────────────────────────────────────────
+func hisVerbrauchpos() *tableSchema {
+	return &tableSchema{
+		sqliteName: "HIS_VERBRAUCHPOS",
+		csvName:    "His_Verbrauchpos",
+		pk:         []string{"VBR_ID", "VBT_POS"},
+		fks: []fkRef{
+			{"VBR_ID", "HIS_VERBRAUCH", "VBR_ID"},
+			{"ART_NR", "ARTIKEL", "ART_ID"},
+		},
+		cols: []colDef{
+			i("VBR_ID"), i("VBT_POS"), i("VBT_TYP"),
+			i("ART_NR"), t("REZ_NR"),
+			r("VBT_MENGE"), i("VBT_WES"), r("VBT_VKP"),
+			i("NEW_USER"), t("NEW_ZEIT"), i("CHG_USER"), t("CHG_ZEIT"),
+			t("AKTIV"), t("VBT_INFO"), t("VBT_RC"),
+			i("VPK_NR"), r("VBT_MENGEGE"), i("REPLICATED"),
+			r("VBT_REQ_MENGE"), t("REZ_NR2"), i("VBT_SORT"), t("REZ_NR3"),
+			t("VBT_BATCH"), t("VBT_EXPIRE"), t("VBT_HACCPINFO"),
+			t("VBT_MANUFACTURED"), t("ART_NR2"), t("PRO_NR"),
 		},
 	}
 }

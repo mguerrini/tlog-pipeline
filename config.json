@@ -67,6 +67,7 @@
       "Inventur_*.csv",
       "Invposart_*.csv",
       "His_verbrauch_*.csv",
+      "His_Verbrauchpos_*.csv",
       "Dailytotals_*.csv"
     ],
     "clear_cols": {

@@ -19,8 +19,9 @@ var TableMapping = map[string]string{
 	"Lieferpos":     "LIEFERPOS",
 	"Inventur":      "INVENTUR",
 	"Invposart":     "INVPOSART",
-	"His_verbrauch": "HIS_VERBRAUCH",
-	"Dailytotals":   "DAILYTOTALS",
+	"His_verbrauch":    "HIS_VERBRAUCH",
+	"His_Verbrauchpos": "HIS_VERBRAUCHPOS",
+	"Dailytotals":      "DAILYTOTALS",
 }
 
 // LoadOrder define el orden de carga respetando dependencias FK lógicas.
@@ -35,6 +36,7 @@ var LoadOrder = []string{
 	"INVENTUR",
 	"INVPOSART",
 	"HIS_VERBRAUCH",
+	"HIS_VERBRAUCHPOS",
 	"DAILYTOTALS",
 }
 
@@ -47,8 +49,10 @@ func PatternToTable(pattern string) string {
 		return ""
 	}
 	prefix := pattern[:idx]
-	// Caso especial His_verbrauch
-	if strings.HasPrefix(pattern, "His_verbrauch") {
+	// Casos especiales con "_" en el prefijo
+	if strings.HasPrefix(pattern, "His_Verbrauchpos") {
+		prefix = "His_Verbrauchpos"
+	} else if strings.HasPrefix(pattern, "His_verbrauch") {
 		prefix = "His_verbrauch"
 	}
 	return TableMapping[prefix]
@@ -82,8 +86,10 @@ func FindFiles(dir string) (map[string]string, error) {
 			continue
 		}
 		prefix := name[:idx]
-		// Caso especial: "His_verbrauch" tiene "_" en el prefijo.
-		if strings.HasPrefix(name, "His_verbrauch_") {
+		// Casos especiales con "_" en el prefijo.
+		if strings.HasPrefix(name, "His_Verbrauchpos_") {
+			prefix = "His_Verbrauchpos"
+		} else if strings.HasPrefix(name, "His_verbrauch_") {
 			prefix = "His_verbrauch"
 		}
 		table, ok := TableMapping[prefix]

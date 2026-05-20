@@ -15,38 +15,37 @@ import (
 
 const (
 	countDocumentTypeCode  = "InventoryCount"
-	countInventoryAdjType  = "CORRECTIVE_ADJUSTMENT"
-	countInventoryDocState = "2"
+	countInventoryDocState = "4"
 	countFiscalReceiptFlag = "false"
 	countWorkstationID     = "0"
 	countPeriod            = "0"
 	countSubperiod         = "0"
-	countItemBrand         = "0"
 	countDestLocation      = "DEP1_OS"
 	countSourceLocation    = "DEP1_OS"
+	countUnitCount         = "0.0000"
 	countUnitSales         = "0.0000"
 	countSalesTotal        = "0.0000"
 	countStock             = "0.0000"
 	countDailyAvg          = "0.0000"
 	countSuggestedPO       = "0.0000"
+	countPickupCode        = "S1"
 )
 
-// CountGenerator implementa TLOG_INVENTORY_COUNT con SQL.
+// CountGenerator implementa TLOG_INVENTORY_COUNT_REAL con SQL.
 //
-// Mismo filtro que Adjustment: KST_ID = ? AND INV_STATUS = 8 AND INV_TYP = 4.
-// Difiere solo en el cálculo de costTotal (sin variance) y en algunos
-// elementos del XML.
+// Driver: HIS_VERBRAUCH (cabecera, VBR_STATUS = 2) + HIS_VERBRAUCHPOS (detalle).
 type CountGenerator struct{}
 
 func (CountGenerator) Type() naming.TLOGType { return naming.TLOGCount }
 
 func (CountGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, startCounter int) (*tlog.GenerateResult, error) {
 	const candidatesSQL = `
-SELECT DISTINCT I.INV_ID, K.KST_CODE, I.INV_NAME, I.CHG_ZEIT, I.INV_DATUM
-FROM main.INVENTUR I
-	INNER JOIN main.KOSTST K ON I.KST_ID = K.KST_ID
-WHERE I.KST_ID = ? AND I.INV_STATUS = 8 AND I.INV_TYP = 4
-ORDER BY I.INV_ID`
+SELECT V.VBR_ID, V.VBR_NAME, V.VRT_ID, V.CHG_ZEIT,
+       K.KST_CODE
+FROM HIS_VERBRAUCH V
+    INNER JOIN KOSTST K ON V.KST_ID = K.KST_ID
+WHERE V.KST_ID = ? AND V.VBR_STATUS = 2
+ORDER BY V.VBR_ID`
 	candidates, err := queryRows(ctx, conn, candidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("count candidatos: %w", err)
@@ -60,8 +59,8 @@ ORDER BY I.INV_ID`
 	var files []tlog.GeneratedFile
 	totalLines := 0
 
-	for _, inv := range candidates {
-		lines, err := invposartLines(ctx, conn, inv["INV_ID"])
+	for _, vbr := range candidates {
+		lines, err := hisVerbrauchposLines(ctx, conn, vbr["VBR_ID"])
 		if err != nil {
 			return nil, err
 		}
@@ -73,7 +72,7 @@ ORDER BY I.INV_ID`
 			return nil, fmt.Errorf("count sequence: %w", err)
 		}
 		x := common.NewXMLBuilder()
-		writeCountDoc(x, h, retailID, seqNum, inv, lines)
+		writeCountDoc(x, h, retailID, seqNum, vbr, lines)
 		files = append(files, tlog.GeneratedFile{
 			SeqNum:     seqNum,
 			XMLContent: x.String(),
@@ -92,12 +91,56 @@ ORDER BY I.INV_ID`
 	}, nil
 }
 
+// hisVerbrauchposLines devuelve las líneas de HIS_VERBRAUCHPOS para un VBR_ID,
+// joineando ARTIKEL para obtener ART_NUMMER y ART_NAME.
+func hisVerbrauchposLines(ctx context.Context, conn *sql.DB, vbrID string) ([]map[string]string, error) {
+	const linesSQL = `
+SELECT p.VBR_ID, p.VBT_POS, p.ART_NR, p.VBT_MENGE, p.VBT_WES, p.VPK_NR,
+       a.ART_NUMMER, a.ART_NAME
+FROM HIS_VERBRAUCHPOS p
+    LEFT JOIN ARTIKEL a ON a.ART_ID = p.ART_NR
+WHERE p.VBR_ID = ?
+ORDER BY p.VBT_POS`
+	rows, err := queryRows(ctx, conn, linesSQL, vbrID)
+	if err != nil {
+		return nil, fmt.Errorf("his_verbrauchpos VBR=%s: %w", vbrID, err)
+	}
+	return rows, nil
+}
+
+// mapVrtIDToAdjType convierte VRT_ID al tipo de ajuste TLOG.
+// Tabla de traducción pendiente de validación con OCPRA (UNKNOWN A DEFINIR).
+func mapVrtIDToAdjType(vrtID string) string {
+	switch vrtID {
+	case "1":
+		return "JUSTIFIED_ADJUSTMENTS"
+	case "2":
+		return "UNJUSTIFIED_ADJUSTMENTS"
+	default:
+		return "CORRECTIVE_ADJUSTMENT"
+	}
+}
+
 func writeCountDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum string,
-	inv map[string]string, lines []map[string]string) {
+	vbr map[string]string, lines []map[string]string) {
 
 	createTimestamp := h.FormatARTimestamp(h.BeginDateTime)
-	if t, err := time.Parse("2006-01-02 15:04:05", inv["CHG_ZEIT"]); err == nil {
+	expectedDate := h.FormatARTimestamp(h.BeginDateTime)
+	receiptDate := h.FormatARTimestamp(h.BeginDateTime)
+	if t, err := time.Parse("2006-01-02 15:04:05", vbr["CHG_ZEIT"]); err == nil {
 		createTimestamp = h.FormatARTimestamp(t)
+		// ExpectedDeliveryDate y ReceiptDate usan solo la fecha (hora en cero)
+		dayStart := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+		expectedDate = h.FormatARTimestamp(dayStart)
+		receiptDate = h.FormatARTimestamp(dayStart)
+	}
+
+	// ICDAmount = SUM(VBT_MENGE × VBT_WES)
+	var icdAmount float64
+	for _, l := range lines {
+		menge, _ := db.AsFloat(l["VBT_MENGE"])
+		wes, _ := db.AsFloat(l["VBT_WES"])
+		icdAmount += menge * wes
 	}
 
 	x.Open("Transaction")
@@ -118,12 +161,12 @@ func writeCountDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum s
 	x.Element("SerialFormID", seqNum)
 	x.Element("DocumentTypeCode", countDocumentTypeCode)
 	x.Element("InventoryControlDocumentState", countInventoryDocState)
-	x.EmptyElement("contractReferenceNumber")
+	x.Element("contractReferenceNumber", vbr["VBR_NAME"])
 	x.Element("CreateDateTimestamp", createTimestamp)
 	x.Element("DestinationRetailStoreID", retailID)
-	x.Element("ExpectedDeliveryDate", h.FormatARTimestamp(h.BeginDateTime))
-	x.EmptyElement("ICDAmount")
-	x.Element("LastUpdateDate", h.FormatARTimestamp(h.BeginDateTime))
+	x.Element("ExpectedDeliveryDate", expectedDate)
+	x.Element("ICDAmount", common.FormatDecimal4(icdAmount))
+	x.Element("LastUpdateDate", createTimestamp)
 	x.EmptyElement("Originator")
 	x.Element("SourceRetailStore", retailID)
 	x.EmptyElement("Supplier")
@@ -132,11 +175,11 @@ func writeCountDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum s
 	x.EmptyElement("ICDQuantity")
 	x.EmptyElement("ICDTotSalesAmount")
 	x.EmptyElement("Frequency")
-	x.Element("InventoryAdjustmentType", countInventoryAdjType)
-	x.Element("ReceiptNumber", inv["INV_NAME"])
+	x.Element("InventoryAdjustmentType", mapVrtIDToAdjType(vbr["VRT_ID"]))
+	x.EmptyElement("ReceiptNumber")
 	x.Element("FiscalReceiptFlag", countFiscalReceiptFlag)
 	x.EmptyElement("ReceiptType")
-	x.Element("ReceiptDate", inv["INV_DATUM"])
+	x.Element("ReceiptDate", receiptDate)
 	x.EmptyElement("CAINumber")
 	x.EmptyElement("CAIDate")
 	x.EmptyElement("PagesQuantity")
@@ -151,43 +194,39 @@ func writeCountDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum s
 	x.EmptyElement("TotalAmount")
 
 	x.Open("InventoryControlDocumentLineItems")
-	for i, line := range lines {
-		writeCountLine(x, line, retailID, seqNum, i+1)
+	for _, line := range lines {
+		writeCountLine(x, line, retailID, seqNum, createTimestamp)
 	}
 	x.Close()
 	x.Close()
 	x.Close()
 }
 
-func writeCountLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum string, detSeq int) {
-	ist, _ := db.AsFloat(line["INP_IST"])
-	ekp, _ := db.AsFloat(line["INP_EKP"])
-	costTotal := ist * ekp
+func writeCountLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum, lastUpdateDate string) {
+	wes, _ := db.AsFloat(line["VBT_WES"])
 
-	// Como en adjustment, el original usa artRow["ART_NR"] (no presente en
-	// el schema SQLite). Mismo comportamiento (queda vacío en SQL).
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
 	x.Element("RetailStoreID", retailID)
 	x.Element("WorkstationID", countWorkstationID)
 	x.Element("SequenceNumber", seqNum)
-
-	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
+	x.Element("DetSequenceNumber", line["VBT_POS"])
 	x.Element("Item", line["ART_NUMMER"])
-	x.Element("UomUnits", common.FormatDecimal4(float64(db.MustAsInt(line["VPK_ID"]))))
-	x.Element("ItemBrand", countItemBrand)
+	x.Element("UomUnits", common.FormatDecimal4(float64(db.MustAsInt(line["VPK_NR"]))))
+	x.EmptyElement("ItemBrand")
 	x.Element("ItemDescription", line["ART_NAME"])
-	x.Element("UnitBaseCostAmount", common.FormatDecimal4(ekp))
-	x.Element("UnitCount", common.FormatDecimal4(ist))
+	x.Element("UnitBaseCostAmount", common.FormatDecimal4(wes))
+	x.Element("UnitCount", countUnitCount)
 	x.Element("DestinationLocation", countDestLocation)
 	x.Element("SourceLocation", countSourceLocation)
-	x.Element("CostTotalAmount", common.FormatDecimal4(costTotal))
+	x.Element("CostTotalAmount", common.FormatDecimal4(wes))
 	x.Element("UnitSalesAmount", countUnitSales)
 	x.Element("SalesTotalAmount", countSalesTotal)
 	x.Element("Stock", countStock)
 	x.Element("DailyAverageSales", countDailyAvg)
 	x.Element("SuggestedPurchaseOrder", countSuggestedPO)
-	x.EmptyElement("PickupCode")
-	x.EmptyElement("LastUpdateDate")
+	x.Element("PickupCode", countPickupCode)
+	x.Element("LastUpdateDate", lastUpdateDate)
 	x.EmptyElement("DifBME_ASNTypeID")
+	x.Element("InventoryControlDocumentState", countInventoryDocState)
 	x.Close()
 }
