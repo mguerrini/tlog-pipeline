@@ -107,8 +107,8 @@ func writeCountDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum s
 	x.Element("BusinessDayDate", h.FormatBusinessDayDate())
 	x.Element("Period", countPeriod)
 	x.Element("Subperiod", countSubperiod)
-	x.EmptyElement("PeriodCode")
-	x.EmptyElement("SubPeriodCode")
+	x.Element("PeriodCode", "0")
+	x.Element("SubPeriodCode", "0")
 	x.Element("BeginDateTime", h.FormatBeginDateTime())
 	x.Element("EndDateTime", h.FormatEndDateTime())
 	x.Element("OperatorID", h.OperatorID)
@@ -152,14 +152,14 @@ func writeCountDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum s
 
 	x.Open("InventoryControlDocumentLineItems")
 	for i, line := range lines {
-		writeCountLine(x, line, i+1)
+		writeCountLine(x, line, retailID, seqNum, i+1)
 	}
 	x.Close()
 	x.Close()
 	x.Close()
 }
 
-func writeCountLine(x *common.XMLBuilder, line map[string]string, detSeq int) {
+func writeCountLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum string, detSeq int) {
 	ist, _ := db.AsFloat(line["INP_IST"])
 	ekp, _ := db.AsFloat(line["INP_EKP"])
 	costTotal := ist * ekp
@@ -167,6 +167,10 @@ func writeCountLine(x *common.XMLBuilder, line map[string]string, detSeq int) {
 	// Como en adjustment, el original usa artRow["ART_NR"] (no presente en
 	// el schema SQLite). Mismo comportamiento (queda vacío en SQL).
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
+	x.Element("RetailStoreID", retailID)
+	x.Element("WorkstationID", countWorkstationID)
+	x.Element("SequenceNumber", seqNum)
+
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
 	x.Element("Item", line["ART_NUMMER"])
 	x.Element("UomUnits", common.FormatDecimal4(float64(db.MustAsInt(line["VPK_ID"]))))

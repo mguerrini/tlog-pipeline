@@ -126,8 +126,8 @@ func writeAdjustmentDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seq
 	x.Element("BusinessDayDate", h.FormatBusinessDayDate())
 	x.Element("Period", adjustmentPeriod)
 	x.Element("Subperiod", adjustmentSubperiod)
-	x.EmptyElement("PeriodCode")
-	x.EmptyElement("SubPeriodCode")
+	x.Element("PeriodCode", "0")
+	x.Element("SubPeriodCode", "0")
 	x.Element("BeginDateTime", h.FormatBeginDateTime())
 	x.Element("EndDateTime", h.FormatEndDateTime())
 	x.Element("OperatorID", h.OperatorID)
@@ -171,14 +171,14 @@ func writeAdjustmentDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seq
 
 	x.Open("InventoryControlDocumentLineItems")
 	for i, line := range lines {
-		writeAdjustmentLine(x, line, i+1)
+		writeAdjustmentLine(x, line, retailID, seqNum, i+1)
 	}
 	x.Close()
 	x.Close()
 	x.Close()
 }
 
-func writeAdjustmentLine(x *common.XMLBuilder, line map[string]string, detSeq int) {
+func writeAdjustmentLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum string, detSeq int) {
 	ist, _ := db.AsFloat(line["INP_IST"])
 	soll, _ := db.AsFloat(line["INP_SOLL"])
 	variance := ist - soll
@@ -191,6 +191,10 @@ func writeAdjustmentLine(x *common.XMLBuilder, line map[string]string, detSeq in
 	// devuelve "". Si se quiere poblar el campo, editar la query de
 	// invposartLines y/o el schema de ARTIKEL.
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
+	x.Element("RetailStoreID", retailID)
+	x.Element("WorkstationID", adjustmentWorkstationID)
+	x.Element("SequenceNumber", seqNum)
+
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
 	x.Element("Item", line["ART_NUMMER"])
 	x.Element("UomUnits", common.FormatDecimal4(float64(db.MustAsInt(line["VPK_ID"]))))

@@ -133,8 +133,8 @@ func writeReceptionDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqN
 	x.Element("BusinessDayDate", h.FormatBusinessDayDate())
 	x.Element("Period", receptionPeriod)
 	x.Element("Subperiod", receptionSubperiod)
-	x.EmptyElement("PeriodCode")
-	x.EmptyElement("SubPeriodCode")
+	x.Element("PeriodCode", "0")
+	x.Element("SubPeriodCode", "0")
 	x.Element("BeginDateTime", h.FormatBeginDateTime())
 	x.Element("EndDateTime", h.FormatEndDateTime())
 	x.Element("OperatorID", h.OperatorID)
@@ -178,14 +178,14 @@ func writeReceptionDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqN
 
 	x.Open("InventoryControlDocumentLineItems")
 	for i, line := range lines {
-		writeReceptionLine(x, line, i+1)
+		writeReceptionLine(x, line, retailID, seqNum, i+1)
 	}
 	x.Close()
 	x.Close()
 	x.Close()
 }
 
-func writeReceptionLine(x *common.XMLBuilder, line map[string]string, detSeq int) {
+func writeReceptionLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum string, detSeq int) {
 	menge, _ := db.AsFloat(line["LFP_MENGE"])
 	ekp, _ := db.AsFloat(line["LFP_EKP"])
 	brutto, _ := db.AsFloat(line["LFP_BRUTTO"])
@@ -195,6 +195,9 @@ func writeReceptionLine(x *common.XMLBuilder, line map[string]string, detSeq int
 	}
 
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
+	x.Element("RetailStoreID", retailID)
+	x.Element("WorkstationID", receptionWorkstationID)
+	x.Element("SequenceNumber", seqNum)
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
 	x.Element("Item", line["ART_NUMMER"])
 	x.Element("UomUnits", common.FormatDecimal4(float64(db.MustAsInt(line["VPK_ID1"]))))

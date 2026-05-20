@@ -121,8 +121,8 @@ func writeReturnDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum 
 	x.Element("BusinessDayDate", h.FormatBusinessDayDate())
 	x.Element("Period", returnPeriod)
 	x.Element("Subperiod", returnSubperiod)
-	x.EmptyElement("PeriodCode")
-	x.EmptyElement("SubPeriodCode")
+	x.Element("PeriodCode", "0")
+	x.Element("SubPeriodCode", "0")
 	x.Element("BeginDateTime", h.FormatBeginDateTime())
 	x.Element("EndDateTime", h.FormatEndDateTime())
 	x.Element("OperatorID", h.OperatorID)
@@ -166,14 +166,14 @@ func writeReturnDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum 
 
 	x.Open("InventoryControlDocumentLineItems")
 	for i, line := range lines {
-		writeReturnLine(x, line, i+1)
+		writeReturnLine(x, line, retailID, seqNum, i+1)
 	}
 	x.Close()
 	x.Close()
 	x.Close()
 }
 
-func writeReturnLine(x *common.XMLBuilder, line map[string]string, detSeq int) {
+func writeReturnLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum string, detSeq int) {
 	menge, _ := db.AsFloat(line["LFP_MENGE"])
 	ekp, _ := db.AsFloat(line["LFP_EKP"])
 	brutto, _ := db.AsFloat(line["LFP_BRUTTO"])
@@ -183,6 +183,9 @@ func writeReturnLine(x *common.XMLBuilder, line map[string]string, detSeq int) {
 	}
 
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
+	x.Element("RetailStoreID", retailID)
+	x.Element("WorkstationID", returnWorkstationID)
+	x.Element("SequenceNumber", seqNum)
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
 	x.Element("Item", line["ART_NUMMER"])
 	x.Element("UomUnits", common.FormatDecimal4(float64(db.MustAsInt(line["VPK_ID1"]))))
@@ -206,8 +209,13 @@ func writeReturnLine(x *common.XMLBuilder, line map[string]string, detSeq int) {
 
 func mapLFSStatusReturn(s string) string {
 	v, _ := db.AsInt(s)
-	if v == 42 || v == 37 {
+	if v == 42 {
 		return "4"
 	}
-	return "7"
+
+	if v == 37 {
+		return "7"
+	}
+
+	return ""
 }

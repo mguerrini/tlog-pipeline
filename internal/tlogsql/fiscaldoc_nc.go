@@ -114,8 +114,8 @@ func writeNCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum stri
 	x.Element("BusinessDayDate", h.FormatBusinessDayDate())
 	x.Element("Period", ncPeriod)
 	x.Element("Subperiod", ncSubperiod)
-	x.EmptyElement("PeriodCode")
-	x.EmptyElement("SubPeriodCode")
+	x.Element("PeriodCode", "0")
+	x.Element("SubPeriodCode", "0")
 	x.Element("BeginDateTime", h.FormatBeginDateTime())
 	x.Element("EndDateTime", h.FormatEndDateTime())
 	x.Element("OperatorID", h.OperatorID)
@@ -159,14 +159,14 @@ func writeNCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum stri
 
 	x.Open("InventoryControlDocumentLineItems")
 	for i, line := range lines {
-		writeNCLine(x, line, i+1)
+		writeNCLine(x, line, retailID, seqNum, i+1)
 	}
 	x.Close()
 	x.Close()
 	x.Close()
 }
 
-func writeNCLine(x *common.XMLBuilder, line map[string]string, detSeq int) {
+func writeNCLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum string, detSeq int) {
 	menge, _ := db.AsFloat(line["LFP_MENGE"])
 	ekp, _ := db.AsFloat(line["LFP_EKP"])
 	brutto, _ := db.AsFloat(line["LFP_BRUTTO"])
@@ -176,6 +176,9 @@ func writeNCLine(x *common.XMLBuilder, line map[string]string, detSeq int) {
 	}
 
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
+	x.Element("RetailStoreID", retailID)
+	x.Element("WorkstationID", ncWorkstationID)
+	x.Element("SequenceNumber", seqNum)
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
 	x.Element("Item", line["ART_NR"])
 	x.Element("UomUnits", common.FormatDecimal4(float64(db.MustAsInt(line["VPK_ID1"]))))

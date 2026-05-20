@@ -86,7 +86,7 @@
     "delete_local_source": true
   },
   "local_clean": {
-    "enabled": true,
+    "enabled": false,
     "delete_source": true,
     "delete_database": true
   }
