@@ -69,16 +69,17 @@ func queryFiscalDocHeaderData(ctx context.Context, conn *sql.DB, h *common.Heade
 	}
 
 	d.TaxAmount, err = querySum(ctx, conn, `
-		SELECT sum(lpo.LFP_EKP) AS val
+	SELECT sum(total) as val from (
+	SELECT (lpo.LFP_EKP * lpo.LFP_MENGE) as total
 		FROM LIEFERSCHEIN l
 			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		WHERE l.LFS_ID = ? AND lpo.ART_NR = 1100 AND l.LFS_STATUS = 42`, lfsID)
+		WHERE l.LFS_ID = ? AND lpo.ART_NR = 1100 AND l.LFS_STATUS = 42)`, lfsID)
 	if err != nil {
 		return d, err
 	}
 
 	d.VatAmount, err = querySum(ctx, conn, `
-		SELECT sum(lpo.LFP_EKP) AS val
+	SELECT sum(lpo.LFP_EKP) AS val
 		FROM LIEFERSCHEIN l
 			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
 			INNER JOIN ARTIKEL A ON A.ART_ID = lpo.ART_NR
@@ -88,19 +89,21 @@ func queryFiscalDocHeaderData(ctx context.Context, conn *sql.DB, h *common.Heade
 	}
 
 	d.IvaTaxAmount, err = querySum(ctx, conn, `
-		SELECT sum(lpo.LFP_EKP) AS val
+	SELECT sum(total) as val FROM (
+		SELECT (lpo.LFP_EKP * lpo.LFP_MENGE) as total
 		FROM LIEFERSCHEIN l
 			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		WHERE l.LFS_ID = ? AND lpo.ART_NR = 1098 AND l.LFS_STATUS = 42`, lfsID)
+		WHERE l.LFS_ID = ? AND lpo.ART_NR = 1098 AND l.LFS_STATUS = 42)`, lfsID)
 	if err != nil {
 		return d, err
 	}
 
 	d.IIBBTaxAmount, err = querySum(ctx, conn, `
-		SELECT sum(lpo.LFP_EKP) AS val
+	SELECT sum(total) as val FROM (
+		SELECT (lpo.LFP_EKP * lpo.LFP_MENGE) as total
 		FROM LIEFERSCHEIN l
 			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		WHERE l.LFS_ID = ? AND lpo.ART_NR = 1096 AND l.LFS_STATUS = 42`, lfsID)
+		WHERE l.LFS_ID = ? AND lpo.ART_NR = 1096 AND l.LFS_STATUS = 42)`, lfsID)
 	if err != nil {
 		return d, err
 	}
