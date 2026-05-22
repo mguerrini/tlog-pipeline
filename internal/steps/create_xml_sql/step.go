@@ -93,6 +93,7 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 			WorkstationID: "0",
 			Period:        "0",
 			Subperiod:     "0",
+			IsProduction:  d.Cfg.Process.IsProduction,
 		}
 
 		for _, gen := range generators {

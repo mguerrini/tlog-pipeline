@@ -1,4 +1,14 @@
 {
+  "process": {
+    "is_production": true,
+    "file_name_include_document_type": false,
+    "mode": "ALL",
+    "execution_mode": "SERIAL",
+    "parallel_retails_per_day": false,
+    "begin_date_offset": "22:00:01",
+    "end_date_offset": "22:00:00",
+    "operator_id": "RY99999"
+  },
   "ftp_source": {
     "url": "ypf-sftp.oracleindustry.com",
     "port": 22,
@@ -37,15 +47,6 @@
     "day_status_enabled": false,
     "sql_db_load": false,
     "orphans_report": false
-  },
-  "process": {
-    "file_name_include_document_type": false,
-    "mode": "ALL",
-    "execution_mode": "SERIAL",
-    "parallel_retails_per_day": false,
-    "begin_date_offset": "22:00:01",
-    "end_date_offset": "22:00:00",
-    "operator_id": "RY99999"
   },
   "ftp_download": {
     "enabled": false,

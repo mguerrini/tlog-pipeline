@@ -151,6 +151,10 @@ type Process struct {
 	// tipo de documento. true → TLOG_INVENTORY_<Tipo>_<kst>_<seq>.xml;
 	// false → TLOG_INVENTORY_<kst>_<seq>.xml.
 	FileNameIncludeDocumentType bool `json:"file_name_include_document_type"`
+	// IsProduction controla qué ART_NR se usan en las queries de fiscal docs.
+	// false (default): 1120/1100/1098/1096 (entorno de pruebas).
+	// true: 2207/2204/2205/2206 (entorno productivo).
+	IsProduction bool `json:"is_production"`
 }
 
 // Cada step toma sus rutas de cfg.FtpFolders / cfg.LocalFolders y solo expone

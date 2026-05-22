@@ -71,8 +71,10 @@ ORDER BY V.VBR_ID`
 		if err != nil {
 			return nil, fmt.Errorf("count sequence: %w", err)
 		}
+
 		x := common.NewXMLBuilder()
 		writeCountDoc(x, h, retailID, seqNum, vbr, lines)
+
 		files = append(files, tlog.GeneratedFile{
 			SeqNum:     seqNum,
 			XMLContent: x.String(),
@@ -204,6 +206,7 @@ func writeCountDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum s
 
 func writeCountLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum, lastUpdateDate string) {
 	wes, _ := db.AsFloat(line["VBT_WES"])
+	menge, _ := db.AsFloat(line["VBT_MENGE"])
 
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
 	x.Element("RetailStoreID", retailID)
@@ -215,7 +218,7 @@ func writeCountLine(x *common.XMLBuilder, line map[string]string, retailID, seqN
 	x.EmptyElement("ItemBrand")
 	x.Element("ItemDescription", line["ART_NAME"])
 	x.Element("UnitBaseCostAmount", common.FormatDecimal4(wes))
-	x.Element("UnitCount", countUnitCount)
+	x.Element("UnitCount", common.FormatDecimal4(menge))
 	x.Element("DestinationLocation", countDestLocation)
 	x.Element("SourceLocation", countSourceLocation)
 	x.Element("CostTotalAmount", common.FormatDecimal4(wes))

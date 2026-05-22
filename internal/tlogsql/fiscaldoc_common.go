@@ -36,17 +36,31 @@ func querySum(ctx context.Context, conn *sql.DB, query string, args ...any) (flo
 	return 0, nil
 }
 
+// fiscalArtNRs devuelve los ART_NR a usar en las queries de fiscal docs según
+// el modo de ejecución.
+// false (pruebas): 1120, 1100, 1098, 1096.
+// true  (producción): 2207, 2204, 2205, 2206.
+func fiscalArtNRs(isProduction bool) (cai, tax, iva, iibb int) {
+	if isProduction {
+		return 2207, 2204, 2205, 2206
+	}
+	return 1120, 1100, 1098, 1096
+}
+
 // queryFiscalDocHeaderData ejecuta las queries auxiliares para cada LFS_ID y
 // devuelve los valores de cabecera del fiscal doc (CAI, montos por tipo de IVA).
+// Los ART_NR usados dependen de h.IsProduction (ver fiscalArtNRs).
 func queryFiscalDocHeaderData(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, lfsID string) (fiscalDocHeaderData, error) {
 	var d fiscalDocHeaderData
+
+	artCAI, artTax, artIva, artIIBB := fiscalArtNRs(h.IsProduction)
 
 	const caiSQL = `
 		SELECT lpo.LFP_HACCPINFO, lpo.LFP_ABLAUFDT
 		FROM LIEFERSCHEIN l
 			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		WHERE l.LFS_ID = ? AND lpo.ART_NR = 1120 AND l.LFS_STATUS = 42`
-	if row, err := selectOne(ctx, conn, caiSQL, lfsID); err != nil {
+		WHERE l.LFS_ID = ? AND lpo.ART_NR = ? AND l.LFS_STATUS = 42`
+	if row, err := selectOne(ctx, conn, caiSQL, lfsID, artCAI); err != nil {
 		return d, err
 	} else if row != nil {
 		d.CAINumber = row["LFP_HACCPINFO"]
@@ -73,7 +87,7 @@ func queryFiscalDocHeaderData(ctx context.Context, conn *sql.DB, h *common.Heade
 	SELECT (lpo.LFP_EKP * lpo.LFP_MENGE) as total
 		FROM LIEFERSCHEIN l
 			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		WHERE l.LFS_ID = ? AND lpo.ART_NR = 1100 AND l.LFS_STATUS = 42)`, lfsID)
+		WHERE l.LFS_ID = ? AND lpo.ART_NR = ? AND l.LFS_STATUS = 42)`, lfsID, artTax)
 	if err != nil {
 		return d, err
 	}
@@ -93,7 +107,7 @@ func queryFiscalDocHeaderData(ctx context.Context, conn *sql.DB, h *common.Heade
 		SELECT (lpo.LFP_EKP * lpo.LFP_MENGE) as total
 		FROM LIEFERSCHEIN l
 			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		WHERE l.LFS_ID = ? AND lpo.ART_NR = 1098 AND l.LFS_STATUS = 42)`, lfsID)
+		WHERE l.LFS_ID = ? AND lpo.ART_NR = ? AND l.LFS_STATUS = 42)`, lfsID, artIva)
 	if err != nil {
 		return d, err
 	}
@@ -103,7 +117,7 @@ func queryFiscalDocHeaderData(ctx context.Context, conn *sql.DB, h *common.Heade
 		SELECT (lpo.LFP_EKP * lpo.LFP_MENGE) as total
 		FROM LIEFERSCHEIN l
 			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		WHERE l.LFS_ID = ? AND lpo.ART_NR = 1096 AND l.LFS_STATUS = 42)`, lfsID)
+		WHERE l.LFS_ID = ? AND lpo.ART_NR = ? AND l.LFS_STATUS = 42)`, lfsID, artIIBB)
 	if err != nil {
 		return d, err
 	}

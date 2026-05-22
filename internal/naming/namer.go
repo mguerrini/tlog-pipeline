@@ -23,9 +23,14 @@ type DefaultNamer struct {
 }
 
 // XMLFile devuelve el nombre del XML.
-// IncludeDocumentType=true  → TLOG_INVENTORY_<Tipo>_<KstCode>_<SequenceNumber>.xml
-// IncludeDocumentType=false → TLOG_INVENTORY_<KstCode>_<SequenceNumber>.xml
+// Para TLOGCierre siempre → TLOG_Cierre_<KstCode>_<SequenceNumber>.xml
+// Para el resto:
+//   IncludeDocumentType=true  → TLOG_INVENTORY_<Tipo>_<KstCode>_<SequenceNumber>.xml
+//   IncludeDocumentType=false → TLOG_INVENTORY_<KstCode>_<SequenceNumber>.xml
 func (n DefaultNamer) XMLFile(t TLOGType, kstCode, seqNum string) string {
+	if t == TLOGCierre {
+		return fmt.Sprintf("TLOG_Cierre_%s_%s.xml", kstCode, seqNum)
+	}
 	if n.IncludeDocumentType {
 		return fmt.Sprintf("TLOG_INVENTORY_%s_%s_%s.xml", string(t), kstCode, seqNum)
 	}
