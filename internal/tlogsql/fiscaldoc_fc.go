@@ -18,7 +18,7 @@ const (
 	fcDocumentTypeCode  = "InventoryFiscalDoc"
 	fcReceiptType       = "FC"
 	fcInventoryDocState = "4"
-	fcFiscalReceiptFlag = "true"
+	fcFiscalReceiptFlag = "false"
 	fcWorkstationID     = "0"
 	fcPeriod            = "0"
 	fcSubperiod         = "0"
@@ -67,7 +67,7 @@ func (FiscalDocFCGenerator) Generate(ctx context.Context, conn *sql.DB, h *commo
 	totalLines := 0
 
 	for _, lfs := range candidates {
-		lines, err := receptionLines(ctx, conn, lfs["LFS_ID"])
+		lines, err := fiscalDocReceptionLines(ctx, conn, lfs["LFS_ID"], h.IsProduction)
 		if err != nil {
 			return nil, err
 		}

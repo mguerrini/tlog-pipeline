@@ -61,7 +61,7 @@ ORDER BY I.INV_ID`
 	totalLines := 0
 
 	for _, inv := range candidates {
-		lines, err := invposartLines(ctx, conn, inv["INV_ID"])
+		lines, err := adjustmentLines(ctx, conn, inv["INV_ID"])
 		if err != nil {
 			return nil, err
 		}
@@ -92,9 +92,9 @@ ORDER BY I.INV_ID`
 	}, nil
 }
 
-// invposartLines devuelve las líneas de INVPOSART de un inventario, joineando
+// adjustmentLines devuelve las líneas de INVPOSART de un inventario, joineando
 // ARTIKEL para arrastrar ART_NUMMER y ART_NAME.
-func invposartLines(ctx context.Context, conn *sql.DB, invID string) ([]map[string]string, error) {
+func adjustmentLines(ctx context.Context, conn *sql.DB, invID string) ([]map[string]string, error) {
 	const linesSQL = `
 		SELECT distinct inv.INV_ID, inv.ART_ID, inv.VPK_ID, inv.INP_IST, inv.INP_SOLL,
 			   inv.INP_EKP, inv.INP_VKP, 

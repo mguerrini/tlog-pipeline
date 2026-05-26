@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"math"
 
 	"github.com/opessa/tlog-pipeline/internal/db"
 	"github.com/opessa/tlog-pipeline/internal/naming"
@@ -122,7 +123,7 @@ func writeCierreItem(x *common.XMLBuilder, row map[string]string, locationCode s
 	x.Element("ITEM_SEQ_NUMBER", fmt.Sprintf("%d", itemSeq))
 	x.Element("ITEM_CODE", artNummer)
 	x.Element("BEGIN_UNIT_COUNT", common.FormatDecimal4(sohBeg))
-	x.Element("GROSS_SALE_UNIT_COUNT", common.FormatDecimal4(qtySold))
+	x.Element("GROSS_SALE_UNIT_COUNT", common.FormatDecimal4(math.Abs(qtySold)))
 	x.Element("RETURN_UNIT_COUNT", common.FormatDecimal4(0))
 	x.Element("RECEIVED_UNIT_COUNT", common.FormatDecimal4(qtyPurch))
 	x.Element("RETURN_TO_VENTOR_UNIT_COUNT", common.FormatDecimal4(0))

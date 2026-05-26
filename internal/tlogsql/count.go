@@ -208,6 +208,8 @@ func writeCountLine(x *common.XMLBuilder, line map[string]string, retailID, seqN
 	wes, _ := db.AsFloat(line["VBT_WES"])
 	menge, _ := db.AsFloat(line["VBT_MENGE"])
 
+	costTotalAmount := wes * menge
+
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
 	x.Element("RetailStoreID", retailID)
 	x.Element("WorkstationID", countWorkstationID)
@@ -221,7 +223,7 @@ func writeCountLine(x *common.XMLBuilder, line map[string]string, retailID, seqN
 	x.Element("UnitCount", common.FormatDecimal4(menge))
 	x.Element("DestinationLocation", countDestLocation)
 	x.Element("SourceLocation", countSourceLocation)
-	x.Element("CostTotalAmount", common.FormatDecimal4(wes))
+	x.Element("CostTotalAmount", common.FormatDecimal4(costTotalAmount))
 	x.Element("UnitSalesAmount", countUnitSales)
 	x.Element("SalesTotalAmount", countSalesTotal)
 	x.Element("Stock", countStock)

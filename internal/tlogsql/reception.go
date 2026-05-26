@@ -111,7 +111,7 @@ SELECT distinct lfp.ART_NR, lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE,
                 art.ART_MWSTNR
 FROM LIEFERPOS lfp
          LEFT JOIN ARTIKEL art ON art.ART_ID = lfp.ART_NR
-WHERE lfp.LFS_ID = 58 and lfp.ART_NR not in (1096, 1098, 1100, 1120)
+WHERE lfp.LFS_ID = ? and lfp.ART_NR not in (2204, 2205,2206, 2207)
 ORDER BY lfp.LFP_POS`
 	rows, err := queryRows(ctx, conn, linesSQL, lfsID)
 	if err != nil {

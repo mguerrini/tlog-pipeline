@@ -4,11 +4,11 @@
 #
 # Uso:
 #   .\build-linux.ps1                        # versión por defecto, output: tlog-gen
-#   .\build-linux.ps1 -Version 2.1.0
-#   .\build-linux.ps1 -Version 2.1.0 -Output tlog-gen-linux
+#   .\build-linux.ps1 -Version 2.9.0
+#   .\build-linux.ps1 -Version 2.9.0 -Output tlog-gen-linux
 
 param(
-    [string]$Version = "2.1.0",
+    [string]$Version = "2.9.0",
     [string]$Output  = "tlog-gen"
 )
 

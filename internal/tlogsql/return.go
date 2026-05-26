@@ -67,7 +67,7 @@ func (ReturnGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.Hea
 	totalLines := 0
 
 	for _, lfs := range candidates {
-		lines, err := receptionLines(ctx, conn, lfs["LFS_ID"]) // mismo SELECT que reception
+		lines, err := returnLines(ctx, conn, lfs["LFS_ID"]) // mismo SELECT que reception
 		if err != nil {
 			return nil, err
 		}
@@ -217,4 +217,22 @@ func mapLFSStatusReturn(s string) string {
 	}
 
 	return ""
+}
+
+func returnLines(ctx context.Context, conn *sql.DB, lfsID string) ([]map[string]string, error) {
+	const linesSQL = `
+SELECT distinct lfp.ART_NR, lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE,
+                lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1,
+                lfp.LFP_HACCPINFO, lfp.LFP_ABLAUFDT,
+                art.ART_NAME, art.ART_NUMMER,
+                art.ART_MWSTNR
+FROM LIEFERPOS lfp
+         LEFT JOIN ARTIKEL art ON art.ART_ID = lfp.ART_NR
+WHERE lfp.LFS_ID = ? and lfp.ART_NR not in (2204, 2205,2206, 2207)
+ORDER BY lfp.LFP_POS`
+	rows, err := queryRows(ctx, conn, linesSQL, lfsID)
+	if err != nil {
+		return nil, fmt.Errorf("reception lineas LFS=%s: %w", lfsID, err)
+	}
+	return rows, nil
 }

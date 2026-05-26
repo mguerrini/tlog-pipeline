@@ -528,7 +528,7 @@ func lieferpos() *tableSchema {
 			i("LFS_ID"), i("LFP_POS"), i("LFP_LFSPOS"), i("SB_NR"),
 			i("KST_ID"), i("KRT_ID"), i("KRT_NR"), i("KST_ID1"),
 			i("ART_NR"), i("LF_ID"), i("VPK_ID1"),
-			i("LFP_MENGE"), r("LFP_EKP"), r("LFP_VKP"),
+			r("LFP_MENGE"), r("LFP_EKP"), r("LFP_VKP"),
 			r("LFP_RABATT"), r("LFP_MWST"), r("LFP_BRUTTO"),
 			i("LFP_MENGEGE"), i("VPK_ID2"), i("LFP_STATUS"), i("LFP_HISTORIE"),
 			t("LFS_NAME"), t("LFS_DATUM"), i("BST_ID"), t("B_NAME"),
