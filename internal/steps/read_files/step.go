@@ -75,7 +75,7 @@ func fixMultilineFile(path, sep string, clearCols []string) error {
 		lines = lines[:len(lines)-1]
 	}
 	if len(lines) == 0 {
-		return fmt.Errorf("archivo vacío: %s", path)
+		return nil
 	}
 
 	headerLine := strings.TrimRight(lines[0], "\r")

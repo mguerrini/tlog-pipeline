@@ -3,7 +3,7 @@
 # Genera el .syso con metadata de Windows y compila inyectando la version.
 
 param(
-    [string]$Version = "2.9.0",
+    [string]$Version = "2.10.0",
     [string]$Output  = "tlog-gen.exe"
 )
 
