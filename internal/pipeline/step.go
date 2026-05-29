@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/opessa/tlog-pipeline/internal/config"
-	"github.com/opessa/tlog-pipeline/internal/db"
 )
 
 // StepStatus enumera los posibles estados de un step.
@@ -34,13 +33,12 @@ type StepResult struct {
 	StopAfter bool
 }
 
-// DayCtx es el contexto de un día en ejecución: config + día + store + logger.
+// DayCtx es el contexto de un día en ejecución: config + día + logger.
 type DayCtx struct {
 	Cfg    *config.Config
 	Day    time.Time
 	DayDir string // source_root/AAAAMMDD
 	OutDir string // target_root/AAAAMMDD
-	Store  *db.Store
 	Log    *slog.Logger
 }
 

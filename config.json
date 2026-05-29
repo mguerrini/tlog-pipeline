@@ -1,7 +1,7 @@
 {
   "process": {
     "is_production": true,
-    "file_name_include_document_type": false,
+    "file_name_include_document_type": true,
     "mode": "ALL",
     "execution_mode": "SERIAL",
     "parallel_retails_per_day": false,
@@ -45,8 +45,7 @@
   "logs": {
     "pipeline_enabled": false,
     "day_status_enabled": false,
-    "sql_db_load": false,
-    "orphans_report": false
+    "sql_db_load": false
   },
   "ftp_download": {
     "enabled": false,
@@ -77,8 +76,7 @@
   },
   "create_db": {
     "enabled": true,
-    "separator": "|",
-    "sql": true
+    "separator": "|"
   },
   "create_xml": {
     "enabled": true
@@ -91,7 +89,7 @@
     "delete_local_source": true
   },
   "local_clean": {
-    "enabled": true,
+    "enabled": false,
     "delete_source": true,
     "delete_database": true
   }

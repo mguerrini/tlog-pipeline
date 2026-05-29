@@ -1,7 +1,6 @@
-// Package create_xml_sql implementa el step de generación de XMLs para el
-// flujo SQL: abre la DB SQLite producida por create_sql_db y delega en los
+// Package create_xml_sql implementa el step de generación de XMLs:
+// abre la DB SQLite producida por create_sql_db y delega en los
 // generators SQL de internal/tlogsql, que ejecutan queries directas.
-// Solo se ejecuta si create_db.sql = true.
 package create_xml_sql
 
 import (
@@ -28,9 +27,6 @@ func (Step) Name() string { return "create_xml_sql" }
 func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 	b := pipeline.NewResult()
 
-	if !d.Cfg.CreateDB.SQL {
-		return b.Skip("create_db.sql = false (flujo de archivo)")
-	}
 	if !d.Cfg.CreateXML.Enabled {
 		return b.Skip("disabled in config")
 	}

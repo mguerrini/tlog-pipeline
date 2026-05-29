@@ -11,9 +11,7 @@ import (
 	"github.com/opessa/tlog-pipeline/internal/config"
 	"github.com/opessa/tlog-pipeline/internal/logger"
 	"github.com/opessa/tlog-pipeline/internal/pipeline"
-	"github.com/opessa/tlog-pipeline/internal/steps/create_db"
 	"github.com/opessa/tlog-pipeline/internal/steps/create_sql_db"
-	"github.com/opessa/tlog-pipeline/internal/steps/create_xml"
 	"github.com/opessa/tlog-pipeline/internal/steps/create_xml_sql"
 	"github.com/opessa/tlog-pipeline/internal/steps/ftp_end"
 	"github.com/opessa/tlog-pipeline/internal/steps/ftp_upload"
@@ -80,10 +78,8 @@ func main() {
 	phase1Steps := []pipeline.Step{
 		split_by_date.Step{},
 		read_files.Step{},
-		create_db.Step{},
 		create_sql_db.Step{},
 		create_xml_sql.Step{},
-		create_xml.Step{},
 	}
 	// Fase 2: upload + cierre. Per-día sobre target_root/AAAAMMDD, gobernada
 	// por ftp_status.json en cada carpeta. Siempre corre, incluso si la fase 1

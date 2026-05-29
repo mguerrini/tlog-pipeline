@@ -1,5 +1,4 @@
 // Package create_sql_db implementa el step de generación de DB SQLite tipada.
-// Solo se ejecuta si create_db.sql = true en config.json (flujo SQL).
 // Su salida (.db) la consume create_xml_sql para generar los XMLs.
 package create_sql_db
 
@@ -21,11 +20,6 @@ func (Step) Name() string { return "create_sql_db" }
 
 func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 	b := pipeline.NewResult()
-
-	// Saltar si create_db.sql = false
-	if !d.Cfg.CreateDB.SQL {
-		return b.Skip("create_db.sql = false")
-	}
 
 	if err := os.MkdirAll(d.OutDir, 0o755); err != nil {
 		return b.Fail(fmt.Errorf("crear out_dir: %w", err))

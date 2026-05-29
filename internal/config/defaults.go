@@ -27,7 +27,6 @@ func applyDefaults(c *Config) {
 			PipelineEnabled:  true,
 			DayStatusEnabled: true,
 			SQLDBLoad:        true,
-			OrphansReport:    true,
 		}
 	}
 	// Sección "output" omitida del JSON → generar los 8 TLOGs (compat retro).

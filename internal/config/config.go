@@ -117,7 +117,6 @@ type Logs struct {
 	PipelineEnabled  bool `json:"pipeline_enabled"`   // AAAAMMDD_pipeline.log
 	DayStatusEnabled bool `json:"day_status_enabled"` // AAAAMMDD_day_status.json
 	SQLDBLoad        bool `json:"sql_db_load"`        // AAAAMMDD_sqldb_load.md
-	OrphansReport    bool `json:"orphans_report"`     // AAAAMMDD_orphans.md
 }
 
 // UnmarshalJSON: flags omitidos default-ean a true.
@@ -126,7 +125,6 @@ func (l *Logs) UnmarshalJSON(data []byte) error {
 		PipelineEnabled  *bool `json:"pipeline_enabled"`
 		DayStatusEnabled *bool `json:"day_status_enabled"`
 		SQLDBLoad        *bool `json:"sql_db_load"`
-		OrphansReport    *bool `json:"orphans_report"`
 	}{}
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
@@ -135,7 +133,6 @@ func (l *Logs) UnmarshalJSON(data []byte) error {
 		PipelineEnabled:  boolOrTrue(raw.PipelineEnabled),
 		DayStatusEnabled: boolOrTrue(raw.DayStatusEnabled),
 		SQLDBLoad:        boolOrTrue(raw.SQLDBLoad),
-		OrphansReport:    boolOrTrue(raw.OrphansReport),
 	}
 	return nil
 }
@@ -187,9 +184,6 @@ type ReadFiles struct {
 type CreateDB struct {
 	Enabled   bool   `json:"enabled"`
 	Separator string `json:"separator"`
-	// SQL: si true, después de create_db se ejecuta create_sql_db y el pipeline
-	// termina ahí (modo debug — genera un .db SQLite con schema tipado).
-	SQL bool `json:"sql"`
 }
 
 type CreateXML struct {
