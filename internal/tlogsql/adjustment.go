@@ -9,7 +9,6 @@ import (
 
 	"github.com/opessa/tlog-pipeline/internal/db"
 	"github.com/opessa/tlog-pipeline/internal/naming"
-	"github.com/opessa/tlog-pipeline/internal/sequence"
 	"github.com/opessa/tlog-pipeline/internal/tlog"
 	"github.com/opessa/tlog-pipeline/internal/tlog/common"
 )
@@ -40,14 +39,27 @@ type AdjustmentGenerator struct{}
 
 func (AdjustmentGenerator) Type() naming.TLOGType { return naming.TLOGAdjustment }
 
-func (AdjustmentGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, startCounter int) (*tlog.GenerateResult, error) {
-	const candidatesSQL = `
+const adjustmentCandidatesSQL = `
 SELECT DISTINCT I.INV_ID, K.KST_CODE, I.INV_NAME, I.CHG_ZEIT
 FROM main.INVENTUR I
 	INNER JOIN main.KOSTST K ON I.KST_ID = K.KST_ID
 WHERE I.KST_ID = ? AND I.INV_STATUS = 8 AND I.INV_TYP = 4
 ORDER BY I.INV_ID`
-	candidates, err := queryRows(ctx, conn, candidatesSQL, kstID)
+
+func (AdjustmentGenerator) ListCandidateIDs(ctx context.Context, conn *sql.DB, kstID string) ([]string, error) {
+	rows, err := queryRows(ctx, conn, adjustmentCandidatesSQL, kstID)
+	if err != nil {
+		return nil, fmt.Errorf("adjustment candidatos: %w", err)
+	}
+	ids := make([]string, 0, len(rows))
+	for _, r := range rows {
+		ids = append(ids, r["INV_ID"])
+	}
+	return ids, nil
+}
+
+func (AdjustmentGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
+	candidates, err := queryRows(ctx, conn, adjustmentCandidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("adjustment candidatos: %w", err)
 	}
@@ -68,9 +80,9 @@ ORDER BY I.INV_ID`
 		if len(lines) == 0 {
 			continue
 		}
-		seqNum, err := sequence.Build(h.BusinessDay, sequence.DocAdjustment, startCounter+len(files))
-		if err != nil {
-			return nil, fmt.Errorf("adjustment sequence: %w", err)
+		seqNum := seqMap[inv["INV_ID"]]
+		if seqNum == "" {
+			return nil, fmt.Errorf("adjustment: sin sequence pre-asignado para INV_ID=%s", inv["INV_ID"])
 		}
 		x := common.NewXMLBuilder()
 		writeAdjustmentDoc(x, h, retailID, seqNum, inv, lines)

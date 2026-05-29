@@ -19,11 +19,10 @@ type TransferGenerator struct{}
 
 func (TransferGenerator) Type() naming.TLOGType { return naming.TLOGTransfer }
 
-func (TransferGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, startCounter int) (*tlog.GenerateResult, error) {
-	_ = ctx
-	_ = conn
-	_ = h
-	_ = kstID
-	_ = startCounter
+func (TransferGenerator) ListCandidateIDs(_ context.Context, _ *sql.DB, _ string) ([]string, error) {
+	return nil, nil
+}
+
+func (TransferGenerator) Generate(_ context.Context, _ *sql.DB, _ *common.HeaderCtx, _ string, _ tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
 	return &tlog.GenerateResult{Empty: true}, nil
 }

@@ -22,13 +22,25 @@ import (
 
 // Generator es la interfaz de los generators SQL.
 //
-// startCounter es el valor inicial del CONTADOR del SEQUENCENUMBER para esta
-// llamada. El step llama a Generate una vez por KST_ID y va incrementando el
-// contador con result.NumDocs, de modo que el SEQUENCENUMBER sea único por
-// (día × tipo) a lo largo de todos los KST_IDs.
+// El flujo de uso tiene dos fases por KST:
+//  1. ListCandidateIDs: obtiene los IDs de los documentos fuente y permite
+//     al step pre-asignar SequenceNumbers (docID → seqNum) antes de escribir
+//     cualquier archivo. Cierre devuelve nil (no participa en pre-asignación).
+//  2. Generate: produce los XMLs usando los seqNums del DocSeqMap.
+//     Para Cierre, seqMap es nil y se usa startCounter.
 type Generator interface {
 	Type() naming.TLOGType
-	Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, startCounter int) (*tlog.GenerateResult, error)
+
+	// ListCandidateIDs devuelve los IDs fuente ordenados (LFS_ID, INV_ID,
+	// VBR_ID, …) para pre-asignar SequenceNumbers antes de generar XMLs.
+	// Devuelve nil para Cierre y Transfer (no participan en pre-asignación).
+	ListCandidateIDs(ctx context.Context, conn *sql.DB, kstID string) ([]string, error)
+
+	// Generate produce los archivos XML del KST. Para generators no-Cierre,
+	// seqMap contiene los seqNums pre-asignados por ListCandidateIDs; en ese
+	// caso startCounter se ignora. Para Cierre, seqMap es nil y se usa
+	// startCounter.
+	Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, startCounter int) (*tlog.GenerateResult, error)
 }
 
 // queryRows ejecuta una query y devuelve cada fila como map[string]string.

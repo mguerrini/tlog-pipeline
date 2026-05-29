@@ -8,7 +8,6 @@ import (
 
 	"github.com/opessa/tlog-pipeline/internal/db"
 	"github.com/opessa/tlog-pipeline/internal/naming"
-	"github.com/opessa/tlog-pipeline/internal/sequence"
 	"github.com/opessa/tlog-pipeline/internal/tlog"
 	"github.com/opessa/tlog-pipeline/internal/tlog/common"
 )
@@ -38,20 +37,33 @@ type FiscalDocNCGenerator struct{}
 
 func (FiscalDocNCGenerator) Type() naming.TLOGType { return naming.TLOGFiscalDocNC }
 
-func (FiscalDocNCGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, startCounter int) (*tlog.GenerateResult, error) {
-	const candidatesSQL = `
-		SELECT DISTINCT l.LFS_ID, K.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO, L2.LF_VERT, l.LFS_NAME, l.LFS_DATUM,
-			l.LFS_INFO, l.LFS_NETTO, l.LFS_MWST, L2.LF_SACHB
-		FROM LIEFERSCHEIN l
-			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-			INNER JOIN KOSTST K ON lpo.KST_ID1 = K.KST_ID
-			INNER JOIN LIEFER L2 ON lpo.LF_ID = L2.LF_ID
-		WHERE lpo.KST_ID = ? AND l.LFS_STATUS = 42
-			AND COALESCE(l.LFS_RTS, 0) = 1 AND l.LFS_NETTO < 0 AND l.LFS_BRUTTO < 0
-		GROUP BY l.LFS_NAME
-		ORDER BY l.LFS_NAME
+const fiscalDocNCCandidatesSQL = `
+	SELECT DISTINCT l.LFS_ID, K.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO, L2.LF_VERT, l.LFS_NAME, l.LFS_DATUM,
+		l.LFS_INFO, l.LFS_NETTO, l.LFS_MWST, L2.LF_SACHB
+	FROM LIEFERSCHEIN l
+		INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
+		INNER JOIN KOSTST K ON lpo.KST_ID1 = K.KST_ID
+		INNER JOIN LIEFER L2 ON lpo.LF_ID = L2.LF_ID
+	WHERE lpo.KST_ID = ? AND l.LFS_STATUS = 42
+		AND COALESCE(l.LFS_RTS, 0) = 1 AND l.LFS_NETTO < 0 AND l.LFS_BRUTTO < 0
+	GROUP BY l.LFS_NAME
+	ORDER BY l.LFS_NAME
 `
-	candidates, err := queryRows(ctx, conn, candidatesSQL, kstID)
+
+func (FiscalDocNCGenerator) ListCandidateIDs(ctx context.Context, conn *sql.DB, kstID string) ([]string, error) {
+	rows, err := queryRows(ctx, conn, fiscalDocNCCandidatesSQL, kstID)
+	if err != nil {
+		return nil, fmt.Errorf("fiscaldoc_nc candidatos: %w", err)
+	}
+	ids := make([]string, 0, len(rows))
+	for _, r := range rows {
+		ids = append(ids, r["LFS_ID"])
+	}
+	return ids, nil
+}
+
+func (FiscalDocNCGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
+	candidates, err := queryRows(ctx, conn, fiscalDocNCCandidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("fiscaldoc_nc candidatos: %w", err)
 	}
@@ -72,9 +84,9 @@ func (FiscalDocNCGenerator) Generate(ctx context.Context, conn *sql.DB, h *commo
 		if len(lines) == 0 {
 			continue
 		}
-		seqNum, err := sequence.Build(h.BusinessDay, sequence.DocFiscalDocNC, startCounter+len(files))
-		if err != nil {
-			return nil, fmt.Errorf("fiscaldoc_nc sequence: %w", err)
+		seqNum := seqMap[lfs["LFS_ID"]]
+		if seqNum == "" {
+			return nil, fmt.Errorf("fiscaldoc_nc: sin sequence pre-asignado para LFS_ID=%s", lfs["LFS_ID"])
 		}
 		hdr, err := queryFiscalDocHeaderData(ctx, conn, h, lfs["LFS_ID"])
 		if err != nil {

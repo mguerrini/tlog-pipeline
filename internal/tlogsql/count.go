@@ -8,7 +8,6 @@ import (
 
 	"github.com/opessa/tlog-pipeline/internal/db"
 	"github.com/opessa/tlog-pipeline/internal/naming"
-	"github.com/opessa/tlog-pipeline/internal/sequence"
 	"github.com/opessa/tlog-pipeline/internal/tlog"
 	"github.com/opessa/tlog-pipeline/internal/tlog/common"
 )
@@ -38,15 +37,28 @@ type CountGenerator struct{}
 
 func (CountGenerator) Type() naming.TLOGType { return naming.TLOGCount }
 
-func (CountGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, startCounter int) (*tlog.GenerateResult, error) {
-	const candidatesSQL = `
+const countCandidatesSQL = `
 SELECT V.VBR_ID, V.VBR_NAME, V.VRT_ID, V.CHG_ZEIT,
        K.KST_CODE
 FROM HIS_VERBRAUCH V
     INNER JOIN KOSTST K ON V.KST_ID = K.KST_ID
 WHERE V.KST_ID = ? AND V.VBR_STATUS = 2
 ORDER BY V.VBR_ID`
-	candidates, err := queryRows(ctx, conn, candidatesSQL, kstID)
+
+func (CountGenerator) ListCandidateIDs(ctx context.Context, conn *sql.DB, kstID string) ([]string, error) {
+	rows, err := queryRows(ctx, conn, countCandidatesSQL, kstID)
+	if err != nil {
+		return nil, fmt.Errorf("count candidatos: %w", err)
+	}
+	ids := make([]string, 0, len(rows))
+	for _, r := range rows {
+		ids = append(ids, r["VBR_ID"])
+	}
+	return ids, nil
+}
+
+func (CountGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
+	candidates, err := queryRows(ctx, conn, countCandidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("count candidatos: %w", err)
 	}
@@ -67,9 +79,9 @@ ORDER BY V.VBR_ID`
 		if len(lines) == 0 {
 			continue
 		}
-		seqNum, err := sequence.Build(h.BusinessDay, sequence.DocCount, startCounter+len(files))
-		if err != nil {
-			return nil, fmt.Errorf("count sequence: %w", err)
+		seqNum := seqMap[vbr["VBR_ID"]]
+		if seqNum == "" {
+			return nil, fmt.Errorf("count: sin sequence pre-asignado para VBR_ID=%s", vbr["VBR_ID"])
 		}
 
 		x := common.NewXMLBuilder()

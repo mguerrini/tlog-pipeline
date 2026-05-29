@@ -15,3 +15,9 @@ type GenerateResult struct {
 	NumDocs  int
 	NumLines int
 }
+
+// DocSeqMap mapea el ID fuente de un documento (LFS_ID, INV_ID, VBR_ID, …)
+// al SequenceNumber pre-asignado para ese documento dentro del KST actual.
+// Se construye antes de iniciar la generación de XMLs para que todos los
+// documentos del KST conozcan su secuencia antes de escribir cualquier archivo.
+type DocSeqMap map[string]string

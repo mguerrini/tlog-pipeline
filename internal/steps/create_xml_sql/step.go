@@ -14,7 +14,9 @@ import (
 
 	"github.com/opessa/tlog-pipeline/internal/naming"
 	"github.com/opessa/tlog-pipeline/internal/pipeline"
+	"github.com/opessa/tlog-pipeline/internal/sequence"
 	"github.com/opessa/tlog-pipeline/internal/timeutil"
+	"github.com/opessa/tlog-pipeline/internal/tlog"
 	"github.com/opessa/tlog-pipeline/internal/tlog/common"
 	"github.com/opessa/tlog-pipeline/internal/tlogsql"
 )
@@ -92,11 +94,44 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 			IsProduction:  d.Cfg.Process.IsProduction,
 		}
 
+		// Fase 1: pre-asignar SequenceNumbers para todos los docs del KST
+		// (excepto Cierre, cuyo ListCandidateIDs devuelve nil).
+		// El contador global se avanza aquí por tipo, antes de escribir
+		// cualquier archivo, de modo que todos los docIDs del KST conocen
+		// su seqNum antes de que comience la generación de XMLs.
+		kstSeqMaps := make(map[naming.TLOGType]tlog.DocSeqMap)
 		for _, gen := range generators {
 			if !d.Cfg.Output.Enabled(gen.Type()) {
 				continue
 			}
-			result, err := gen.Generate(ctx, conn, h, retail.KstID, counters[gen.Type()])
+			ids, err := gen.ListCandidateIDs(ctx, conn, retail.KstID)
+			if err != nil {
+				return b.Fail(fmt.Errorf("listar candidatos %s KST=%s: %w", gen.Type(), retail.KstID, err))
+			}
+			if len(ids) == 0 {
+				continue
+			}
+			docNum := tlogDocNumber(gen.Type())
+			sm := make(tlog.DocSeqMap, len(ids))
+			for i, id := range ids {
+				seqNum, err := sequence.Build(d.Day, docNum, counters[gen.Type()]+i)
+				if err != nil {
+					return b.Fail(fmt.Errorf("pre-asignar sequence %s KST=%s id=%s: %w", gen.Type(), retail.KstID, id, err))
+				}
+				sm[id] = seqNum
+			}
+			kstSeqMaps[gen.Type()] = sm
+			counters[gen.Type()] += len(ids)
+		}
+
+		// Fase 2: generar XMLs usando los seqNums pre-asignados.
+		// Cierre recibe seqMap=nil y usa startCounter directamente.
+		for _, gen := range generators {
+			if !d.Cfg.Output.Enabled(gen.Type()) {
+				continue
+			}
+			seqMap := kstSeqMaps[gen.Type()] // nil para Cierre y Transfer
+			result, err := gen.Generate(ctx, conn, h, retail.KstID, seqMap, counters[gen.Type()])
 			if err != nil {
 				d.Log.Error("error generando TLOG SQL",
 					"type", gen.Type(), "kst_id", retail.KstID, "err", err)
@@ -118,7 +153,11 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 				d.Log.Info("xml generado",
 					"file", filename, "lines", f.NumLines)
 			}
-			counters[gen.Type()] += result.NumDocs
+			// Solo Cierre (seqMap==nil) avanza el contador en Fase 2;
+			// los demás ya lo hicieron en Fase 1.
+			if seqMap == nil {
+				counters[gen.Type()] += result.NumDocs
+			}
 		}
 	}
 
@@ -126,4 +165,26 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 	b.SetMeta("tlogs_empty", totalEmpty)
 	b.SetMeta("source_db", dbPath)
 	return b.OK()
+}
+
+// tlogDocNumber mapea un TLOGType al DocumentNumber del package sequence.
+func tlogDocNumber(t naming.TLOGType) sequence.DocumentNumber {
+	switch t {
+	case naming.TLOGReception:
+		return sequence.DocReception
+	case naming.TLOGReturn:
+		return sequence.DocReturn
+	case naming.TLOGTransfer:
+		return sequence.DocTransfer
+	case naming.TLOGAdjustment:
+		return sequence.DocAdjustment
+	case naming.TLOGCount:
+		return sequence.DocCount
+	case naming.TLOGFiscalDocFC:
+		return sequence.DocFiscalDocFC
+	case naming.TLOGFiscalDocNC:
+		return sequence.DocFiscalDocNC
+	default:
+		return sequence.DocCierre
+	}
 }
