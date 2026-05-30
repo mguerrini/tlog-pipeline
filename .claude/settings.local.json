@@ -26,7 +26,13 @@
       "Bash(cp appdata/bck/*.csv appdata/bck/20260519/)",
       "Bash(Select-String -Pattern \"modernc|sqlite\")",
       "Bash(Get-ChildItem *)",
-      "PowerShell(Get-ChildItem -Path \"C:\\\\Localdata\\\\Proyectos\\\\LUIS\\\\go\\\\tlog-pipeline\\\\internal\\\\steps\\\\\" -Directory | ForEach-Object { Get-ChildItem -Path $_.FullName -File | Select-Object @{n='Dir';e={$_.Directory.Name}}, Name })"
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Localdata\\\\Proyectos\\\\LUIS\\\\go\\\\tlog-pipeline\\\\internal\\\\steps\\\\\" -Directory | ForEach-Object { Get-ChildItem -Path $_.FullName -File | Select-Object @{n='Dir';e={$_.Directory.Name}}, Name })",
+      "mcp__codegraph__codegraph_context",
+      "mcp__codegraph__codegraph_explore"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "codegraph"
+  ]
 }

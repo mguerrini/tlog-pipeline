@@ -64,7 +64,7 @@ func (FiscalDocFCGenerator) ListCandidateIDs(ctx context.Context, conn *sql.DB, 
 	return ids, nil
 }
 
-func (FiscalDocFCGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
+func (FiscalDocFCGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, crossSeqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
 	candidates, err := queryRows(ctx, conn, fiscalDocFCCandidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("fiscaldoc_fc candidatos: %w", err)
@@ -90,12 +90,13 @@ func (FiscalDocFCGenerator) Generate(ctx context.Context, conn *sql.DB, h *commo
 		if seqNum == "" {
 			return nil, fmt.Errorf("fiscaldoc_fc: sin sequence pre-asignado para LFS_ID=%s", lfs["LFS_ID"])
 		}
+		seqNumTO := crossSeqMap[lfs["LFS_ID"]]
 		hdr, err := queryFiscalDocHeaderData(ctx, conn, h, lfs["LFS_ID"])
 		if err != nil {
 			return nil, fmt.Errorf("fiscaldoc_fc header %s: %w", lfs["LFS_ID"], err)
 		}
 		x := common.NewXMLBuilder()
-		kept := writeFCDoc(x, h, retailID, seqNum, lfs, lines, hdr)
+		kept := writeFCDoc(x, h, retailID, seqNum, seqNumTO, lfs, lines, hdr)
 		files = append(files, tlog.GeneratedFile{
 			SeqNum:     seqNum,
 			XMLContent: x.String(),
@@ -114,7 +115,7 @@ func (FiscalDocFCGenerator) Generate(ctx context.Context, conn *sql.DB, h *commo
 	}, nil
 }
 
-func writeFCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum string,
+func writeFCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, seqNumTO string,
 	lfs map[string]string, lines []map[string]string, hdr fiscalDocHeaderData) int {
 
 	netto, _ := db.AsFloat(lfs["LFS_NETTO"])
@@ -140,6 +141,11 @@ func writeFCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum stri
 
 	x.Open("InventoryControlTransaction")
 	x.Element("SerialFormID", seqNum)
+	if seqNumTO != "" {
+		x.Element("SerialFormIDTO", seqNumTO)
+	} else {
+		x.EmptyElement("SerialFormIDTO")
+	}
 	x.Element("DocumentTypeCode", fcDocumentTypeCode)
 	x.Element("InventoryControlDocumentState", fcInventoryDocState)
 	x.EmptyElement("contractReferenceNumber")

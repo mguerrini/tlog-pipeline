@@ -58,7 +58,7 @@ func (AdjustmentGenerator) ListCandidateIDs(ctx context.Context, conn *sql.DB, k
 	return ids, nil
 }
 
-func (AdjustmentGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
+func (AdjustmentGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, _ tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
 	candidates, err := queryRows(ctx, conn, adjustmentCandidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("adjustment candidatos: %w", err)

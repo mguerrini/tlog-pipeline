@@ -131,7 +131,18 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 				continue
 			}
 			seqMap := kstSeqMaps[gen.Type()] // nil para Cierre y Transfer
-			result, err := gen.Generate(ctx, conn, h, retail.KstID, seqMap, counters[gen.Type()])
+			var crossSeqMap tlog.DocSeqMap
+			switch gen.Type() {
+			case naming.TLOGReception:
+				crossSeqMap = kstSeqMaps[naming.TLOGFiscalDocFC]
+			case naming.TLOGFiscalDocFC:
+				crossSeqMap = kstSeqMaps[naming.TLOGReception]
+			case naming.TLOGReturn:
+				crossSeqMap = kstSeqMaps[naming.TLOGFiscalDocNC]
+			case naming.TLOGFiscalDocNC:
+				crossSeqMap = kstSeqMaps[naming.TLOGReturn]
+			}
+			result, err := gen.Generate(ctx, conn, h, retail.KstID, seqMap, crossSeqMap, counters[gen.Type()])
 			if err != nil {
 				d.Log.Error("error generando TLOG SQL",
 					"type", gen.Type(), "kst_id", retail.KstID, "err", err)

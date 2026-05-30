@@ -36,7 +36,7 @@ func (CierreGenerator) ListCandidateIDs(_ context.Context, _ *sql.DB, _ string) 
 	return nil, nil
 }
 
-func (CierreGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, _ tlog.DocSeqMap, startCounter int) (*tlog.GenerateResult, error) {
+func (CierreGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, _ tlog.DocSeqMap, _ tlog.DocSeqMap, startCounter int) (*tlog.GenerateResult, error) {
 	const itemsSQL = `
 SELECT dt.KST_ID, dt.ART_ID, dt.DAY_DATE,
        dt.DAY_SOHBEG, dt.DAY_SOHEND, dt.DAY_SOHINV,

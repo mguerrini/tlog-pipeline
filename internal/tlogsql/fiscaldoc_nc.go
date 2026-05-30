@@ -62,7 +62,7 @@ func (FiscalDocNCGenerator) ListCandidateIDs(ctx context.Context, conn *sql.DB, 
 	return ids, nil
 }
 
-func (FiscalDocNCGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
+func (FiscalDocNCGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, crossSeqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
 	candidates, err := queryRows(ctx, conn, fiscalDocNCCandidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("fiscaldoc_nc candidatos: %w", err)
@@ -88,12 +88,13 @@ func (FiscalDocNCGenerator) Generate(ctx context.Context, conn *sql.DB, h *commo
 		if seqNum == "" {
 			return nil, fmt.Errorf("fiscaldoc_nc: sin sequence pre-asignado para LFS_ID=%s", lfs["LFS_ID"])
 		}
+		seqNumTO := crossSeqMap[lfs["LFS_ID"]]
 		hdr, err := queryFiscalDocHeaderData(ctx, conn, h, lfs["LFS_ID"])
 		if err != nil {
 			return nil, fmt.Errorf("fiscaldoc_nc header %s: %w", lfs["LFS_ID"], err)
 		}
 		x := common.NewXMLBuilder()
-		writeNCDoc(x, h, retailID, seqNum, lfs, lines, hdr)
+		writeNCDoc(x, h, retailID, seqNum, seqNumTO, lfs, lines, hdr)
 		files = append(files, tlog.GeneratedFile{
 			SeqNum:     seqNum,
 			XMLContent: x.String(),
@@ -112,7 +113,7 @@ func (FiscalDocNCGenerator) Generate(ctx context.Context, conn *sql.DB, h *commo
 	}, nil
 }
 
-func writeNCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum string,
+func writeNCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, seqNumTO string,
 	lfs map[string]string, lines []map[string]string, hdr fiscalDocHeaderData) {
 
 	netto, _ := db.AsFloat(lfs["LFS_NETTO"])
@@ -138,6 +139,11 @@ func writeNCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum stri
 
 	x.Open("InventoryControlTransaction")
 	x.Element("SerialFormID", seqNum)
+	if seqNumTO != "" {
+		x.Element("SerialFormIDTO", seqNumTO)
+	} else {
+		x.EmptyElement("SerialFormIDTO")
+	}
 	x.Element("DocumentTypeCode", ncDocumentTypeCode)
 	x.Element("InventoryControlDocumentState", ncInventoryDocState)
 	x.EmptyElement("contractReferenceNumber")

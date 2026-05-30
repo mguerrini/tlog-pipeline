@@ -23,6 +23,6 @@ func (TransferGenerator) ListCandidateIDs(_ context.Context, _ *sql.DB, _ string
 	return nil, nil
 }
 
-func (TransferGenerator) Generate(_ context.Context, _ *sql.DB, _ *common.HeaderCtx, _ string, _ tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
+func (TransferGenerator) Generate(_ context.Context, _ *sql.DB, _ *common.HeaderCtx, _ string, _ tlog.DocSeqMap, _ tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
 	return &tlog.GenerateResult{Empty: true}, nil
 }

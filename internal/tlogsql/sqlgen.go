@@ -40,7 +40,9 @@ type Generator interface {
 	// seqMap contiene los seqNums pre-asignados por ListCandidateIDs; en ese
 	// caso startCounter se ignora. Para Cierre, seqMap es nil y se usa
 	// startCounter.
-	Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, startCounter int) (*tlog.GenerateResult, error)
+	// crossSeqMap contiene los seqNums del documento "par" (p.ej. FiscalDocFC
+	// para Reception y viceversa); nil si no aplica para el tipo de documento.
+	Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, crossSeqMap tlog.DocSeqMap, startCounter int) (*tlog.GenerateResult, error)
 }
 
 // queryRows ejecuta una query y devuelve cada fila como map[string]string.

@@ -61,7 +61,7 @@ func (ReceptionGenerator) ListCandidateIDs(ctx context.Context, conn *sql.DB, ks
 	return ids, nil
 }
 
-func (ReceptionGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
+func (ReceptionGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, crossSeqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
 	candidates, err := queryRows(ctx, conn, receptionCandidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("reception candidatos: %w", err)
@@ -88,8 +88,9 @@ func (ReceptionGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.
 		if seqNum == "" {
 			return nil, fmt.Errorf("reception: sin sequence pre-asignado para LFS_ID=%s", lfs["LFS_ID"])
 		}
+		seqNumTO := crossSeqMap[lfs["LFS_ID"]]
 		x := common.NewXMLBuilder()
-		writeReceptionDoc(x, h, retailID, seqNum, lfs, lines)
+		writeReceptionDoc(x, h, retailID, seqNum, seqNumTO, lfs, lines)
 		files = append(files, tlog.GeneratedFile{
 			SeqNum:     seqNum,
 			XMLContent: x.String(),
@@ -131,7 +132,7 @@ ORDER BY lfp.LFP_POS`
 	return rows, nil
 }
 
-func writeReceptionDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum string,
+func writeReceptionDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, seqNumTO string,
 	lfs map[string]string, lines []map[string]string) {
 	brutto, _ := db.AsFloat(lfs["LFS_BRUTTO"])
 	receiptDate := h.FormatARTimestamp(h.BeginDateTime)
@@ -161,6 +162,11 @@ func writeReceptionDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqN
 
 	x.Open("InventoryControlTransaction")
 	x.Element("SerialFormID", seqNum)
+	if seqNumTO != "" {
+		x.Element("SerialFormIDTO", seqNumTO)
+	} else {
+		x.EmptyElement("SerialFormIDTO")
+	}
 	x.Element("DocumentTypeCode", receptionDocumentTypeCode)
 	x.Element("InventoryControlDocumentState", state)
 	x.EmptyElement("contractReferenceNumber")
