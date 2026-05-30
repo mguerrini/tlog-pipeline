@@ -38,14 +38,16 @@ type FtpFolders struct {
 // del JSON, defaults.go la resuelve en "todo true" (compat retro). Si la
 // sección está presente pero falta un flag, ese flag default-ea a true.
 type Output struct {
-	Cierre               bool `json:"cierre"`
-	InventoryReception   bool `json:"inventory_reception"`
-	InventoryFiscalDocFC bool `json:"inventory_fiscaldoc_fc"`
-	InventoryFiscalDocNC bool `json:"inventory_fiscaldoc_nc"`
-	InventoryReturn      bool `json:"inventory_return"`
-	InventoryAdjustment  bool `json:"inventory_adjustment"`
-	InventoryCount       bool `json:"inventory_count"`
-	InventoryTransfer    bool `json:"inventory_transfer"`
+	Cierre                       bool `json:"cierre"`
+	InventoryReception           bool `json:"inventory_reception"`
+	InventoryFiscalDocFC         bool `json:"inventory_fiscaldoc_fc"`
+	InventoryFiscalDocNC         bool `json:"inventory_fiscaldoc_nc"`
+	InventoryReturn              bool `json:"inventory_return"`
+	InventoryAdjustmentVerbrauch bool `json:"inventory_adjustment_verbrauch"`
+	InventoryAdjustmentInventur  bool `json:"inventory_adjustment_inventur"`
+	InventoryCountVerbrauch      bool `json:"inventory_count_verbrauch"`
+	InventoryCountInventur       bool `json:"inventory_count_inventur"`
+	InventoryTransfer            bool `json:"inventory_transfer"`
 }
 
 // UnmarshalJSON: cualquier flag omitido default-ea a true. Esto distingue
@@ -54,27 +56,31 @@ type Output struct {
 // explícito (false) cuando todos los flags están en false.
 func (o *Output) UnmarshalJSON(data []byte) error {
 	raw := struct {
-		Cierre               *bool `json:"cierre"`
-		InventoryReception   *bool `json:"inventory_reception"`
-		InventoryFiscalDocFC *bool `json:"inventory_fiscaldoc_fc"`
-		InventoryFiscalDocNC *bool `json:"inventory_fiscaldoc_nc"`
-		InventoryReturn      *bool `json:"inventory_return"`
-		InventoryAdjustment  *bool `json:"inventory_adjustment"`
-		InventoryCount       *bool `json:"inventory_count"`
-		InventoryTransfer    *bool `json:"inventory_transfer"`
+		Cierre                       *bool `json:"cierre"`
+		InventoryReception           *bool `json:"inventory_reception"`
+		InventoryFiscalDocFC         *bool `json:"inventory_fiscaldoc_fc"`
+		InventoryFiscalDocNC         *bool `json:"inventory_fiscaldoc_nc"`
+		InventoryReturn              *bool `json:"inventory_return"`
+		InventoryAdjustmentVerbrauch *bool `json:"inventory_adjustment_verbrauch"`
+		InventoryAdjustmentInventur  *bool `json:"inventory_adjustment_inventur"`
+		InventoryCountVerbrauch      *bool `json:"inventory_count_verbrauch"`
+		InventoryCountInventur       *bool `json:"inventory_count_inventur"`
+		InventoryTransfer            *bool `json:"inventory_transfer"`
 	}{}
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
 	*o = Output{
-		Cierre:               boolOrTrue(raw.Cierre),
-		InventoryReception:   boolOrTrue(raw.InventoryReception),
-		InventoryFiscalDocFC: boolOrTrue(raw.InventoryFiscalDocFC),
-		InventoryFiscalDocNC: boolOrTrue(raw.InventoryFiscalDocNC),
-		InventoryReturn:      boolOrTrue(raw.InventoryReturn),
-		InventoryAdjustment:  boolOrTrue(raw.InventoryAdjustment),
-		InventoryCount:       boolOrTrue(raw.InventoryCount),
-		InventoryTransfer:    boolOrTrue(raw.InventoryTransfer),
+		Cierre:                       boolOrTrue(raw.Cierre),
+		InventoryReception:           boolOrTrue(raw.InventoryReception),
+		InventoryFiscalDocFC:         boolOrTrue(raw.InventoryFiscalDocFC),
+		InventoryFiscalDocNC:         boolOrTrue(raw.InventoryFiscalDocNC),
+		InventoryReturn:              boolOrTrue(raw.InventoryReturn),
+		InventoryAdjustmentVerbrauch: boolOrTrue(raw.InventoryAdjustmentVerbrauch),
+		InventoryAdjustmentInventur:  boolOrTrue(raw.InventoryAdjustmentInventur),
+		InventoryCountVerbrauch:      boolOrTrue(raw.InventoryCountVerbrauch),
+		InventoryCountInventur:       boolOrTrue(raw.InventoryCountInventur),
+		InventoryTransfer:            boolOrTrue(raw.InventoryTransfer),
 	}
 	return nil
 }
@@ -99,10 +105,14 @@ func (o Output) Enabled(t naming.TLOGType) bool {
 		return o.InventoryFiscalDocNC
 	case naming.TLOGReturn:
 		return o.InventoryReturn
-	case naming.TLOGAdjustment:
-		return o.InventoryAdjustment
-	case naming.TLOGCount:
-		return o.InventoryCount
+	case naming.TLOGAdjustmentVerbrauch:
+		return o.InventoryAdjustmentVerbrauch
+	case naming.TLOGAdjustmentInventur:
+		return o.InventoryAdjustmentInventur
+	case naming.TLOGCountVerbrauch:
+		return o.InventoryCountVerbrauch
+	case naming.TLOGCountInventur:
+		return o.InventoryCountInventur
 	case naming.TLOGTransfer:
 		return o.InventoryTransfer
 	}

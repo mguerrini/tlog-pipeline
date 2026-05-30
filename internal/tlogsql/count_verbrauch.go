@@ -30,23 +30,23 @@ const (
 	countPickupCode        = "S1"
 )
 
-// CountGenerator implementa TLOG_INVENTORY_COUNT_REAL con SQL.
+// CountVerbrauchGenerator implementa TLOG_INVENTORY_COUNT_REAL con SQL.
 //
 // Driver: HIS_VERBRAUCH (cabecera, VBR_STATUS = 2) + HIS_VERBRAUCHPOS (detalle).
-type CountGenerator struct{}
+type CountVerbrauchGenerator struct{}
 
-func (CountGenerator) Type() naming.TLOGType { return naming.TLOGCount }
+func (CountVerbrauchGenerator) Type() naming.TLOGType { return naming.TLOGCountVerbrauch }
 
-const countCandidatesSQL = `
+const countVerbrauchCandidatesSQL = `
 SELECT V.VBR_ID, V.VBR_NAME, V.VRT_ID, V.CHG_ZEIT,
        K.KST_CODE
 FROM HIS_VERBRAUCH V
     INNER JOIN KOSTST K ON V.KST_ID = K.KST_ID
-WHERE V.KST_ID = ? AND V.VBR_STATUS = 2
+WHERE V.KST_ID = ? AND V.VBR_STATUS = 2 AND V.VRT_ID IN (2, 3)
 ORDER BY V.VBR_ID`
 
-func (CountGenerator) ListCandidateIDs(ctx context.Context, conn *sql.DB, kstID string) ([]string, error) {
-	rows, err := queryRows(ctx, conn, countCandidatesSQL, kstID)
+func (CountVerbrauchGenerator) ListCandidateIDs(ctx context.Context, conn *sql.DB, kstID string) ([]string, error) {
+	rows, err := queryRows(ctx, conn, countVerbrauchCandidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("count candidatos: %w", err)
 	}
@@ -57,8 +57,8 @@ func (CountGenerator) ListCandidateIDs(ctx context.Context, conn *sql.DB, kstID 
 	return ids, nil
 }
 
-func (CountGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, _ tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
-	candidates, err := queryRows(ctx, conn, countCandidatesSQL, kstID)
+func (CountVerbrauchGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, _ tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
+	candidates, err := queryRows(ctx, conn, countVerbrauchCandidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("count candidatos: %w", err)
 	}

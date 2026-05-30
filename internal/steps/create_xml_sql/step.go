@@ -187,10 +187,14 @@ func tlogDocNumber(t naming.TLOGType) sequence.DocumentNumber {
 		return sequence.DocReturn
 	case naming.TLOGTransfer:
 		return sequence.DocTransfer
-	case naming.TLOGAdjustment:
-		return sequence.DocAdjustment
-	case naming.TLOGCount:
-		return sequence.DocCount
+	case naming.TLOGAdjustmentVerbrauch:
+		return sequence.DocAdjustmentVerbrauch
+	case naming.TLOGAdjustmentInventur:
+		return sequence.DocAdjustmentInventur
+	case naming.TLOGCountVerbrauch:
+		return sequence.DocCountVerbrauch
+	case naming.TLOGCountInventur:
+		return sequence.DocCountInventur
 	case naming.TLOGFiscalDocFC:
 		return sequence.DocFiscalDocFC
 	case naming.TLOGFiscalDocNC:

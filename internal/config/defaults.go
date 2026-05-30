@@ -29,17 +29,19 @@ func applyDefaults(c *Config) {
 			SQLDBLoad:        true,
 		}
 	}
-	// Sección "output" omitida del JSON → generar los 8 TLOGs (compat retro).
+	// Sección "output" omitida del JSON → generar todos los TLOGs (compat retro).
 	if c.Output == nil {
 		c.Output = &Output{
-			Cierre:               true,
-			InventoryReception:   true,
-			InventoryFiscalDocFC: true,
-			InventoryFiscalDocNC: true,
-			InventoryReturn:      true,
-			InventoryAdjustment:  true,
-			InventoryCount:       true,
-			InventoryTransfer:    true,
+			Cierre:                       true,
+			InventoryReception:           true,
+			InventoryFiscalDocFC:         true,
+			InventoryFiscalDocNC:         true,
+			InventoryReturn:              true,
+			InventoryAdjustmentVerbrauch: true,
+			InventoryAdjustmentInventur:  true,
+			InventoryCountVerbrauch:      true,
+			InventoryCountInventur:       true,
+			InventoryTransfer:            true,
 		}
 	}
 	if len(c.ReadFiles.ExpectedFiles) == 0 {

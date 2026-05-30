@@ -4,14 +4,16 @@ package naming
 type TLOGType string
 
 const (
-	TLOGReception   TLOGType = "Reception"
-	TLOGReturn      TLOGType = "Return"
-	TLOGTransfer    TLOGType = "Transfer"
-	TLOGAdjustment  TLOGType = "Adjustment"
-	TLOGCount       TLOGType = "Count"
-	TLOGFiscalDocFC TLOGType = "FiscalDocFC"
-	TLOGFiscalDocNC TLOGType = "FiscalDocNC"
-	TLOGCierre      TLOGType = "Cierre"
+	TLOGReception           TLOGType = "Reception"
+	TLOGReturn              TLOGType = "Return"
+	TLOGTransfer            TLOGType = "Transfer"
+	TLOGAdjustmentVerbrauch TLOGType = "AdjustmentVerbrauch"
+	TLOGAdjustmentInventur  TLOGType = "AdjustmentInventur"
+	TLOGCountVerbrauch      TLOGType = "CountVerbrauch"
+	TLOGCountInventur       TLOGType = "CountInventur"
+	TLOGFiscalDocFC         TLOGType = "FiscalDocFC"
+	TLOGFiscalDocNC         TLOGType = "FiscalDocNC"
+	TLOGCierre              TLOGType = "Cierre"
 )
 
 // TLOGOrder define el orden canónico de generación de los TLOG.
@@ -19,8 +21,10 @@ var TLOGOrder = []TLOGType{
 	TLOGReception,
 	TLOGReturn,
 	TLOGTransfer,
-	TLOGAdjustment,
-	TLOGCount,
+	TLOGAdjustmentVerbrauch,
+	TLOGAdjustmentInventur,
+	TLOGCountVerbrauch,
+	TLOGCountInventur,
 	TLOGFiscalDocFC,
 	TLOGFiscalDocNC,
 	TLOGCierre,

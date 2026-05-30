@@ -1,16 +1,17 @@
 package tlogsql
 
-// AllGenerators devuelve los 8 generators SQL en el orden canónico NNNN.
-// El orden coincide con factory.AllGenerators() del flujo in-memory.
+// AllGenerators devuelve los 10 generators SQL en el orden canónico.
 func AllGenerators() []Generator {
 	return []Generator{
-		ReceptionGenerator{},    // 0001
-		ReturnGenerator{},       // 0002
-		TransferGenerator{},     // 0003
-		AdjustmentGenerator{},   // 0004
-		CountGenerator{},        // 0005
-		FiscalDocFCGenerator{},  // 0006
-		FiscalDocNCGenerator{},  // 0007
-		CierreGenerator{},       // 0008
+		ReceptionGenerator{},            // doc 00
+		ReturnGenerator{},               // doc 01
+		TransferGenerator{},             // doc 02
+		AdjustmentVerbrauchGenerator{},  // doc 31
+		AdjustmentInventurGenerator{},   // doc 32
+		CountVerbrauchGenerator{},       // doc 41
+		CountInventurGenerator{},        // doc 42
+		FiscalDocFCGenerator{},          // doc 05
+		FiscalDocNCGenerator{},          // doc 06
+		CierreGenerator{},               // doc 07
 	}
 }

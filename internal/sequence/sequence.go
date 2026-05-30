@@ -1,12 +1,12 @@
 // Package sequence implementa el algoritmo de construcción y descomposición
 // del campo SEQUENCENUMBER usado en los TLOG OCPRA.
 //
-// Formato (12 dígitos):
+// Formato (13 dígitos):
 //
-//	[9:1][AAMMDD:6][DOC:1][CONTADOR:4]
+//	[9:1][AAMMDD:6][DOC:2][CONTADOR:4]
 //
-// Donde DOC es el índice del tipo de archivo (0..7) y CONTADOR es un
-// secuencial por (día × tipo) que arranca en 0 y se incrementa para cada
+// Donde DOC es el índice del tipo de archivo (2 dígitos, 00..99) y CONTADOR es
+// un secuencial por (día × tipo) que arranca en 0 y se incrementa para cada
 // documento adicional del mismo tipo en el mismo día.
 //
 // Ver docs/SEQUENCENUMBER.md para la especificación completa.
@@ -22,14 +22,16 @@ import (
 type DocumentNumber int
 
 const (
-	DocReception   DocumentNumber = 0
-	DocReturn      DocumentNumber = 1
-	DocTransfer    DocumentNumber = 2
-	DocAdjustment  DocumentNumber = 3
-	DocCount       DocumentNumber = 4
-	DocFiscalDocFC DocumentNumber = 5
-	DocFiscalDocNC DocumentNumber = 6
-	DocCierre      DocumentNumber = 7
+	DocReception            DocumentNumber = 0
+	DocReturn               DocumentNumber = 1
+	DocTransfer             DocumentNumber = 2
+	DocFiscalDocFC          DocumentNumber = 5
+	DocFiscalDocNC          DocumentNumber = 6
+	DocCierre               DocumentNumber = 7
+	DocAdjustmentVerbrauch  DocumentNumber = 31
+	DocAdjustmentInventur   DocumentNumber = 32
+	DocCountVerbrauch       DocumentNumber = 41
+	DocCountInventur        DocumentNumber = 42
 )
 
 // String devuelve el nombre legible del tipo de documento.
@@ -41,16 +43,20 @@ func (d DocumentNumber) String() string {
 		return "Return"
 	case DocTransfer:
 		return "Transfer"
-	case DocAdjustment:
-		return "Adjustment"
-	case DocCount:
-		return "Count"
+	case DocAdjustmentVerbrauch:
+		return "AdjustmentVerbrauch"
+	case DocAdjustmentInventur:
+		return "AdjustmentInventur"
 	case DocFiscalDocFC:
 		return "FiscalDocFC"
 	case DocFiscalDocNC:
 		return "FiscalDocNC"
 	case DocCierre:
 		return "Cierre"
+	case DocCountVerbrauch:
+		return "CountVerbrauch"
+	case DocCountInventur:
+		return "CountInventur"
 	default:
 		return fmt.Sprintf("DocumentNumber(%d)", int(d))
 	}
@@ -58,7 +64,7 @@ func (d DocumentNumber) String() string {
 
 const (
 	prefix         = '9'
-	totalLen       = 12
+	totalLen       = 13
 	counterMaxPlus = 10000 // contador 4 dígitos: 0..9999
 )
 
@@ -82,7 +88,7 @@ func (d Decoded) BusinessDayDate() time.Time {
 // debe pasar 0 para el primer documento del tipo en el día, 1 para el
 // segundo, etc.
 func Build(businessDayDate time.Time, doc DocumentNumber, counter int) (string, error) {
-	if doc < DocReception || doc > DocCierre {
+	if doc < 0 || doc > 99 {
 		return "", fmt.Errorf("sequence: documentNumber fuera de rango: %d", int(doc))
 	}
 	if counter < 0 || counter >= counterMaxPlus {
@@ -91,7 +97,7 @@ func Build(businessDayDate time.Time, doc DocumentNumber, counter int) (string, 
 	aa := businessDayDate.Year() % 100
 	mm := int(businessDayDate.Month())
 	dd := businessDayDate.Day()
-	return fmt.Sprintf("%c%02d%02d%02d%d%04d", prefix, aa, mm, dd, int(doc), counter), nil
+	return fmt.Sprintf("%c%02d%02d%02d%02d%04d", prefix, aa, mm, dd, int(doc), counter), nil
 }
 
 // Decode descompone un SEQUENCENUMBER en sus componentes lógicos.
@@ -111,10 +117,10 @@ func Decode(seq string, yearWindowStart int) (Decoded, error) {
 	aa, _ := atoiDigits(seq[1:3])
 	mm, _ := atoiDigits(seq[3:5])
 	dd, _ := atoiDigits(seq[5:7])
-	docDigit, _ := atoiDigits(seq[7:8])
-	counter, _ := atoiDigits(seq[8:12])
+	docDigit, _ := atoiDigits(seq[7:9])
+	counter, _ := atoiDigits(seq[9:13])
 
-	if docDigit > 7 {
+	if docDigit > 99 {
 		return d, fmt.Errorf("sequence: documentNumber fuera de rango: %d", docDigit)
 	}
 

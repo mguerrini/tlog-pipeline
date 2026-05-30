@@ -31,23 +31,23 @@ const (
 	adjustmentSuggestedPO       = "0.0000"
 )
 
-// AdjustmentGenerator implementa TLOG_INVENTORY_ADJUSTMENT con SQL.
+// AdjustmentInventurGenerator implementa TLOG_INVENTORY_ADJUSTMENT con SQL.
 //
 // Filtro INVENTUR: KST_ID = ? AND INV_STATUS = 8 AND INV_TYP = 4.
 // Para cada INV_ID se cargan las líneas de INVPOSART (con join a ARTIKEL).
-type AdjustmentGenerator struct{}
+type AdjustmentInventurGenerator struct{}
 
-func (AdjustmentGenerator) Type() naming.TLOGType { return naming.TLOGAdjustment }
+func (AdjustmentInventurGenerator) Type() naming.TLOGType { return naming.TLOGAdjustmentInventur }
 
-const adjustmentCandidatesSQL = `
+const adjustmentInventurCandidatesSQL = `
 SELECT DISTINCT I.INV_ID, K.KST_CODE, I.INV_NAME, I.CHG_ZEIT
 FROM main.INVENTUR I
 	INNER JOIN main.KOSTST K ON I.KST_ID = K.KST_ID
 WHERE I.KST_ID = ? AND I.INV_STATUS = 8 AND I.INV_TYP = 4
 ORDER BY I.INV_ID`
 
-func (AdjustmentGenerator) ListCandidateIDs(ctx context.Context, conn *sql.DB, kstID string) ([]string, error) {
-	rows, err := queryRows(ctx, conn, adjustmentCandidatesSQL, kstID)
+func (AdjustmentInventurGenerator) ListCandidateIDs(ctx context.Context, conn *sql.DB, kstID string) ([]string, error) {
+	rows, err := queryRows(ctx, conn, adjustmentInventurCandidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("adjustment candidatos: %w", err)
 	}
@@ -58,8 +58,8 @@ func (AdjustmentGenerator) ListCandidateIDs(ctx context.Context, conn *sql.DB, k
 	return ids, nil
 }
 
-func (AdjustmentGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, _ tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
-	candidates, err := queryRows(ctx, conn, adjustmentCandidatesSQL, kstID)
+func (AdjustmentInventurGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, _ tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
+	candidates, err := queryRows(ctx, conn, adjustmentInventurCandidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("adjustment candidatos: %w", err)
 	}
