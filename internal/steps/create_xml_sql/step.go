@@ -141,6 +141,10 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 				crossSeqMap = kstSeqMaps[naming.TLOGFiscalDocNC]
 			case naming.TLOGFiscalDocNC:
 				crossSeqMap = kstSeqMaps[naming.TLOGReturn]
+			case naming.TLOGAdjustmentVerbrauch:
+				crossSeqMap = kstSeqMaps[naming.TLOGCountVerbrauch]
+			case naming.TLOGAdjustmentInventur:
+				crossSeqMap = kstSeqMaps[naming.TLOGCountInventur]
 			}
 			result, err := gen.Generate(ctx, conn, h, retail.KstID, seqMap, crossSeqMap, counters[gen.Type()])
 			if err != nil {

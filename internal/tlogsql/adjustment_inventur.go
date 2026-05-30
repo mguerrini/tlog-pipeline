@@ -58,7 +58,7 @@ func (AdjustmentInventurGenerator) ListCandidateIDs(ctx context.Context, conn *s
 	return ids, nil
 }
 
-func (AdjustmentInventurGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, _ tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
+func (AdjustmentInventurGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, crossSeqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
 	candidates, err := queryRows(ctx, conn, adjustmentInventurCandidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("adjustment candidatos: %w", err)
@@ -84,8 +84,10 @@ func (AdjustmentInventurGenerator) Generate(ctx context.Context, conn *sql.DB, h
 		if seqNum == "" {
 			return nil, fmt.Errorf("adjustment: sin sequence pre-asignado para INV_ID=%s", inv["INV_ID"])
 		}
+		countSeqNum := crossSeqMap[inv["INV_ID"]]
+
 		x := common.NewXMLBuilder()
-		writeAdjustmentDoc(x, h, retailID, seqNum, inv, lines)
+		writeAdjustmentDoc(x, h, retailID, seqNum, countSeqNum, inv, lines)
 		files = append(files, tlog.GeneratedFile{
 			SeqNum:     seqNum,
 			XMLContent: x.String(),
@@ -123,7 +125,7 @@ func adjustmentLines(ctx context.Context, conn *sql.DB, invID string) ([]map[str
 	return rows, nil
 }
 
-func writeAdjustmentDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum string,
+func writeAdjustmentDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, countSeqNum string,
 	inv map[string]string, lines []map[string]string) {
 
 	createTimestamp := h.FormatARTimestamp(h.BeginDateTime)
@@ -146,7 +148,7 @@ func writeAdjustmentDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seq
 	x.EmptyElement("OriginalTransaction")
 
 	x.Open("InventoryControlTransaction")
-	x.Element("SerialFormID", seqNum)
+	x.Element("SerialFormID", countSeqNum)
 	x.Element("DocumentTypeCode", adjustmentDocumentTypeCode)
 	x.Element("InventoryControlDocumentState", adjustmentInventoryDocState)
 	x.Element("contractReferenceNumber", "Generado desde la Web")

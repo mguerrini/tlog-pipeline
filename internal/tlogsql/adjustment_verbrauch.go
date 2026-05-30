@@ -56,7 +56,7 @@ func (AdjustmentVerbrauchGenerator) ListCandidateIDs(ctx context.Context, conn *
 	return ids, nil
 }
 
-func (AdjustmentVerbrauchGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, _ tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
+func (AdjustmentVerbrauchGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, crossSeqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
 	candidates, err := queryRows(ctx, conn, adjustmentVerbrauchCandidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("adjustment_verbrauch candidatos: %w", err)
@@ -82,9 +82,10 @@ func (AdjustmentVerbrauchGenerator) Generate(ctx context.Context, conn *sql.DB, 
 		if seqNum == "" {
 			return nil, fmt.Errorf("adjustment_verbrauch: sin sequence pre-asignado para VBR_ID=%s", vbr["VBR_ID"])
 		}
+		countSeqNum := crossSeqMap[vbr["VBR_ID"]]
 
 		x := common.NewXMLBuilder()
-		writeAdjVerbrauchDoc(x, h, retailID, seqNum, vbr, lines)
+		writeAdjVerbrauchDoc(x, h, retailID, seqNum, countSeqNum, vbr, lines)
 
 		files = append(files, tlog.GeneratedFile{
 			SeqNum:     seqNum,
@@ -119,7 +120,7 @@ ORDER BY p.VBT_POS`
 	return rows, nil
 }
 
-func writeAdjVerbrauchDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum string,
+func writeAdjVerbrauchDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, countSeqNum string,
 	vbr map[string]string, lines []map[string]string) {
 
 	createTimestamp := h.FormatARTimestamp(h.BeginDateTime)
@@ -154,7 +155,7 @@ func writeAdjVerbrauchDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, s
 	x.EmptyElement("OriginalTransaction")
 
 	x.Open("InventoryControlTransaction")
-	x.Element("SerialFormID", seqNum)
+	x.Element("SerialFormID", countSeqNum)
 	x.Element("DocumentTypeCode", adjVerbrauchDocumentTypeCode)
 	x.Element("InventoryControlDocumentState", adjVerbrauchInventoryDocState)
 	x.Element("contractReferenceNumber", vbr["VBR_NAME"])
