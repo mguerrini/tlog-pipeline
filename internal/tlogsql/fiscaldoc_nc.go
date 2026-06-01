@@ -183,6 +183,12 @@ func writeNCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, seq
 		writeNCLine(x, line, retailID, seqNum, i+1)
 	}
 	x.Close()
+	x.Open("inventoryControlDocumentReferences")
+	x.Open("inventoryControlDocumentReference")
+	x.EmptyElement("SerialFormID")
+	x.EmptyElement("SerialFormIDTo")
+	x.Close()
+	x.Close()
 	x.Close()
 	x.Close()
 }

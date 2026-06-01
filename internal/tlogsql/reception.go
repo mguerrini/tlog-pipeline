@@ -206,6 +206,12 @@ func writeReceptionDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqN
 		writeReceptionLine(x, line, retailID, seqNum, i+1)
 	}
 	x.Close()
+	x.Open("inventoryControlDocumentReferences")
+	x.Open("inventoryControlDocumentReference")
+	x.EmptyElement("SerialFormID")
+	x.EmptyElement("SerialFormIDTo")
+	x.Close()
+	x.Close()
 	x.Close()
 	x.Close()
 }

@@ -191,6 +191,12 @@ func writeFCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, seq
 		writeFCLine(x, line, retailID, seqNum, detSeq)
 	}
 	x.Close()
+	x.Open("inventoryControlDocumentReferences")
+	x.Open("inventoryControlDocumentReference")
+	x.EmptyElement("SerialFormID")
+	x.EmptyElement("SerialFormIDTo")
+	x.Close()
+	x.Close()
 	x.Close()
 	x.Close()
 	return detSeq

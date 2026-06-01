@@ -212,6 +212,12 @@ func writeCountDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum s
 		writeCountLine(x, line, retailID, seqNum, createTimestamp)
 	}
 	x.Close()
+	x.Open("inventoryControlDocumentReferences")
+	x.Open("inventoryControlDocumentReference")
+	x.EmptyElement("SerialFormID")
+	x.EmptyElement("SerialFormIDTo")
+	x.Close()
+	x.Close()
 	x.Close()
 	x.Close()
 }

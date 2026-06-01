@@ -197,6 +197,12 @@ func writeAdjVerbrauchDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, s
 		writeAdjVerbrauchLine(x, line, retailID, seqNum, createTimestamp)
 	}
 	x.Close()
+	x.Open("inventoryControlDocumentReferences")
+	x.Open("inventoryControlDocumentReference")
+	x.EmptyElement("SerialFormID")
+	x.EmptyElement("SerialFormIDTo")
+	x.Close()
+	x.Close()
 	x.Close()
 	x.Close()
 }
