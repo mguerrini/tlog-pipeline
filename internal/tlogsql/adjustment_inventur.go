@@ -148,7 +148,7 @@ func writeAdjustmentDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seq
 	x.EmptyElement("OriginalTransaction")
 
 	x.Open("InventoryControlTransaction")
-	x.Element("SerialFormID", countSeqNum)
+	x.Element("SerialFormID", seqNum)
 	x.Element("DocumentTypeCode", adjustmentDocumentTypeCode)
 	x.Element("InventoryControlDocumentState", adjustmentInventoryDocState)
 	x.Element("contractReferenceNumber", "Generado desde la Web")

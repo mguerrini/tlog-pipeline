@@ -139,11 +139,6 @@ func writeNCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, seq
 
 	x.Open("InventoryControlTransaction")
 	x.Element("SerialFormID", seqNum)
-	if seqNumTO != "" {
-		x.Element("SerialFormIDTO", seqNumTO)
-	} else {
-		x.EmptyElement("SerialFormIDTO")
-	}
 	x.Element("DocumentTypeCode", ncDocumentTypeCode)
 	x.Element("InventoryControlDocumentState", ncInventoryDocState)
 	x.EmptyElement("contractReferenceNumber")
@@ -185,8 +180,8 @@ func writeNCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, seq
 	x.Close()
 	x.Open("inventoryControlDocumentReferences")
 	x.Open("inventoryControlDocumentReference")
-	x.EmptyElement("SerialFormID")
-	x.EmptyElement("SerialFormIDTo")
+	x.Element("SerialFormID", seqNumTO)
+	x.Element("SerialFormIDTo", seqNum)
 	x.Close()
 	x.Close()
 	x.Close()

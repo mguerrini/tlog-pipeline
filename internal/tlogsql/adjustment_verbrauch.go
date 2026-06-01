@@ -157,7 +157,7 @@ func writeAdjVerbrauchDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, s
 	x.EmptyElement("OriginalTransaction")
 
 	x.Open("InventoryControlTransaction")
-	x.Element("SerialFormID", countSeqNum)
+	x.Element("SerialFormID", seqNum)
 	x.Element("DocumentTypeCode", adjVerbrauchDocumentTypeCode)
 	x.Element("InventoryControlDocumentState", adjVerbrauchInventoryDocState)
 	x.Element("contractReferenceNumber", vbr["VBR_NAME"])
