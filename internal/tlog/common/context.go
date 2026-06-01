@@ -13,9 +13,6 @@ type HeaderCtx struct {
 	WorkstationID string // siempre "0"
 	Period        string // siempre "0"
 	Subperiod     string // siempre "0"
-	// IsProduction controla los ART_NR usados en fiscal docs.
-	// false → 1120/1100/1098/1096; true → 2207/2204/2205/2206.
-	IsProduction bool
 }
 
 // FormatBusinessDayDate devuelve "YYYY-MM-DD" del BusinessDay.

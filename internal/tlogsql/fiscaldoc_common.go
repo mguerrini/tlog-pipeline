@@ -37,19 +37,6 @@ func querySum(ctx context.Context, conn *sql.DB, query string, args ...any) (flo
 	return 0, nil
 }
 
-/*
-// fiscalArtNRs devuelve los ART_NR a usar en las queries de fiscal docs según
-// el modo de ejecución.
-// false (pruebas): 1120, 1100, 1098, 1096.
-// true  (producción): 2207, 2204, 2205, 2206.
-func fiscalArtNRs(isProduction bool) (cai, tax, iva, iibb int) {
-	if isProduction {
-		return 2207, 2204, 2205, 2206
-	}
-	return 1120, 1100, 1098, 1096
-}
-*/
-
 // queryFiscalDocHeaderData ejecuta las queries auxiliares para cada LFS_ID y
 // devuelve los valores de cabecera del fiscal doc (CAI, montos por tipo de IVA).
 // Los ART_NR usados dependen de h.IsProduction (ver fiscalArtNRs).
@@ -125,7 +112,7 @@ func queryFiscalDocHeaderData(ctx context.Context, conn *sql.DB, h *common.Heade
 	return d, nil
 }
 
-func fiscalDocReceptionLines(ctx context.Context, conn *sql.DB, lfsID string, isProd bool) ([]map[string]string, error) {
+func fiscalDocReceptionLines(ctx context.Context, conn *sql.DB, lfsID string) ([]map[string]string, error) {
 	//	if isProd {
 	const linesSQL = `
 			SELECT distinct lfp.ART_NR, lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE,

@@ -1,7 +1,6 @@
 {
   "process": {
-    "is_production": true,
-    "file_name_include_document_type": true,
+    "file_name_include_document_type": false,
     "mode": "ALL",
     "execution_mode": "SERIAL",
     "parallel_retails_per_day": false,
@@ -89,7 +88,7 @@
     "delete_local_source": true
   },
   "local_clean": {
-    "enabled": false,
+    "enabled": true,
     "delete_source": true,
     "delete_database": true
   }

@@ -79,7 +79,7 @@ func (FiscalDocFCGenerator) Generate(ctx context.Context, conn *sql.DB, h *commo
 	totalLines := 0
 
 	for _, lfs := range candidates {
-		lines, err := fiscalDocReceptionLines(ctx, conn, lfs["LFS_ID"], h.IsProduction)
+		lines, err := fiscalDocReceptionLines(ctx, conn, lfs["LFS_ID"])
 		if err != nil {
 			return nil, err
 		}

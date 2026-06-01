@@ -44,6 +44,8 @@ FROM HIS_VERBRAUCH V
 WHERE V.KST_ID = ? AND V.VBR_STATUS = 2 AND V.VRT_ID IN (1, 4)
 ORDER BY V.VBR_ID`
 
+//1 = Merma no justificada UN
+
 func (AdjustmentVerbrauchGenerator) ListCandidateIDs(ctx context.Context, conn *sql.DB, kstID string) ([]string, error) {
 	rows, err := queryRows(ctx, conn, adjustmentVerbrauchCandidatesSQL, kstID)
 	if err != nil {

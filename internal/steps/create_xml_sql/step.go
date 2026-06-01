@@ -91,7 +91,6 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 			WorkstationID: "0",
 			Period:        "0",
 			Subperiod:     "0",
-			IsProduction:  d.Cfg.Process.IsProduction,
 		}
 
 		// Fase 1: pre-asignar SequenceNumbers para todos los docs del KST
