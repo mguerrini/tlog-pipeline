@@ -22,16 +22,16 @@ import (
 type DocumentNumber int
 
 const (
-	DocReception            DocumentNumber = 0
-	DocReturn               DocumentNumber = 1
-	DocTransfer             DocumentNumber = 2
-	DocFiscalDocFC          DocumentNumber = 5
-	DocFiscalDocNC          DocumentNumber = 6
-	DocCierre               DocumentNumber = 7
-	DocAdjustmentVerbrauch  DocumentNumber = 31
-	DocAdjustmentInventur   DocumentNumber = 32
-	DocCountVerbrauch       DocumentNumber = 41
-	DocCountInventur        DocumentNumber = 42
+	DocReception           DocumentNumber = 0
+	DocReturn              DocumentNumber = 1
+	DocTransfer            DocumentNumber = 2
+	DocFiscalDocFC         DocumentNumber = 5
+	DocFiscalDocNC         DocumentNumber = 6
+	DocCierre              DocumentNumber = 7
+	DocAdjustmentVerbrauch DocumentNumber = 3
+	DocAdjustmentInventur  DocumentNumber = 3
+	DocCountVerbrauch      DocumentNumber = 4
+	DocCountInventur       DocumentNumber = 4
 )
 
 // String devuelve el nombre legible del tipo de documento.
@@ -43,20 +43,16 @@ func (d DocumentNumber) String() string {
 		return "Return"
 	case DocTransfer:
 		return "Transfer"
-	case DocAdjustmentVerbrauch:
-		return "AdjustmentVerbrauch"
-	case DocAdjustmentInventur:
-		return "AdjustmentInventur"
+	case DocAdjustmentVerbrauch: // = DocAdjustmentInventur = 3
+		return "Adjustment"
 	case DocFiscalDocFC:
 		return "FiscalDocFC"
 	case DocFiscalDocNC:
 		return "FiscalDocNC"
 	case DocCierre:
 		return "Cierre"
-	case DocCountVerbrauch:
-		return "CountVerbrauch"
-	case DocCountInventur:
-		return "CountInventur"
+	case DocCountVerbrauch: // = DocCountInventur = 4
+		return "Count"
 	default:
 		return fmt.Sprintf("DocumentNumber(%d)", int(d))
 	}

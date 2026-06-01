@@ -113,14 +113,14 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 			docNum := tlogDocNumber(gen.Type())
 			sm := make(tlog.DocSeqMap, len(ids))
 			for i, id := range ids {
-				seqNum, err := sequence.Build(d.Day, docNum, counters[gen.Type()]+i)
+				seqNum, err := sequence.Build(d.Day, docNum, counters[seqCounterKey(gen.Type())]+i)
 				if err != nil {
 					return b.Fail(fmt.Errorf("pre-asignar sequence %s KST=%s id=%s: %w", gen.Type(), retail.KstID, id, err))
 				}
 				sm[id] = seqNum
 			}
 			kstSeqMaps[gen.Type()] = sm
-			counters[gen.Type()] += len(ids)
+			counters[seqCounterKey(gen.Type())] += len(ids)
 		}
 
 		// Fase 2: generar XMLs usando los seqNums pre-asignados.
@@ -179,6 +179,18 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 	b.SetMeta("tlogs_empty", totalEmpty)
 	b.SetMeta("source_db", dbPath)
 	return b.OK()
+}
+
+// seqCounterKey devuelve la clave a usar en el mapa counters para un TLOGType.
+// AdjustmentInventur comparte el contador con AdjustmentVerbrauch (mismo doc number 3).
+func seqCounterKey(t naming.TLOGType) naming.TLOGType {
+	switch t {
+	case naming.TLOGAdjustmentInventur:
+		return naming.TLOGAdjustmentVerbrauch
+	case naming.TLOGCountInventur:
+		return naming.TLOGCountVerbrauch
+	}
+	return t
 }
 
 // tlogDocNumber mapea un TLOGType al DocumentNumber del package sequence.
