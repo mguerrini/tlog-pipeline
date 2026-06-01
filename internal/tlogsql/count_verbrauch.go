@@ -123,19 +123,6 @@ ORDER BY p.VBT_POS`
 	return rows, nil
 }
 
-// mapVrtIDToAdjType convierte VRT_ID al tipo de ajuste TLOG.
-// Tabla de traducción pendiente de validación con OCPRA (UNKNOWN A DEFINIR).
-func mapVrtIDToAdjType(vrtID string) string {
-	switch vrtID {
-	case "1":
-		return "JUSTIFIED_ADJUSTMENTS"
-	case "2":
-		return "UNJUSTIFIED_ADJUSTMENTS"
-	default:
-		return "CORRECTIVE_ADJUSTMENT"
-	}
-}
-
 func writeCountDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, adjSeqNum string,
 	vbr map[string]string, lines []map[string]string) {
 
