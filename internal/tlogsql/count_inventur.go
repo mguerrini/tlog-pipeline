@@ -39,7 +39,7 @@ func (CountInventurGenerator) ListCandidateIDs(ctx context.Context, conn *sql.DB
 	return ids, nil
 }
 
-func (CountInventurGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, _ tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
+func (CountInventurGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, crossSeqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
 	candidates, err := queryRows(ctx, conn, adjustmentInventurCandidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("count_inventur candidatos: %w", err)
@@ -65,8 +65,9 @@ func (CountInventurGenerator) Generate(ctx context.Context, conn *sql.DB, h *com
 		if seqNum == "" {
 			return nil, fmt.Errorf("count_inventur: sin sequence pre-asignado para INV_ID=%s", inv["INV_ID"])
 		}
+		adjSeqNum := crossSeqMap[inv["INV_ID"]]
 		x := common.NewXMLBuilder()
-		writeCountInventurDoc(x, h, retailID, seqNum, inv, lines)
+		writeCountInventurDoc(x, h, retailID, seqNum, adjSeqNum, inv, lines)
 		files = append(files, tlog.GeneratedFile{
 			SeqNum:     seqNum,
 			XMLContent: x.String(),
@@ -85,7 +86,7 @@ func (CountInventurGenerator) Generate(ctx context.Context, conn *sql.DB, h *com
 	}, nil
 }
 
-func writeCountInventurDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum string,
+func writeCountInventurDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, adjSeqNum string,
 	inv map[string]string, lines []map[string]string) {
 
 	createTimestamp := h.FormatARTimestamp(h.BeginDateTime)
@@ -150,8 +151,8 @@ func writeCountInventurDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, 
 	x.Close()
 	x.Open("inventoryControlDocumentReferences")
 	x.Open("inventoryControlDocumentReference")
-	x.EmptyElement("SerialFormID")
-	x.EmptyElement("SerialFormIDTo")
+	x.Element("SerialFormID", adjSeqNum)
+	x.Element("SerialFormIDTo", seqNum)
 	x.Close()
 	x.Close()
 	x.Close()

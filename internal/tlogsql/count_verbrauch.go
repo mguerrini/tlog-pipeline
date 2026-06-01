@@ -57,7 +57,7 @@ func (CountVerbrauchGenerator) ListCandidateIDs(ctx context.Context, conn *sql.D
 	return ids, nil
 }
 
-func (CountVerbrauchGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, _ tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
+func (CountVerbrauchGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, crossSeqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
 	candidates, err := queryRows(ctx, conn, countVerbrauchCandidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("count candidatos: %w", err)
@@ -83,9 +83,10 @@ func (CountVerbrauchGenerator) Generate(ctx context.Context, conn *sql.DB, h *co
 		if seqNum == "" {
 			return nil, fmt.Errorf("count: sin sequence pre-asignado para VBR_ID=%s", vbr["VBR_ID"])
 		}
+		adjSeqNum := crossSeqMap[vbr["VBR_ID"]]
 
 		x := common.NewXMLBuilder()
-		writeCountDoc(x, h, retailID, seqNum, vbr, lines)
+		writeCountDoc(x, h, retailID, seqNum, adjSeqNum, vbr, lines)
 
 		files = append(files, tlog.GeneratedFile{
 			SeqNum:     seqNum,
@@ -135,7 +136,7 @@ func mapVrtIDToAdjType(vrtID string) string {
 	}
 }
 
-func writeCountDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum string,
+func writeCountDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, adjSeqNum string,
 	vbr map[string]string, lines []map[string]string) {
 
 	createTimestamp := h.FormatARTimestamp(h.BeginDateTime)
@@ -214,8 +215,8 @@ func writeCountDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum s
 	x.Close()
 	x.Open("inventoryControlDocumentReferences")
 	x.Open("inventoryControlDocumentReference")
-	x.EmptyElement("SerialFormID")
-	x.EmptyElement("SerialFormIDTo")
+	x.Element("SerialFormID", adjSeqNum)
+	x.Element("SerialFormIDTo", seqNum)
 	x.Close()
 	x.Close()
 	x.Close()
