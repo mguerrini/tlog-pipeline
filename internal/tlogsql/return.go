@@ -41,7 +41,7 @@ func (ReturnGenerator) Type() naming.TLOGType { return naming.TLOGReturn }
 
 const returnCandidatesSQL = `
 	SELECT DISTINCT l.LFS_ID, K.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO, L2.LF_VERT, l.LFS_NAME, l.LFS_DATUM,
-		l.LFS_INFO, l.LFS_NETTO, l.LFS_MWST
+		l.LFS_INFO, l.LFS_NETTO, l.LFS_MWST, L2.LF_SACHB
 	FROM LIEFERSCHEIN l
 		INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
 		INNER JOIN main.KOSTST K ON lpo.KST_ID1 = K.KST_ID
@@ -151,7 +151,7 @@ func writeReturnDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum,
 	x.Element("LastUpdateDate", h.FormatARTimestamp(h.BeginDateTime))
 	x.EmptyElement("Originator")
 	x.Element("SourceRetailStore", retailID)
-	x.Element("Supplier", lfs["LF_VERT"])
+	x.Element("Supplier", lfs["LF_SACHB"])
 	x.EmptyElement("OrderDocumentType")
 	x.Element("User", h.OperatorID)
 	x.EmptyElement("ICDQuantity")

@@ -39,7 +39,7 @@ type ReceptionGenerator struct{}
 func (ReceptionGenerator) Type() naming.TLOGType { return naming.TLOGReception }
 
 const receptionCandidatesSQL = `
-	SELECT DISTINCT l.LFS_ID, K.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO, L2.LF_VERT, l.LFS_NAME, l.LFS_DATUM
+	SELECT DISTINCT l.LFS_ID, K.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO, L2.LF_VERT, l.LFS_NAME, l.LFS_DATUM, L2.LF_SACHB
 	FROM LIEFERSCHEIN l
 		INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
 		INNER JOIN LIEFER L2 ON lpo.LF_ID = L2.LF_ID
@@ -172,7 +172,7 @@ func writeReceptionDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqN
 	x.Element("LastUpdateDate", h.FormatARTimestamp(h.BeginDateTime))
 	x.EmptyElement("Originator")
 	x.Element("SourceRetailStore", retailID)
-	x.Element("Supplier", lfs["LF_VERT"])
+	x.Element("Supplier", lfs["LF_SACHB"])
 	x.EmptyElement("OrderDocumentType")
 	x.Element("User", h.OperatorID)
 	x.EmptyElement("ICDQuantity")
