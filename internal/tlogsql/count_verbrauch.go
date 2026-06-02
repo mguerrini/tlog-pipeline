@@ -12,24 +12,6 @@ import (
 	"github.com/opessa/tlog-pipeline/internal/tlog/common"
 )
 
-const (
-	countDocumentTypeCode  = "InventoryCount"
-	countInventoryDocState = "4"
-	countFiscalReceiptFlag = "false"
-	countWorkstationID     = "0"
-	countPeriod            = "0"
-	countSubperiod         = "0"
-	countDestLocation      = "DEP1_OS"
-	countSourceLocation    = "DEP1_OS"
-	countUnitCount         = "0.0000"
-	countUnitSales         = "0.0000"
-	countSalesTotal        = "0.0000"
-	countStock             = "0.0000"
-	countDailyAvg          = "0.0000"
-	countSuggestedPO       = "0.0000"
-	countPickupCode        = "S1"
-)
-
 // CountVerbrauchGenerator implementa TLOG_INVENTORY_COUNT_REAL con SQL.
 //
 // Driver: HIS_VERBRAUCH (cabecera, VBR_STATUS = 2) + HIS_VERBRAUCHPOS (detalle).
@@ -147,11 +129,11 @@ func writeCountDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, 
 
 	x.Open("Transaction")
 	x.Element("RetailStoreID", retailID)
-	x.Element("WorkstationID", countWorkstationID)
+	x.Element("WorkstationID", "0")
 	x.Element("SequenceNumber", seqNum)
 	x.Element("BusinessDayDate", h.FormatBusinessDayDate())
-	x.Element("Period", countPeriod)
-	x.Element("Subperiod", countSubperiod)
+	x.Element("Period", "0")
+	x.Element("Subperiod", "0")
 	x.Element("PeriodCode", "0")
 	x.Element("SubPeriodCode", "0")
 	x.Element("BeginDateTime", h.FormatBeginDateTime())
@@ -161,8 +143,8 @@ func writeCountDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, 
 
 	x.Open("InventoryControlTransaction")
 	x.Element("SerialFormID", seqNum)
-	x.Element("DocumentTypeCode", countDocumentTypeCode)
-	x.Element("InventoryControlDocumentState", countInventoryDocState)
+	x.Element("DocumentTypeCode", "InventoryCount")
+	x.Element("InventoryControlDocumentState", "4")
 	x.Element("contractReferenceNumber", vbr["VBR_NAME"])
 	x.Element("CreateDateTimestamp", createTimestamp)
 	x.Element("DestinationRetailStoreID", retailID)
@@ -177,9 +159,9 @@ func writeCountDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, 
 	x.EmptyElement("ICDQuantity")
 	x.EmptyElement("ICDTotSalesAmount")
 	x.EmptyElement("Frequency")
-	x.Element("InventoryAdjustmentType", mapVrtIDToAdjType(vbr["VRT_ID"]))
+	x.Element("InventoryAdjustmentType", mapVrtIDToAdjType(vbr["VRT_ID"])) //todo validar
 	x.EmptyElement("ReceiptNumber")
-	x.Element("FiscalReceiptFlag", countFiscalReceiptFlag)
+	x.Element("FiscalReceiptFlag", "false")
 	x.EmptyElement("ReceiptType")
 	x.Element("ReceiptDate", receiptDate)
 	x.EmptyElement("CAINumber")
@@ -202,8 +184,13 @@ func writeCountDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, 
 	x.Close()
 	x.Open("inventoryControlDocumentReferences")
 	x.Open("inventoryControlDocumentReference")
-	x.Element("SerialFormID", adjSeqNum)
-	x.Element("SerialFormIDTo", seqNum)
+	if seqNum == "" || adjSeqNum == "" {
+		x.EmptyElement("SerialFormID")
+		x.EmptyElement("SerialFormIDTo")
+	} else {
+		x.Element("SerialFormID", adjSeqNum)
+		x.Element("SerialFormIDTo", seqNum)
+	}
 	x.Close()
 	x.Close()
 	x.Close()
@@ -218,7 +205,7 @@ func writeCountLine(x *common.XMLBuilder, line map[string]string, retailID, seqN
 
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
 	x.Element("RetailStoreID", retailID)
-	x.Element("WorkstationID", countWorkstationID)
+	x.Element("WorkstationID", "0")
 	x.Element("SequenceNumber", seqNum)
 	x.Element("DetSequenceNumber", line["VBT_POS"])
 	x.Element("Item", line["ART_NUMMER"])
@@ -227,17 +214,17 @@ func writeCountLine(x *common.XMLBuilder, line map[string]string, retailID, seqN
 	x.Element("ItemDescription", line["ART_NAME"])
 	x.Element("UnitBaseCostAmount", common.FormatDecimal4(wes))
 	x.Element("UnitCount", common.FormatDecimal4(menge))
-	x.Element("DestinationLocation", countDestLocation)
-	x.Element("SourceLocation", countSourceLocation)
+	x.Element("DestinationLocation", "DEP1_OS")
+	x.Element("SourceLocation", "DEP1_OS")
 	x.Element("CostTotalAmount", common.FormatDecimal4(costTotalAmount))
-	x.Element("UnitSalesAmount", countUnitSales)
-	x.Element("SalesTotalAmount", countSalesTotal)
-	x.Element("Stock", countStock)
-	x.Element("DailyAverageSales", countDailyAvg)
-	x.Element("SuggestedPurchaseOrder", countSuggestedPO)
-	x.Element("PickupCode", countPickupCode)
+	x.Element("UnitSalesAmount", "0.0000")
+	x.Element("SalesTotalAmount", "0.0000")
+	x.Element("Stock", "0.0000")
+	x.Element("DailyAverageSales", "0.0000")
+	x.Element("SuggestedPurchaseOrder", "0.0000")
+	x.Element("PickupCode", "S1")
 	x.Element("LastUpdateDate", lastUpdateDate)
 	x.EmptyElement("DifBME_ASNTypeID")
-	x.Element("InventoryControlDocumentState", countInventoryDocState)
+	x.Element("InventoryControlDocumentState", "4")
 	x.Close()
 }

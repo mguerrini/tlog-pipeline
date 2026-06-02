@@ -12,23 +12,6 @@ import (
 	"github.com/opessa/tlog-pipeline/internal/tlog/common"
 )
 
-const (
-	adjVerbrauchDocumentTypeCode  = "InventoryAdjustment"
-	adjVerbrauchInventoryDocState = "4"
-	adjVerbrauchFiscalReceiptFlag = "false"
-	adjVerbrauchWorkstationID     = "0"
-	adjVerbrauchPeriod            = "0"
-	adjVerbrauchSubperiod         = "0"
-	adjVerbrauchDestLocation      = "DEP1_OS"
-	adjVerbrauchSourceLocation    = "DEP1_OS"
-	adjVerbrauchUnitSales         = "0.0000"
-	adjVerbrauchSalesTotal        = "0.0000"
-	adjVerbrauchStock             = "0.0000"
-	adjVerbrauchDailyAvg          = "0.0000"
-	adjVerbrauchSuggestedPO       = "0.0000"
-	adjVerbrauchPickupCode        = "S1"
-)
-
 // AdjustmentVerbrauchGenerator implementa TLOG_INVENTORY_ADJUSTMENT_VERBRAUCH con SQL.
 //
 // Driver: HIS_VERBRAUCH (cabecera, VBR_STATUS = 2) + HIS_VERBRAUCHPOS (detalle).
@@ -41,7 +24,7 @@ SELECT V.VBR_ID, V.VBR_NAME, V.VRT_ID, V.CHG_ZEIT,
        K.KST_CODE
 FROM HIS_VERBRAUCH V
     INNER JOIN KOSTST K ON V.KST_ID = K.KST_ID
-WHERE V.KST_ID = ? AND V.VBR_STATUS = 2 AND V.VRT_ID IN (1, 4)
+WHERE V.KST_ID = ? AND V.VBR_STATUS = 2 AND V.VRT_ID IN (1, 2, 3, 4)
 ORDER BY V.VBR_ID`
 
 //1 = Merma no justificada UN
@@ -144,11 +127,11 @@ func writeAdjVerbrauchDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, s
 
 	x.Open("Transaction")
 	x.Element("RetailStoreID", retailID)
-	x.Element("WorkstationID", adjVerbrauchWorkstationID)
+	x.Element("WorkstationID", "0")
 	x.Element("SequenceNumber", seqNum)
 	x.Element("BusinessDayDate", h.FormatBusinessDayDate())
-	x.Element("Period", adjVerbrauchPeriod)
-	x.Element("Subperiod", adjVerbrauchSubperiod)
+	x.Element("Period", "0")
+	x.Element("Subperiod", "0")
 	x.Element("PeriodCode", "0")
 	x.Element("SubPeriodCode", "0")
 	x.Element("BeginDateTime", h.FormatBeginDateTime())
@@ -158,8 +141,8 @@ func writeAdjVerbrauchDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, s
 
 	x.Open("InventoryControlTransaction")
 	x.Element("SerialFormID", seqNum)
-	x.Element("DocumentTypeCode", adjVerbrauchDocumentTypeCode)
-	x.Element("InventoryControlDocumentState", adjVerbrauchInventoryDocState)
+	x.Element("DocumentTypeCode", "InventoryAdjustment")
+	x.Element("InventoryControlDocumentState", "4") //todo
 	x.Element("contractReferenceNumber", vbr["VBR_NAME"])
 	x.Element("CreateDateTimestamp", createTimestamp)
 	x.Element("DestinationRetailStoreID", retailID)
@@ -174,9 +157,9 @@ func writeAdjVerbrauchDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, s
 	x.EmptyElement("ICDQuantity")
 	x.EmptyElement("ICDTotSalesAmount")
 	x.EmptyElement("Frequency")
-	x.Element("InventoryAdjustmentType", mapVrtIDToAdjType(vbr["VRT_ID"]))
+	x.Element("InventoryAdjustmentType", mapVrtIDToAdjType(vbr["VRT_ID"])) //todo validar
 	x.EmptyElement("ReceiptNumber")
-	x.Element("FiscalReceiptFlag", adjVerbrauchFiscalReceiptFlag)
+	x.Element("FiscalReceiptFlag", "false")
 	x.EmptyElement("ReceiptType")
 	x.Element("ReceiptDate", receiptDate)
 	x.EmptyElement("CAINumber")
@@ -199,8 +182,13 @@ func writeAdjVerbrauchDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, s
 	x.Close()
 	x.Open("inventoryControlDocumentReferences")
 	x.Open("inventoryControlDocumentReference")
-	x.Element("SerialFormID", seqNum)
-	x.Element("SerialFormIDTo", countSeqNum)
+	if seqNum == "" || countSeqNum == "" {
+		x.EmptyElement("SerialFormID")
+		x.EmptyElement("SerialFormIDTo")
+	} else {
+		x.Element("SerialFormID", seqNum)
+		x.Element("SerialFormIDTo", countSeqNum)
+	}
 	x.Close()
 	x.Close()
 	x.Close()
@@ -214,7 +202,7 @@ func writeAdjVerbrauchLine(x *common.XMLBuilder, line map[string]string, retailI
 
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
 	x.Element("RetailStoreID", retailID)
-	x.Element("WorkstationID", adjVerbrauchWorkstationID)
+	x.Element("WorkstationID", "0")
 	x.Element("SequenceNumber", seqNum)
 	x.Element("DetSequenceNumber", line["VBT_POS"])
 	x.Element("Item", line["ART_NUMMER"])
@@ -223,17 +211,17 @@ func writeAdjVerbrauchLine(x *common.XMLBuilder, line map[string]string, retailI
 	x.Element("ItemDescription", line["ART_NAME"])
 	x.Element("UnitBaseCostAmount", common.FormatDecimal4(wes))
 	x.Element("UnitCount", common.FormatDecimal4(menge))
-	x.Element("DestinationLocation", adjVerbrauchDestLocation)
-	x.Element("SourceLocation", adjVerbrauchSourceLocation)
+	x.Element("DestinationLocation", "DEP1_OS")
+	x.Element("SourceLocation", "DEP1_OS")
 	x.Element("CostTotalAmount", common.FormatDecimal4(costTotalAmount))
-	x.Element("UnitSalesAmount", adjVerbrauchUnitSales)
-	x.Element("SalesTotalAmount", adjVerbrauchSalesTotal)
-	x.Element("Stock", adjVerbrauchStock)
-	x.Element("DailyAverageSales", adjVerbrauchDailyAvg)
-	x.Element("SuggestedPurchaseOrder", adjVerbrauchSuggestedPO)
-	x.Element("PickupCode", adjVerbrauchPickupCode)
+	x.Element("UnitSalesAmount", "0.0000")
+	x.Element("SalesTotalAmount", "0.0000")
+	x.Element("Stock", "0.0000")
+	x.Element("DailyAverageSales", "0.0000")
+	x.Element("SuggestedPurchaseOrder", "0.0000")
+	x.Element("PickupCode", "S1")
 	x.Element("LastUpdateDate", lastUpdateDate)
 	x.EmptyElement("DifBME_ASNTypeID")
-	x.Element("InventoryControlDocumentState", adjVerbrauchInventoryDocState)
+	x.Element("InventoryControlDocumentState", "4")
 	x.Close()
 }

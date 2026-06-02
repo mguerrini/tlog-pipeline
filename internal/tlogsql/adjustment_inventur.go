@@ -13,24 +13,6 @@ import (
 	"github.com/opessa/tlog-pipeline/internal/tlog/common"
 )
 
-const (
-	adjustmentDocumentTypeCode  = "InventoryAdjustment"
-	adjustmentInventoryAdjType  = "CORRECTIVE_ADJUSTMENT"
-	adjustmentInventoryDocState = "2"
-	adjustmentFiscalReceiptFlag = "false"
-	adjustmentWorkstationID     = "0"
-	adjustmentPeriod            = "0"
-	adjustmentSubperiod         = "0"
-	adjustmentItemBrand         = "0"
-	adjustmentDestLocation      = "DEP1_OS"
-	adjustmentSourceLocation    = "DEP1_OS"
-	adjustmentUnitSales         = "0.0000"
-	adjustmentSalesTotal        = "0.0000"
-	adjustmentStock             = "0.0000"
-	adjustmentDailyAvg          = "0.0000"
-	adjustmentSuggestedPO       = "0.0000"
-)
-
 // AdjustmentInventurGenerator implementa TLOG_INVENTORY_ADJUSTMENT con SQL.
 //
 // Filtro INVENTUR: KST_ID = ? AND INV_STATUS = 8 AND INV_TYP = 4.
@@ -135,11 +117,11 @@ func writeAdjustmentDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seq
 
 	x.Open("Transaction")
 	x.Element("RetailStoreID", retailID)
-	x.Element("WorkstationID", adjustmentWorkstationID)
+	x.Element("WorkstationID", "0")
 	x.Element("SequenceNumber", seqNum)
 	x.Element("BusinessDayDate", h.FormatBusinessDayDate())
-	x.Element("Period", adjustmentPeriod)
-	x.Element("Subperiod", adjustmentSubperiod)
+	x.Element("Period", "0")
+	x.Element("Subperiod", "0")
 	x.Element("PeriodCode", "0")
 	x.Element("SubPeriodCode", "0")
 	x.Element("BeginDateTime", h.FormatBeginDateTime())
@@ -149,8 +131,8 @@ func writeAdjustmentDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seq
 
 	x.Open("InventoryControlTransaction")
 	x.Element("SerialFormID", seqNum)
-	x.Element("DocumentTypeCode", adjustmentDocumentTypeCode)
-	x.Element("InventoryControlDocumentState", adjustmentInventoryDocState)
+	x.Element("DocumentTypeCode", "InventoryAdjustment")
+	x.Element("InventoryControlDocumentState", "2")
 	x.Element("contractReferenceNumber", "Generado desde la Web")
 	x.Element("CreateDateTimestamp", createTimestamp)
 	x.Element("DestinationRetailStoreID", retailID)
@@ -165,9 +147,9 @@ func writeAdjustmentDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seq
 	x.EmptyElement("ICDQuantity")
 	x.EmptyElement("ICDTotSalesAmount")
 	x.EmptyElement("Frequency")
-	x.Element("InventoryAdjustmentType", adjustmentInventoryAdjType)
+	x.Element("InventoryAdjustmentType", "CORRECTIVE_ADJUSTMENT")
 	x.EmptyElement("ReceiptNumber")
-	x.Element("FiscalReceiptFlag", adjustmentFiscalReceiptFlag)
+	x.Element("FiscalReceiptFlag", "false")
 	x.EmptyElement("ReceiptType")
 	x.Element("ReceiptDate", h.FormatARTimestamp(h.BeginDateTime))
 	x.EmptyElement("CAINumber")
@@ -190,8 +172,13 @@ func writeAdjustmentDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seq
 	x.Close()
 	x.Open("inventoryControlDocumentReferences")
 	x.Open("inventoryControlDocumentReference")
-	x.Element("SerialFormID", seqNum)
-	x.Element("SerialFormIDTo", countSeqNum)
+	if seqNum == "" || countSeqNum == "" {
+		x.EmptyElement("SerialFormID")
+		x.EmptyElement("SerialFormIDTo")
+	} else {
+		x.Element("SerialFormID", seqNum)
+		x.Element("SerialFormIDTo", countSeqNum)
+	}
 	x.Close()
 	x.Close()
 	x.Close()
@@ -212,7 +199,7 @@ func writeAdjustmentLine(x *common.XMLBuilder, line map[string]string, retailID,
 	// invposartLines y/o el schema de ARTIKEL.
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
 	x.Element("RetailStoreID", retailID)
-	x.Element("WorkstationID", adjustmentWorkstationID)
+	x.Element("WorkstationID", "0")
 	x.Element("SequenceNumber", seqNum)
 
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
@@ -222,14 +209,14 @@ func writeAdjustmentLine(x *common.XMLBuilder, line map[string]string, retailID,
 	x.Element("ItemDescription", line["ART_NAME"])
 	x.Element("UnitBaseCostAmount", common.FormatDecimal4(ekp))
 	x.Element("UnitCount", common.FormatDecimal4(variance))
-	x.Element("DestinationLocation", adjustmentDestLocation)
-	x.Element("SourceLocation", adjustmentSourceLocation)
+	x.Element("DestinationLocation", "DEP1_OS")
+	x.Element("SourceLocation", "DEP1_OS")
 	x.Element("CostTotalAmount", common.FormatDecimal4(math.Abs(costTotal)))
-	x.Element("UnitSalesAmount", adjustmentUnitSales)
-	x.Element("SalesTotalAmount", adjustmentSalesTotal)
+	x.Element("UnitSalesAmount", "0.0000")
+	x.Element("SalesTotalAmount", "0.0000")
 	x.Element("Stock", common.FormatDecimal4(ist))
-	x.Element("DailyAverageSales", adjustmentDailyAvg)
-	x.Element("SuggestedPurchaseOrder", adjustmentSuggestedPO)
+	x.Element("DailyAverageSales", "0.0000")
+	x.Element("SuggestedPurchaseOrder", "0.0000")
 	x.EmptyElement("PickupCode")
 	x.EmptyElement("LastUpdateDate")
 	x.EmptyElement("DifBME_ASNTypeID")

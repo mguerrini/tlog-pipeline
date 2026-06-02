@@ -182,8 +182,13 @@ func writeReturnDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum,
 	x.Close()
 	x.Open("inventoryControlDocumentReferences")
 	x.Open("inventoryControlDocumentReference")
-	x.Element("SerialFormID", seqNum)
-	x.Element("SerialFormIDTo", seqNumTO)
+	if seqNum == "" || seqNumTO == "" {
+		x.EmptyElement("SerialFormID")
+		x.EmptyElement("SerialFormIDTo")
+	} else {
+		x.Element("SerialFormID", seqNum)
+		x.Element("SerialFormIDTo", seqNumTO)
+	}
 	x.Close()
 	x.Close()
 	x.Close()
