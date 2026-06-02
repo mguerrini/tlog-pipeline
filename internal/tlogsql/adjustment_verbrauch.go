@@ -142,7 +142,7 @@ func writeAdjVerbrauchDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, s
 	x.Open("InventoryControlTransaction")
 	x.Element("SerialFormID", seqNum)
 	x.Element("DocumentTypeCode", "InventoryAdjustment")
-	x.Element("InventoryControlDocumentState", "4") //todo
+	x.Element("InventoryControlDocumentState", "2")
 	x.Element("contractReferenceNumber", vbr["VBR_NAME"])
 	x.Element("CreateDateTimestamp", createTimestamp)
 	x.Element("DestinationRetailStoreID", retailID)
@@ -222,6 +222,6 @@ func writeAdjVerbrauchLine(x *common.XMLBuilder, line map[string]string, retailI
 	x.Element("PickupCode", "S1")
 	x.Element("LastUpdateDate", lastUpdateDate)
 	x.EmptyElement("DifBME_ASNTypeID")
-	x.Element("InventoryControlDocumentState", "4")
+	x.Element("InventoryControlDocumentState", "2")
 	x.Close()
 }

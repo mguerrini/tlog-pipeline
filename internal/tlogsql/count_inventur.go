@@ -111,7 +111,7 @@ func writeCountInventurDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, 
 	x.Open("InventoryControlTransaction")
 	x.Element("SerialFormID", seqNum)
 	x.Element("DocumentTypeCode", "InventoryCount")
-	x.Element("InventoryControlDocumentState", "2")
+	x.Element("InventoryControlDocumentState", "4")
 	x.Element("contractReferenceNumber", "Generado desde la Web")
 	x.Element("CreateDateTimestamp", createTimestamp)
 	x.Element("DestinationRetailStoreID", retailID)
