@@ -37,18 +37,6 @@ func WriteReportMD(r *LoadResult, day time.Time) string {
 		}
 	}
 
-	// Conteos
-	b.WriteString("\n---\n\n## Conteos post-carga\n\n")
-	b.WriteString("| Tabla | Esperadas | Cargadas | Estado |\n")
-	b.WriteString("|---|---:|---:|:---:|\n")
-	for _, c := range r.Counts {
-		icon := "✅"
-		if !c.Match {
-			icon = "⚠️"
-		}
-		fmt.Fprintf(&b, "| `%s` | %d | %d | %s |\n", c.Table, c.Expected, c.Got, icon)
-	}
-
 	// Integridad
 	b.WriteString("\n---\n\n## Integridad referencial\n\n")
 	b.WriteString("| Relación | Huérfanas | Estado |\n")

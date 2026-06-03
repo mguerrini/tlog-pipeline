@@ -155,6 +155,8 @@ func allSchemas() []*tableSchema {
 		artikel(),
 		lieferschein(),
 		lieferpos(),
+		rechnung(),
+		rechlfs(),
 		inventur(),
 		invposart(),
 		hisVerbrauch(),
@@ -668,6 +670,50 @@ func hisVerbrauchpos() *tableSchema {
 			r("VBT_REQ_MENGE"), t("REZ_NR2"), i("VBT_SORT"), t("REZ_NR3"),
 			t("VBT_BATCH"), t("VBT_EXPIRE"), t("VBT_HACCPINFO"),
 			t("VBT_MANUFACTURED"), t("ART_NR2"), t("PRO_NR"),
+		},
+	}
+}
+
+// ── RECHNUNG ───────────────────────────────────────────────────────────────
+func rechnung() *tableSchema {
+	return &tableSchema{
+		sqliteName: "RECHNUNG",
+		csvName:    "Rechnung",
+		pk:         []string{"RNG_ID"},
+		fks:        []fkRef{{"LF_ID", "LIEFER", "LF_ID"}},
+		cols: []colDef{
+			i("RNG_ID"), t("RNG_NAME"), i("LF_ID"), t("RNG_DATUM"),
+			t("RNG_QUITTNR"), r("RNG_NETTO"), r("RNG_MWST"), r("RNG_BRUTTO"),
+			i("RNG_STATUS"), i("FIB_ID"), t("RNG_INFO"),
+			i("NEW_USER"), t("NEW_ZEIT"), i("CHG_USER"), t("CHG_ZEIT"),
+			t("AKTIV"), t("KOS_NR"), t("KOS_VON"), t("KOS_ANZ"),
+			t("RNG_NAMEID"), t("RNG_BUCHPERIODE"), t("RNG_DATVALUTA"),
+			t("RNG_FIBBELEGNR"), t("RNG_ESR"),
+			r("RNG_SKONTOPROZ"), r("RNG_SKONTOVAL"),
+			t("KST_NR"), t("RNG_DATDELIVERY"), i("REPLICATED"),
+			i("RNG_TYPE"), i("RNG_SELFBILLING"), t("RNG_BENTRYDATE"),
+			r("RNG_BVAT"), r("RNG_BGROSS"), i("RNG_COD"), i("RNG_PROCESSING"),
+			t("CBX_NR1"), t("CBX_NR2"), t("CBX_NR3"), t("CBX_NR4"),
+			t("RNG_DOCLINK"), i("RNG_BRUTTOCALC"), i("TFL_NR"), r("CUR_EXCHANGE"),
+			i("RNG_B2BSBI"), i("RNG_ADJUSTED"), i("DGROWVER"),
+			r("RNG_B2B_NETVALUE"), r("RNG_B2B_VATVALUE"), r("RNG_B2B_GROSSVALUE"),
+		},
+	}
+}
+
+// ── RECHLFS ────────────────────────────────────────────────────────────────
+func rechlfs() *tableSchema {
+	return &tableSchema{
+		sqliteName: "RECHLFS",
+		csvName:    "Rechlfs",
+		pk:         []string{"rng_id", "lfs_id"},
+		notNull:    []string{"rng_id", "lfs_id"},
+		fks: []fkRef{
+			{"rng_id", "RECHNUNG", "RNG_ID"},
+			{"lfs_id", "LIEFERSCHEIN", "LFS_ID"},
+		},
+		cols: []colDef{
+			i("rng_id"), i("lfs_id"),
 		},
 	}
 }

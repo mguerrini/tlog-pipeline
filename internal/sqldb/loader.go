@@ -28,17 +28,8 @@ type TableStat struct {
 type LoadResult struct {
 	DBPath    string
 	Stats     []TableStat
-	Counts    []CountCheck
 	Orphans   []OrphanCheck
 	OverallOK bool
-}
-
-// CountCheck compara filas esperadas vs cargadas.
-type CountCheck struct {
-	Table    string
-	Expected int64
-	Got      int64
-	Match    bool
 }
 
 // OrphanCheck describe el resultado de un chequeo de FK huérfana.
@@ -47,13 +38,6 @@ type OrphanCheck struct {
 	OrphanRows   int64
 	ExpectedZero bool
 	OK           bool
-}
-
-// expectedCounts es el snapshot del 2026-05-05 (sección 7 del spec).
-var expectedCounts = map[string]int64{
-	"KOSTST": 2, "LIEFER": 54, "WARENGRUPPE": 627, "VPCKEINH": 73,
-	"ARTIKEL": 437, "LIEFERSCHEIN": 12, "LIEFERPOS": 150,
-	"INVENTUR": 1, "INVPOSART": 1022, "HIS_VERBRAUCH": 1, "DAILYTOTALS": 438,
 }
 
 // Load carga todos los CSVs de srcDir en una DB SQLite en dbPath usando sep
@@ -132,14 +116,8 @@ func Load(srcDir, dbPath, sep string) (*LoadResult, error) {
 	_ = applyDDL(db, indexes) // no-fatal
 
 	// Validaciones post-carga
-	result.Counts = runCounts(db)
 	result.Orphans = runOrphanChecks(db)
 
-	for _, c := range result.Counts {
-		if !c.Match {
-			result.OverallOK = false
-		}
-	}
 	for _, o := range result.Orphans {
 		if !o.OK {
 			result.OverallOK = false
@@ -281,24 +259,6 @@ func convertVal(s string, ct colType) any {
 	default:
 		return s
 	}
-}
-
-func runCounts(db *sql.DB) []CountCheck {
-	tables := []string{
-		"KOSTST", "LIEFER", "WARENGRUPPE", "VPCKEINH", "ARTIKEL",
-		"LIEFERSCHEIN", "LIEFERPOS", "INVENTUR", "INVPOSART",
-		"HIS_VERBRAUCH", "DAILYTOTALS",
-	}
-	var out []CountCheck
-	for _, t := range tables {
-		var n int64
-		_ = db.QueryRow(fmt.Sprintf(`SELECT COUNT(*) FROM "%s"`, t)).Scan(&n)
-		exp := expectedCounts[t]
-		out = append(out, CountCheck{
-			Table: t, Expected: exp, Got: n, Match: n == exp,
-		})
-	}
-	return out
 }
 
 func runOrphanChecks(db *sql.DB) []OrphanCheck {

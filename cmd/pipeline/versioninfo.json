@@ -2,13 +2,13 @@
   "FixedFileInfo": {
     "FileVersion": {
       "Major": 3,
-      "Minor": 4,
+      "Minor": 5,
       "Patch": 0,
       "Build": 0
     },
     "ProductVersion": {
       "Major": 3,
-      "Minor": 4,
+      "Minor": 5,
       "Patch": 0,
       "Build": 0
     },
@@ -24,7 +24,7 @@
     "InternalName": "tlog-gen",
     "OriginalFilename": "tlog-gen.exe",
     "ProductName": "tlog-gen",
-    "ProductVersion": "3.4.0",
+    "ProductVersion": "3.5.0",
     "LegalCopyright": "Copyright (c) 2026 Breakpoint Technologies S.A.S"
   },
   "VarFileInfo": {
