@@ -102,28 +102,50 @@ func (FiscalDocNCGenerator) Generate(ctx context.Context, conn *sql.DB, h *commo
 
 	retailID := common.FormatRetailStoreID(candidates[0]["KST_CODE"])
 
+	// Agrupar candidatos por RNG_NAME preservando el orden de primera aparición.
+	type rngGroup struct {
+		firstRow map[string]string
+		lfsIDs   []string
+	}
+	var rngOrder []string
+	rngGroups := make(map[string]*rngGroup)
+	for _, lfs := range candidates {
+		rng := lfs["RNG_NAME"]
+		if _, ok := rngGroups[rng]; !ok {
+			rngOrder = append(rngOrder, rng)
+			rngGroups[rng] = &rngGroup{firstRow: lfs}
+		}
+		rngGroups[rng].lfsIDs = append(rngGroups[rng].lfsIDs, lfs["LFS_ID"])
+	}
+
 	var files []tlog.GeneratedFile
 	totalLines := 0
 
-	for _, lfs := range candidates {
-		lines, err := fiscalDocReceptionLines(ctx, conn, lfs["LFS_ID"])
+	for _, rng := range rngOrder {
+		g := rngGroups[rng]
+		seqNum := seqMap[g.lfsIDs[0]]
+		if seqNum == "" {
+			return nil, fmt.Errorf("fiscaldoc_nc: sin sequence pre-asignado para RNG_NAME=%s", rng)
+		}
+
+		crossSeqNums := make([]string, len(g.lfsIDs))
+		for i, lfsID := range g.lfsIDs {
+			crossSeqNums[i] = crossSeqMap[lfsID]
+		}
+
+		lines, err := fiscalDocReceptionLines(ctx, conn, rng)
 		if err != nil {
 			return nil, err
 		}
 		if len(lines) == 0 {
 			continue
 		}
-		seqNum := seqMap[lfs["LFS_ID"]]
-		if seqNum == "" {
-			return nil, fmt.Errorf("fiscaldoc_nc: sin sequence pre-asignado para LFS_ID=%s", lfs["LFS_ID"])
-		}
-		seqNumTO := crossSeqMap[lfs["LFS_ID"]]
-		hdr, err := queryFiscalDocHeaderData(ctx, conn, h, lfs["LFS_ID"])
+		hdr, err := queryFiscalDocHeaderData(ctx, conn, h, rng)
 		if err != nil {
-			return nil, fmt.Errorf("fiscaldoc_nc header %s: %w", lfs["LFS_ID"], err)
+			return nil, fmt.Errorf("fiscaldoc_nc header %s: %w", rng, err)
 		}
 		x := common.NewXMLBuilder()
-		writeNCDoc(x, h, retailID, seqNum, seqNumTO, lfs, lines, hdr)
+		writeNCDoc(x, h, retailID, seqNum, crossSeqNums, g.firstRow, lines, hdr)
 		files = append(files, tlog.GeneratedFile{
 			SeqNum:     seqNum,
 			XMLContent: x.String(),
@@ -142,7 +164,7 @@ func (FiscalDocNCGenerator) Generate(ctx context.Context, conn *sql.DB, h *commo
 	}, nil
 }
 
-func writeNCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, seqNumTO string,
+func writeNCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum string, crossSeqNums []string,
 	lfs map[string]string, lines []map[string]string, hdr fiscalDocHeaderData) {
 
 	netto, _ := db.AsFloat(lfs["LFS_NETTO"])
@@ -208,15 +230,17 @@ func writeNCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, seq
 	}
 	x.Close()
 	x.Open("inventoryControlDocumentReferences")
-	x.Open("inventoryControlDocumentReference")
-	if seqNum == "" || seqNumTO == "" {
-		x.EmptyElement("SerialFormID")
-		x.EmptyElement("SerialFormIDTo")
-	} else {
-		x.Element("SerialFormID", seqNumTO)
-		x.Element("SerialFormIDTo", seqNum)
+	for _, crossSeqNum := range crossSeqNums {
+		x.Open("inventoryControlDocumentReference")
+		if seqNum == "" || crossSeqNum == "" {
+			x.EmptyElement("SerialFormID")
+			x.EmptyElement("SerialFormIDTo")
+		} else {
+			x.Element("SerialFormID", crossSeqNum)
+			x.Element("SerialFormIDTo", seqNum)
+		}
+		x.Close()
 	}
-	x.Close()
 	x.Close()
 	x.Close()
 	x.Close()
