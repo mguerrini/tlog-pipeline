@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"math"
+	"time"
 
 	"github.com/opessa/tlog-pipeline/internal/db"
 	"github.com/opessa/tlog-pipeline/internal/naming"
@@ -32,7 +33,7 @@ type CierreGenerator struct{}
 
 func (CierreGenerator) Type() naming.TLOGType { return naming.TLOGCierre }
 
-func (CierreGenerator) ListCandidateIDs(_ context.Context, _ *sql.DB, _ string) ([]string, error) {
+func (CierreGenerator) BuildSeqMap(_ context.Context, _ *sql.DB, _ string, _ time.Time, _ int) (tlog.DocSeqMap, error) {
 	return nil, nil
 }
 

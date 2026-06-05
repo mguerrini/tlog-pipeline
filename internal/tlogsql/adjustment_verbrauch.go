@@ -8,6 +8,7 @@ import (
 
 	"github.com/opessa/tlog-pipeline/internal/db"
 	"github.com/opessa/tlog-pipeline/internal/naming"
+	"github.com/opessa/tlog-pipeline/internal/sequence"
 	"github.com/opessa/tlog-pipeline/internal/tlog"
 	"github.com/opessa/tlog-pipeline/internal/tlog/common"
 )
@@ -39,6 +40,14 @@ func (AdjustmentVerbrauchGenerator) ListCandidateIDs(ctx context.Context, conn *
 		ids = append(ids, r["VBR_ID"])
 	}
 	return ids, nil
+}
+
+func (g AdjustmentVerbrauchGenerator) BuildSeqMap(ctx context.Context, conn *sql.DB, kstID string, businessDay time.Time, startCounter int) (tlog.DocSeqMap, error) {
+	ids, err := g.ListCandidateIDs(ctx, conn, kstID)
+	if err != nil {
+		return nil, err
+	}
+	return buildSeqMapFromIDs(ids, businessDay, sequence.DocAdjustmentVerbrauch, startCounter)
 }
 
 func (AdjustmentVerbrauchGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, crossSeqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {

@@ -14,7 +14,6 @@ import (
 
 	"github.com/opessa/tlog-pipeline/internal/naming"
 	"github.com/opessa/tlog-pipeline/internal/pipeline"
-	"github.com/opessa/tlog-pipeline/internal/sequence"
 	"github.com/opessa/tlog-pipeline/internal/timeutil"
 	"github.com/opessa/tlog-pipeline/internal/tlog"
 	"github.com/opessa/tlog-pipeline/internal/tlog/common"
@@ -93,34 +92,22 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 			Subperiod:     "0",
 		}
 
-		// Fase 1: pre-asignar SequenceNumbers para todos los docs del KST
-		// (excepto Cierre, cuyo ListCandidateIDs devuelve nil).
-		// El contador global se avanza aquí por tipo, antes de escribir
-		// cualquier archivo, de modo que todos los docIDs del KST conocen
-		// su seqNum antes de que comience la generación de XMLs.
+		// Fase 1: pre-asignar SequenceNumbers para todos los docs del KST.
+		// Cierre retorna nil (no participa en pre-asignación).
 		kstSeqMaps := make(map[naming.TLOGType]tlog.DocSeqMap)
 		for _, gen := range generators {
 			if !d.Cfg.Output.Enabled(gen.Type()) {
 				continue
 			}
-			ids, err := gen.ListCandidateIDs(ctx, conn, retail.KstID)
+			sm, err := gen.BuildSeqMap(ctx, conn, retail.KstID, d.Day, counters[seqCounterKey(gen.Type())])
 			if err != nil {
-				return b.Fail(fmt.Errorf("listar candidatos %s KST=%s: %w", gen.Type(), retail.KstID, err))
+				return b.Fail(fmt.Errorf("pre-asignar sequence %s KST=%s: %w", gen.Type(), retail.KstID, err))
 			}
-			if len(ids) == 0 {
+			if len(sm) == 0 {
 				continue
 			}
-			docNum := tlogDocNumber(gen.Type())
-			sm := make(tlog.DocSeqMap, len(ids))
-			for i, id := range ids {
-				seqNum, err := sequence.Build(d.Day, docNum, counters[seqCounterKey(gen.Type())]+i)
-				if err != nil {
-					return b.Fail(fmt.Errorf("pre-asignar sequence %s KST=%s id=%s: %w", gen.Type(), retail.KstID, id, err))
-				}
-				sm[id] = seqNum
-			}
 			kstSeqMaps[gen.Type()] = sm
-			counters[seqCounterKey(gen.Type())] += len(ids)
+			counters[seqCounterKey(gen.Type())] += len(sm)
 		}
 
 		// Fase 2: generar XMLs usando los seqNums pre-asignados.
@@ -197,28 +184,3 @@ func seqCounterKey(t naming.TLOGType) naming.TLOGType {
 	return t
 }
 
-// tlogDocNumber mapea un TLOGType al DocumentNumber del package sequence.
-func tlogDocNumber(t naming.TLOGType) sequence.DocumentNumber {
-	switch t {
-	case naming.TLOGReception:
-		return sequence.DocReception
-	case naming.TLOGReturn:
-		return sequence.DocReturn
-	case naming.TLOGTransfer:
-		return sequence.DocTransfer
-	case naming.TLOGAdjustmentVerbrauch:
-		return sequence.DocAdjustmentVerbrauch
-	case naming.TLOGAdjustmentInventur:
-		return sequence.DocAdjustmentInventur
-	case naming.TLOGCountVerbrauch:
-		return sequence.DocCountVerbrauch
-	case naming.TLOGCountInventur:
-		return sequence.DocCountInventur
-	case naming.TLOGFiscalDocFC:
-		return sequence.DocFiscalDocFC
-	case naming.TLOGFiscalDocNC:
-		return sequence.DocFiscalDocNC
-	default:
-		return sequence.DocCierre
-	}
-}

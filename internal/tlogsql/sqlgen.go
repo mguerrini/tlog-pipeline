@@ -14,8 +14,10 @@ package tlogsql
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/opessa/tlog-pipeline/internal/naming"
+	"github.com/opessa/tlog-pipeline/internal/sequence"
 	"github.com/opessa/tlog-pipeline/internal/tlog"
 	"github.com/opessa/tlog-pipeline/internal/tlog/common"
 )
@@ -23,26 +25,40 @@ import (
 // Generator es la interfaz de los generators SQL.
 //
 // El flujo de uso tiene dos fases por KST:
-//  1. ListCandidateIDs: obtiene los IDs de los documentos fuente y permite
-//     al step pre-asignar SequenceNumbers (docID → seqNum) antes de escribir
-//     cualquier archivo. Cierre devuelve nil (no participa en pre-asignación).
+//  1. BuildSeqMap: pre-asigna SequenceNumbers (docID → seqNum) para los
+//     candidatos del KST antes de escribir cualquier archivo. Retorna nil para
+//     Cierre (no participa en pre-asignación).
 //  2. Generate: produce los XMLs usando los seqNums del DocSeqMap.
 //     Para Cierre, seqMap es nil y se usa startCounter.
 type Generator interface {
 	Type() naming.TLOGType
 
-	// ListCandidateIDs devuelve los IDs fuente ordenados (LFS_ID, INV_ID,
-	// VBR_ID, …) para pre-asignar SequenceNumbers antes de generar XMLs.
-	// Devuelve nil para Cierre y Transfer (no participan en pre-asignación).
-	ListCandidateIDs(ctx context.Context, conn *sql.DB, kstID string) ([]string, error)
+	// BuildSeqMap pre-asigna SequenceNumbers para los candidatos del KST.
+	// startCounter es el próximo índice global para este tipo de documento.
+	// Retorna nil si el generator no usa pre-asignación (Cierre).
+	BuildSeqMap(ctx context.Context, conn *sql.DB, kstID string, businessDay time.Time, startCounter int) (tlog.DocSeqMap, error)
 
-	// Generate produce los archivos XML del KST. Para generators no-Cierre,
-	// seqMap contiene los seqNums pre-asignados por ListCandidateIDs; en ese
-	// caso startCounter se ignora. Para Cierre, seqMap es nil y se usa
-	// startCounter.
-	// crossSeqMap contiene los seqNums del documento "par" (p.ej. FiscalDocFC
-	// para Reception y viceversa); nil si no aplica para el tipo de documento.
+	// Generate produce los archivos XML del KST. seqMap contiene los seqNums
+	// pre-asignados por BuildSeqMap (nil para Cierre, que usa startCounter).
+	// crossSeqMap contiene los seqNums del documento "par"; nil si no aplica.
 	Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, crossSeqMap tlog.DocSeqMap, startCounter int) (*tlog.GenerateResult, error)
+}
+
+// buildSeqMapFromIDs construye el DocSeqMap asignando un SEQUENCENUMBER a
+// cada ID, comenzando en startCounter.
+func buildSeqMapFromIDs(ids []string, businessDay time.Time, doc sequence.DocumentNumber, startCounter int) (tlog.DocSeqMap, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	sm := make(tlog.DocSeqMap, len(ids))
+	for i, id := range ids {
+		seqNum, err := sequence.Build(businessDay, doc, startCounter+i)
+		if err != nil {
+			return nil, err
+		}
+		sm[id] = seqNum
+	}
+	return sm, nil
 }
 
 // queryRows ejecuta una query y devuelve cada fila como map[string]string.
