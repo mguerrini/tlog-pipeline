@@ -41,17 +41,18 @@ func querySum(ctx context.Context, conn *sql.DB, query string, args ...any) (flo
 // queryFiscalDocHeaderData ejecuta las queries auxiliares para cada LFS_ID y
 // devuelve los valores de cabecera del fiscal doc (CAI, montos por tipo de IVA).
 // Los ART_NR usados dependen de h.IsProduction (ver fiscalArtNRs).
-func queryFiscalDocHeaderData(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, lfsID string) (fiscalDocHeaderData, error) {
+func queryFiscalDocHeaderData(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, rngName string) (fiscalDocHeaderData, error) {
 	var d fiscalDocHeaderData
 
 	//	artCAI, artTax, artIva, artIIBB := fiscalArtNRs(h.IsProduction)
 
 	const caiSQL = `
-		SELECT lpo.LFP_HACCPINFO, lpo.LFP_ABLAUFDT
-		FROM LIEFERSCHEIN l
-			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		WHERE l.LFS_ID = ? AND lpo.ART_NR = 2207 AND l.LFS_STATUS = 42`
-	if row, err := selectOne(ctx, conn, caiSQL, lfsID); err != nil {
+		SELECT DISTINCT lpo.LFP_HACCPINFO, lpo.LFP_ABLAUFDT
+		FROM LIEFERSCHEIN_VIEW l
+				 INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
+		WHERE lpo.LFP_HACCPINFO is not null and lpo.LFP_ABLAUFDT is not null
+			AND l.RNG_NAME = ? AND lpo.ART_NR = 2207 AND l.LFS_STATUS = 42`
+	if row, err := selectOne(ctx, conn, caiSQL, rngName); err != nil {
 		return d, err
 	} else if row != nil {
 		d.CAINumber = row["LFP_HACCPINFO"]
@@ -64,60 +65,56 @@ func queryFiscalDocHeaderData(ctx context.Context, conn *sql.DB, h *common.Heade
 
 	var err error
 	d.ExemptAmount, err = querySum(ctx, conn, `
-		SELECT sum(lpo.LFP_EKP) AS val
-		FROM LIEFERSCHEIN l
-			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-			INNER JOIN ARTIKEL A ON A.ART_ID = lpo.ART_NR
-		WHERE l.LFS_ID = ? AND l.LFS_STATUS = 42 AND A.ART_MWSTNR = 0 and lpo.ART_NR not in (2204, 2205,2206, 2207)`, lfsID)
+		SELECT sum(l.LFP_EKP) AS val
+		FROM LIEFERSCHEIN_VIEW l
+				 INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
+				 INNER JOIN ARTIKEL A ON A.ART_ID = lpo.ART_NR
+		WHERE l.RNG_NAME = ? AND l.LFS_STATUS = 42 AND a.ART_MWSTNR = 0 and l.ART_NR not in (2204, 2205,2206, 2207)`, rngName)
 	if err != nil {
 		return d, err
 	}
 
 	d.TaxAmount, err = querySum(ctx, conn, `
-		SELECT lpo.LFP_MENGE as val
-		FROM LIEFERSCHEIN l
-			   INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		WHERE l.LFS_ID = ? AND lpo.ART_NR = 2204 AND l.LFS_STATUS = 42`, lfsID)
+		SELECT sum (val) FROM  (
+		SELECT l.LFP_MENGE as val
+		FROM LIEFERSCHEIN_VIEW l
+		WHERE l.RNG_NAME = ? AND l.ART_NR = 2204 AND l.LFS_STATUS = 42)`, rngName)
 	if err != nil {
 		return d, err
 	}
 
 	d.VatAmount, err = querySum(ctx, conn, `
 		SELECT sum (val) FROM  (
-		SELECT lpo.LFP_MENGE as val
-		FROM LIEFERSCHEIN l
-			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		WHERE l.LFS_ID = ? AND lpo.ART_NR = 2255 AND l.LFS_STATUS = 42
-		)`, lfsID)
+		SELECT l.LFP_MENGE as val
+		FROM LIEFERSCHEIN_VIEW l
+		WHERE  l.RNG_NAME = ? AND l.ART_NR = 2255 AND l.LFS_STATUS = 42)`, rngName)
 	if err != nil {
 		return d, err
 	}
 
 	d.DifferentialIVAVatAMount, err = querySum(ctx, conn, `
 		SELECT sum (val) FROM  (
-		SELECT lpo.LFP_MENGE as val
-		FROM LIEFERSCHEIN l
-			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		WHERE l.LFS_ID = ? AND lpo.ART_NR = 2256 AND l.LFS_STATUS = 42
-		)`, lfsID)
+		SELECT l.LFP_MENGE as val
+		FROM LIEFERSCHEIN_VIEW l
+		WHERE l.RNG_NAME = ? AND l.ART_NR = 2256 AND l.LFS_STATUS = 42)`, rngName)
 	if err != nil {
 		return d, err
 	}
 
 	d.IvaTaxAmount, err = querySum(ctx, conn, `
-		SELECT lpo.LFP_MENGE as val
-		FROM LIEFERSCHEIN l
-			   INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		WHERE l.LFS_ID = ? AND lpo.ART_NR = 2205 AND l.LFS_STATUS = 42`, lfsID)
+		SELECT sum (val) FROM  (
+		SELECT l.LFP_MENGE as val
+		FROM LIEFERSCHEIN_VIEW l
+		WHERE l.RNG_NAME = ? AND l.ART_NR = 2205 AND l.LFS_STATUS = 42)`, rngName)
 	if err != nil {
 		return d, err
 	}
 
 	d.IIBBTaxAmount, err = querySum(ctx, conn, `
-		SELECT lpo.LFP_MENGE as val
-		FROM LIEFERSCHEIN l
-			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		WHERE l.LFS_ID = ? AND lpo.ART_NR = 2206 AND l.LFS_STATUS = 42`, lfsID)
+		SELECT sum (val) FROM  (
+		SELECT l.LFP_MENGE as val
+		FROM LIEFERSCHEIN_VIEW l
+		WHERE l.RNG_NAME = ? AND l.ART_NR = 2206 AND l.LFS_STATUS = 42)`, rngName)
 	if err != nil {
 		return d, err
 	}
@@ -125,126 +122,22 @@ func queryFiscalDocHeaderData(ctx context.Context, conn *sql.DB, h *common.Heade
 	return d, nil
 }
 
-func queryFiscalDocHeaderData2(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, lfsID string, rngName string) (fiscalDocHeaderData, error) {
-	var d fiscalDocHeaderData
-
-	//	artCAI, artTax, artIva, artIIBB := fiscalArtNRs(h.IsProduction)
-
-	const caiSQL = `
-		SELECT lpo.LFP_HACCPINFO, lpo.LFP_ABLAUFDT
-		FROM LIEFERSCHEIN l
-			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		WHERE l.LFS_ID = ? AND lpo.ART_NR = 2207 AND l.LFS_STATUS = 42`
-	if row, err := selectOne(ctx, conn, caiSQL, lfsID); err != nil {
-		return d, err
-	} else if row != nil {
-		d.CAINumber = row["LFP_HACCPINFO"]
-		if raw := row["LFP_ABLAUFDT"]; raw != "" {
-			if t, parseErr := time.Parse("2006-01-02 15:04:05", raw); parseErr == nil {
-				d.CAIDate = h.FormatARTimestamp(t)
-			}
-		}
-	}
-
-	var err error
-	d.ExemptAmount, err = querySum(ctx, conn, `
-		SELECT sum(lpo.LFP_EKP) AS val
-		FROM LIEFERSCHEIN l
-			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-			INNER JOIN ARTIKEL A ON A.ART_ID = lpo.ART_NR
-		WHERE l.LFS_ID = ? AND l.LFS_STATUS = 42 AND A.ART_MWSTNR = 0 and lpo.ART_NR not in (2204, 2205,2206, 2207)`, lfsID)
-	if err != nil {
-		return d, err
-	}
-
-	d.TaxAmount, err = querySum(ctx, conn, `
-		SELECT lpo.LFP_MENGE as val
-		FROM LIEFERSCHEIN l
-			   INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		WHERE l.LFS_ID = ? AND lpo.ART_NR = 2204 AND l.LFS_STATUS = 42`, lfsID)
-	if err != nil {
-		return d, err
-	}
-
-	d.VatAmount, err = querySum(ctx, conn, `
-		SELECT sum (val) FROM  (
-		SELECT lpo.LFP_MENGE as val
-		FROM LIEFERSCHEIN l
-			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		WHERE l.LFS_ID = ? AND lpo.ART_NR = 2255 AND l.LFS_STATUS = 42
-		)`, lfsID)
-	if err != nil {
-		return d, err
-	}
-
-	d.DifferentialIVAVatAMount, err = querySum(ctx, conn, `
-		SELECT sum (val) FROM  (
-		SELECT lpo.LFP_MENGE as val
-		FROM LIEFERSCHEIN l
-			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		WHERE l.LFS_ID = ? AND lpo.ART_NR = 2256 AND l.LFS_STATUS = 42
-		)`, lfsID)
-	if err != nil {
-		return d, err
-	}
-
-	d.IvaTaxAmount, err = querySum(ctx, conn, `
-		SELECT lpo.LFP_MENGE as val
-		FROM LIEFERSCHEIN l
-			   INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		WHERE l.LFS_ID = ? AND lpo.ART_NR = 2205 AND l.LFS_STATUS = 42`, lfsID)
-	if err != nil {
-		return d, err
-	}
-
-	d.IIBBTaxAmount, err = querySum(ctx, conn, `
-		SELECT lpo.LFP_MENGE as val
-		FROM LIEFERSCHEIN l
-			INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		WHERE l.LFS_ID = ? AND lpo.ART_NR = 2206 AND l.LFS_STATUS = 42`, lfsID)
-	if err != nil {
-		return d, err
-	}
-
-	return d, nil
-}
-
-func fiscalDocReceptionLines(ctx context.Context, conn *sql.DB, lfsID string) ([]map[string]string, error) {
+func fiscalDocReceptionLines(ctx context.Context, conn *sql.DB, rngName string) ([]map[string]string, error) {
 	//	if isProd {
 	const linesSQL = `
-			SELECT distinct lfp.ART_NR, lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE,
-							lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1,
-							lfp.LFP_HACCPINFO, lfp.LFP_ABLAUFDT,
-							art.ART_NAME, art.ART_NUMMER,
-							art.ART_MWSTNR
-			FROM LIEFERPOS lfp
-					 LEFT JOIN ARTIKEL art ON art.ART_ID = lfp.ART_NR
-			WHERE lfp.LFS_ID = ? and lfp.ART_NR not in (2204, 2205,2206, 2207)
-			ORDER BY lfp.LFP_POS`
-	rows, err := queryRows(ctx, conn, linesSQL, lfsID)
+SELECT distinct lfp.ART_NR, lfp.LFS_ID, lfp.ART_NR, lfp.LFP_MENGE,
+                lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1, art.ART_NAME,
+                art.ART_NUMMER, art.ART_MWSTNR
+FROM LIEFERSCHEIN_VIEW lfp
+         LEFT JOIN ARTIKEL art ON art.ART_ID = lfp.ART_NR
+WHERE lfp.RNG_NAME = ? and lfp.ART_NR not in (2204, 2205,2206, 2207)
+ORDER BY lfp.ART_NR, lfp.LFS_ID;
+`
+
+	rows, err := queryRows(ctx, conn, linesSQL, rngName)
 	if err != nil {
-		return nil, fmt.Errorf("reception lineas LFS=%s: %w", lfsID, err)
+		return nil, fmt.Errorf("reception lineas LFS=%s: %w", rngName, err)
 	}
 
 	return rows, nil
-
-	/*
-		} else {
-			const linesSQL = `
-				SELECT distinct lfp.ART_NR, lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE,
-								lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1,
-								lfp.LFP_HACCPINFO, lfp.LFP_ABLAUFDT,
-								art.ART_NAME, art.ART_NUMMER,
-								art.ART_MWSTNR
-				FROM LIEFERPOS lfp
-						 LEFT JOIN ARTIKEL art ON art.ART_ID = lfp.ART_NR
-				WHERE lfp.LFS_ID = ? and lfp.ART_NR not in (1096, 1098, 1100, 1120)
-				ORDER BY lfp.LFP_POS`
-			rows, err := queryRows(ctx, conn, linesSQL, lfsID)
-			if err != nil {
-				return nil, fmt.Errorf("reception lineas LFS=%s: %w", lfsID, err)
-			}
-			return rows, nil
-		}
-	*/
 }

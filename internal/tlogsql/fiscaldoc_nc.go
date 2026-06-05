@@ -38,16 +38,16 @@ type FiscalDocNCGenerator struct{}
 func (FiscalDocNCGenerator) Type() naming.TLOGType { return naming.TLOGFiscalDocNC }
 
 const fiscalDocNCCandidatesSQL = `
-	SELECT DISTINCT l.LFS_ID, K.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO, L2.LF_VERT, l.LFS_NAME, l.LFS_DATUM,
-		l.LFS_INFO, l.LFS_NETTO, l.LFS_MWST, L2.LF_SACHB
-	FROM LIEFERSCHEIN l
-		INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		INNER JOIN KOSTST K ON lpo.KST_ID1 = K.KST_ID
-		INNER JOIN LIEFER L2 ON lpo.LF_ID = L2.LF_ID
-	WHERE lpo.KST_ID = ? AND l.LFS_STATUS = 42
-		AND COALESCE(l.LFS_RTS, 0) = 1 AND l.LFS_NETTO < 0 AND l.LFS_BRUTTO < 0
-	GROUP BY l.LFS_NAME
-	ORDER BY l.LFS_NAME
+SELECT DISTINCT l.RNG_NAME, l.LFS_ID, K.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO,  l.LFS_NAME, l.LFS_DATUM,
+                l.LFS_NETTO, l.LFS_MWST, L2.LF_SACHB
+FROM LIEFERSCHEIN_VIEW l
+         INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
+         INNER JOIN KOSTST K ON lpo.KST_ID1 = K.KST_ID
+         INNER JOIN LIEFER L2 ON lpo.LF_ID = L2.LF_ID
+WHERE lpo.KST_ID = ? AND l.LFS_STATUS = 42
+  AND COALESCE(l.LFS_RTS, 0) = 1 AND l.LFS_NETTO < 0 AND l.LFS_BRUTTO < 0
+GROUP BY l.LFS_NAME
+ORDER BY l.LFS_NAME;
 `
 
 func (FiscalDocNCGenerator) ListCandidateIDs(ctx context.Context, conn *sql.DB, kstID string) ([]string, error) {

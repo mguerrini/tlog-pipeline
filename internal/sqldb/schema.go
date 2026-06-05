@@ -486,30 +486,21 @@ func artikel() *tableSchema {
 }
 
 // ── LIEFERSCHEIN ───────────────────────────────────────────────────────────
+// La estructura cambió: ahora el CSV exporta una vista desnormalizada
+// (cabecera + líneas de posición) sin LFS_ID como clave única.
 func lieferschein() *tableSchema {
 	return &tableSchema{
 		sqliteName: "LIEFERSCHEIN",
 		csvName:    "Lieferschein",
-		pk:         []string{"LFS_ID"},
 		fks:        []fkRef{{"LF_ID", "LIEFER", "LF_ID"}},
 		cols: []colDef{
-			i("LFS_ID"), t("LFS_NAME"), i("LF_ID"), t("LFS_DATUM"),
-			r("LFS_NETTO"), r("LFS_MWST"), r("LFS_BRUTTO"),
-			i("LFS_STATUS"), t("LFS_INFO"),
-			i("NEW_USER"), t("NEW_ZEIT"), i("CHG_USER"), t("CHG_ZEIT"),
-			t("AKTIV"), t("LFS_NAMEID"), i("LFS_INBUDGET"), i("LFS_RTS"),
-			i("EXP_NR"), r("LFS_SCONTO"),
-			t("LFS_CFOP"), t("LFS_DOCSER"), t("LFS_DOCSUBSER"), t("LFS_DOCDATE"),
-			t("LFS_REFDOC"), t("LFS_REFDOCSER"), t("LFS_REFDOCSUBSER"),
-			t("LFS_ALPHCUST1"), t("LFS_ALPHCUST2"), t("LFS_ALPHCUST3"),
-			t("LFS_NUMCUST1"), t("LFS_NUMCUST2"), t("LFS_NUMCUST3"),
-			t("LFS_INTCUST1"), t("LFS_INTCUST2"), t("LFS_INTCUST3"),
-			t("FIT_ICMSTYPE"), i("FIT_DOCTYPE"), r("LFS_INVOICEVALUE"),
-			t("LFS_PARENTLIST"), i("LFS_DEVCHECK"), i("DGROWVER"),
-			t("LFS_DOCUMENTLINK"), t("LFS_ACCRUALNR"), i("TFL_NR"),
-			i("LFS_BOOKED_BY"), t("LFS_BOOKED_AT"),
-			t("LFS_INVOICE"), t("LFS_ADDREFERENCE"), i("RC_NR_VRBYDOC"),
-			t("LFS_CHGD_DATE"),
+			t("RNG_NAME"), i("RNG_COD"), t("RNG_DATUM"),
+			t("LFS_NAME"), i("LFS_RTS"), i("LF_ID"), t("LFS_DATUM"),
+			r("LFS_NETTO"), r("LFS_MWST"), r("LFS_BRUTTO"), i("LFS_STATUS"),
+			t("CHG_ZEIT"), i("ART_NR"), t("LFP_ARTNR"), i("KST_ID"),
+			i("VPK_ID1"),
+			r("LFP_MENGE"), r("LFP_EKP"), r("LFP_VKP"),
+			r("LFP_RABATT"), r("LFP_MWST"), r("LFP_BRUTTO"),
 		},
 	}
 }
@@ -522,7 +513,6 @@ func lieferpos() *tableSchema {
 		pk:         []string{"LFS_ID", "LFP_POS"},
 		notNull:    []string{"LFS_ID", "LFP_POS"},
 		fks: []fkRef{
-			{"LFS_ID", "LIEFERSCHEIN", "LFS_ID"},
 			{"KST_ID", "KOSTST", "KST_ID"},
 			{"KST_ID1", "KOSTST", "KST_ID"},
 			{"ART_NR", "ARTIKEL", "ART_ID"},
@@ -714,7 +704,6 @@ func rechlfs() *tableSchema {
 		notNull:    []string{"rng_id", "lfs_id"},
 		fks: []fkRef{
 			{"rng_id", "RECHNUNG", "RNG_ID"},
-			{"lfs_id", "LIEFERSCHEIN", "LFS_ID"},
 		},
 		cols: []colDef{
 			i("rng_id"), i("lfs_id"),
@@ -726,11 +715,11 @@ func rechlfs() *tableSchema {
 func lieferscheinView() *tableSchema {
 	return &tableSchema{
 		sqliteName: "LIEFERSCHEIN_VIEW",
-		csvName:    "Lieferschein_view",
+		csvName:    "ypf.lieferschein-1",
 		optional:   true,
 		cols: []colDef{
 			t("RNG_NAME"), i("RNG_COD"), t("RNG_DATUM"),
-			t("LFS_NAME"), i("LFS_RTS"), i("LF_ID"), t("LFS_DATUM"),
+			t("LFS_NAME"), i("LFS_RTS"), i("LF_ID"), i("LFS_ID"), t("LFS_DATUM"),
 			r("LFS_NETTO"), r("LFS_MWST"), r("LFS_BRUTTO"), i("LFS_STATUS"),
 			t("CHG_ZEIT"), i("ART_NR"), t("LFP_ARTNR"), i("KST_ID"),
 			i("VPK_ID1"), t("POS_LFS_DATUM"),

@@ -39,17 +39,14 @@ type ReceptionGenerator struct{}
 func (ReceptionGenerator) Type() naming.TLOGType { return naming.TLOGReception }
 
 const receptionCandidatesSQL = `
-	SELECT DISTINCT l.LFS_ID, K.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO, L2.LF_VERT, l.LFS_NAME, l.LFS_DATUM, L2.LF_SACHB
-	FROM LIEFERSCHEIN l
-		INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		INNER JOIN LIEFER L2 ON lpo.LF_ID = L2.LF_ID
-		INNER JOIN KOSTST K on K.KST_ID = lpo.KST_ID
--- 		INNER JOIN RECHLFS r on L.lfs_id=r.lfs_id
--- 		INNER JOIN RECHNUNG rec on r.rng_id=rec.rng_id	
-	WHERE lpo.KST_ID = ? AND l.LFS_STATUS = 42 AND COALESCE(l.LFS_RTS, 0) <> 1 AND l.LFS_BRUTTO > 0
---	      AND rec.RNG_COD = 1
-	GROUP BY l.LFS_NAME
-	ORDER BY l.LFS_NAME
+SELECT DISTINCT l.LFS_ID, K.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO, l.LFS_NAME, l.LFS_DATUM, L2.LF_SACHB
+FROM LIEFERSCHEIN_VIEW l
+         INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
+         INNER JOIN LIEFER L2 ON lpo.LF_ID = L2.LF_ID
+         INNER JOIN KOSTST K on K.KST_ID = lpo.KST_ID
+WHERE lpo.KST_ID = ? AND l.LFS_STATUS = 42 AND COALESCE(l.LFS_RTS, 0) <> 1 AND l.LFS_BRUTTO > 0
+GROUP BY l.LFS_NAME
+ORDER BY l.LFS_NAME
 `
 
 func (ReceptionGenerator) ListCandidateIDs(ctx context.Context, conn *sql.DB, kstID string) ([]string, error) {

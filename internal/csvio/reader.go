@@ -43,7 +43,9 @@ func Read(path, sep string) ([]string, []map[string]string, error) {
 		header[0] = strings.TrimPrefix(header[0], "\ufeff")
 	}
 	for i := range header {
-		header[i] = strings.TrimSpace(strings.TrimSuffix(header[i], "\r"))
+		h := strings.TrimSpace(strings.TrimSuffix(header[i], "\r"))
+		h = strings.Trim(h, "\"") // strip comillas opcionales (ej. "RNG_NAME" \u2192 RNG_NAME)
+		header[i] = strings.ToUpper(h)
 	}
 
 	var rows []map[string]string

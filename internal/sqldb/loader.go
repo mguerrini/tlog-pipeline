@@ -270,7 +270,6 @@ func runOrphanChecks(db *sql.DB) []OrphanCheck {
 		expectZero                         bool
 	}
 	defs := []def{
-		{"LIEFERPOS.LFS_ID → LIEFERSCHEIN", "LIEFERPOS", "LFS_ID", "LIEFERSCHEIN", "LFS_ID", true},
 		{"LIEFERPOS.ART_NR → ARTIKEL.ART_ID", "LIEFERPOS", "ART_NR", "ARTIKEL", "ART_ID", true},
 		{"LIEFERSCHEIN.LF_ID → LIEFER", "LIEFERSCHEIN", "LF_ID", "LIEFER", "LF_ID", true},
 		{"INVPOSART.INV_ID → INVENTUR (esperado)", "INVPOSART", "INV_ID", "INVENTUR", "INV_ID", false},
