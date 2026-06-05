@@ -4,11 +4,32 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/opessa/tlog-pipeline/internal/db"
 	"github.com/opessa/tlog-pipeline/internal/tlog/common"
 )
+
+// parseFiscalDate parsea fechas en los formatos usados por la DB:
+//   - Oracle DD-MON-YY: "02-JUN-26"
+//   - ISO datetime:     "2006-01-02 15:04:05"
+func parseFiscalDate(s string) (time.Time, bool) {
+	if s == "" {
+		return time.Time{}, false
+	}
+	parts := strings.SplitN(s, "-", 3)
+	if len(parts) == 3 && len(parts[1]) == 3 {
+		mon := strings.ToUpper(parts[1][:1]) + strings.ToLower(parts[1][1:])
+		if t, err := time.Parse("02-Jan-06", parts[0]+"-"+mon+"-"+parts[2]); err == nil {
+			return t, true
+		}
+	}
+	if t, err := time.Parse("2006-01-02 15:04:05", s); err == nil {
+		return t, true
+	}
+	return time.Time{}, false
+}
 
 type fiscalDocHeaderData struct {
 	CAINumber                string
@@ -57,7 +78,7 @@ func queryFiscalDocHeaderData(ctx context.Context, conn *sql.DB, h *common.Heade
 	} else if row != nil {
 		d.CAINumber = row["LFP_HACCPINFO"]
 		if raw := row["LFP_ABLAUFDT"]; raw != "" {
-			if t, parseErr := time.Parse("2006-01-02 15:04:05", raw); parseErr == nil {
+			if t, ok := parseFiscalDate(raw); ok {
 				d.CAIDate = h.FormatARTimestamp(t)
 			}
 		}

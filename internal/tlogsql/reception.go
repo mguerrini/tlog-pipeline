@@ -145,7 +145,7 @@ func writeReceptionDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqN
 	lfs map[string]string, lines []map[string]string) {
 	brutto, _ := db.AsFloat(lfs["LFS_BRUTTO"])
 	receiptDate := h.FormatARTimestamp(h.BeginDateTime)
-	if t, err := time.Parse("2006-01-02 15:04:05", lfs["LFS_DATUM"]); err == nil {
+	if t, ok := parseFiscalDate(lfs["LFS_DATUM"]); ok {
 		receiptDate = h.FormatARTimestamp(t)
 	}
 

@@ -170,7 +170,7 @@ func writeNCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum stri
 	netto, _ := db.AsFloat(lfs["LFS_NETTO"])
 	brutto, _ := db.AsFloat(lfs["LFS_BRUTTO"])
 	receiptDate := h.FormatARTimestamp(h.BeginDateTime)
-	if t, err := time.Parse("2006-01-02 15:04:05", lfs["LFS_DATUM"]); err == nil {
+	if t, ok := parseFiscalDate(lfs["LFS_DATUM"]); ok {
 		receiptDate = h.FormatARTimestamp(t)
 	}
 
