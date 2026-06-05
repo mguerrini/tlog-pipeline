@@ -29,7 +29,10 @@
       "PowerShell(Get-ChildItem -Path \"C:\\\\Localdata\\\\Proyectos\\\\LUIS\\\\go\\\\tlog-pipeline\\\\internal\\\\steps\\\\\" -Directory | ForEach-Object { Get-ChildItem -Path $_.FullName -File | Select-Object @{n='Dir';e={$_.Directory.Name}}, Name })",
       "mcp__codegraph__codegraph_context",
       "mcp__codegraph__codegraph_explore",
-      "mcp__codegraph__codegraph_search"
+      "mcp__codegraph__codegraph_search",
+      "mcp__codegraph__codegraph_files",
+      "Bash(Get-Content *)",
+      "PowerShell(Get-Command *)"
     ]
   },
   "enableAllProjectMcpServers": true,

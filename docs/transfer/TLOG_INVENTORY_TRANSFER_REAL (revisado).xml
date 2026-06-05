@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="utf-8"?>
+  <Transaction>
+    <RetailStoreID>00019</RetailStoreID>
+    <WorkstationID>0</WorkstationID>
+    <SequenceNumber>000190000003</SequenceNumber>					--Tiene que iniciar en 9 con un formato de 12 digitos--
+    <BusinessDayDate>2021-01-11</BusinessDayDate>
+    <Period>0</Period>
+    <Subperiod>0</Subperiod>
+    <PeriodCode>0</PeriodCode>
+    <SubPeriodCode>0</SubPeriodCode>
+    <BeginDateTime>2021-01-11 00:00:00</BeginDateTime>
+    <EndDateTime>2021-01-11 23:59:59</EndDateTime>
+    <OperatorID>1</OperatorID>								--Tiene que tener el formato de un usuario activo en la EESS ejemplo RYxxxxx--
+    <OriginalTransaction></OriginalTransaction>
+    <InventoryControlTransaction>
+      <SerialFormID>000190000003</SerialFormID>						--Tiene que iniciar en 9 con un formato de 12 digitos--
+      <DocumentTypeCode>InventoryTransfer</DocumentTypeCode>
+      <InventoryControlDocumentState>4</InventoryControlDocumentState>
+      <contractReferenceNumber/>
+      <CreateDateTimestamp>2021-01-11 10:00:00.000 ART</CreateDateTimestamp>		--Tiene que tener el dato y formato fecha/hora que el "BenginDateTime"--
+      <DestinationRetailStoreID>99010</DestinationRetailStoreID>
+      <ExpectedDeliveryDate>2021-01-11 00:00:00.0 ART</ExpectedDeliveryDate>		--Tiene que tener el dato y formato fecha/hora que el "BenginDateTime"--
+      <ICDAmount>0</ICDAmount>
+      <LastUpdateDate>2021-01-11 10:01:00.000 ART</LastUpdateDate>			--Tiene que tener el dato y formato fecha/hora que el "BenginDateTime"--
+      <Originator/>
+      <SourceRetailStore>00019</SourceRetailStore>					
+      <Supplier></Supplier>
+      <OrderDocumentType/>
+      <User>1</User>									--Tiene que tener el formato de un usuario activo en la EESS ejemplo RYxxxxx--
+      <ICDQuantity/>
+      <ICDTotSalesAmount/>
+      <Frequency/>
+      <InventoryAdjustmentType/>
+      <ReceiptNumber>0000001</ReceiptNumber>						--viaja en null para los inventory transfer--
+      <FiscalReceiptFlag>false</FiscalReceiptFlag>
+      <ReceiptType/>
+      <ReceiptDate>2021-01-11 00:00:00.0 ART</ReceiptDate>
+      <CAINumber/>
+      <CAIDate/>
+      <PagesQuantity>1</PagesQuantity>							--Viaja en null para los inventory transfer--
+      <NetAmount>0.0000</NetAmount>							--Viaja en null para los inventory transfer--
+      <ExemptAmout>0.0000</ExemptAmout>							--Viaja en null para los inventory transfer--
+      <TaxAmount>0.0000</TaxAmount>							--Viaja en null para los inventory transfer--
+      <VatAmount>0.0000</VatAmount>							--Viaja en null para los inventory transfer--
+      <ServicesVATAmount>0.0000</ServicesVATAmount>					--Viaja en null para los inventory transfer--
+      <DifferencialVATAmount>0.0000</DifferencialVATAmount>				--Viaja en null para los inventory transfer--
+      <IvaTaxAmount>0.0000</IvaTaxAmount>						--Viaja en null para los inventory transfer--
+      <IIBBTaxAmount>0.0000</IIBBTaxAmount>						--Viaja en null para los inventory transfer--
+      <TotalAmount>0.0000</TotalAmount>							--Viaja en null para los inventory transfer--
+      <InventoryControlDocumentLineItems>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>1</SequenceNumber>				-- El campo debe llamarse DetSequenceNumber --
+          <Item>636</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Aramark</ItemBrand>						--Tiene que ser la Marca correspondiente al articulo que viaja de Prisma--
+          <ItemDescription>-BOMBON COSTA VIZZIO 432GR</ItemDescription>
+          <UnitBaseCostAmount>3.0000</UnitBaseCostAmount>
+          <UnitCount>3.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>9.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>2</SequenceNumber>
+          <Item>637</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Aramark</ItemBrand>
+          <ItemDescription>-CIGARRILLO PALL MALL AZUL BOX</ItemDescription>
+          <UnitBaseCostAmount>2.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>4.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>3</SequenceNumber>
+          <Item>628</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Aramark</ItemBrand>
+          <ItemDescription>BEBIDA COCA COLA LATA 350 CC</ItemDescription>
+          <UnitBaseCostAmount>2.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>4.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>4</SequenceNumber>
+          <Item>633</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Aramark</ItemBrand>
+          <ItemDescription>CONG MUFFIN AMERICANO FRAMB 125GR</ItemDescription>
+          <UnitBaseCostAmount>0.0000</UnitBaseCostAmount>
+          <UnitCount>0.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>0.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>5</SequenceNumber>
+          <Item>632</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Aramark</ItemBrand>
+          <ItemDescription>GALLETON QUAKER AVENA ALMENDRA 40GR</ItemDescription>
+          <UnitBaseCostAmount>2.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>4.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>6</SequenceNumber>
+          <Item>635</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Aramark</ItemBrand>
+          <ItemDescription>HELADO IND PALETA BRESLER MAGNUN COOKIES CREAM 100 ML</ItemDescription>
+          <UnitBaseCostAmount>2.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>4.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>7</SequenceNumber>
+          <Item>629</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Aramark</ItemBrand>
+          <ItemDescription>HELADO MEGA 90CC SAVORY FRAMBUESA</ItemDescription>
+          <UnitBaseCostAmount>2.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>4.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>8</SequenceNumber>
+          <Item>623</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Aramark</ItemBrand>
+          <ItemDescription>JUGO 1.5 LT PET NR ANDIFRUT NARANJA LIGHT</ItemDescription>
+          <UnitBaseCostAmount>2.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>4.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>9</SequenceNumber>
+          <Item>620</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Aramark_pruebas_B2B</ItemBrand>
+          <ItemDescription>JUGO IND GREEN BEATS ORANGE POP BOTELLA</ItemDescription>
+          <UnitBaseCostAmount>0.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>0.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>10</SequenceNumber>
+          <Item>622</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Aramark_pruebas_B2B</ItemBrand>
+          <ItemDescription>JUGO NATURAL IND FLORIDAS MANZANA 340 CC</ItemDescription>
+          <UnitBaseCostAmount>2.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>4.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>11</SequenceNumber>
+          <Item>626</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Aramark</ItemBrand>
+          <ItemDescription>MUFFIN CONG AMERICANO ARANDANO 117 GR</ItemDescription>
+          <UnitBaseCostAmount>2.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>4.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>12</SequenceNumber>
+          <Item>627</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Aramark</ItemBrand>
+          <ItemDescription>PROD HIG PERSONAL SHAMPOO HEAD &amp; SHOULDER 375ML</ItemDescription>
+          <UnitBaseCostAmount>2.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>4.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>13</SequenceNumber>
+          <Item>621</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Aramark_pruebas_B2B</ItemBrand>
+          <ItemDescription>SANDWICH MIGA INTEGRAL VEGETARIANO SKYCHEFS UN</ItemDescription>
+          <UnitBaseCostAmount>2.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>4.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>14</SequenceNumber>
+          <Item>631</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Aramark</ItemBrand>
+          <ItemDescription>SANDWICH MOLDE BLANCO DFRES QUESO CREMA SALAME</ItemDescription>
+          <UnitBaseCostAmount>2.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>4.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>15</SequenceNumber>
+          <Item>624</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Aramark</ItemBrand>
+          <ItemDescription>SNACK MANI SALADO 450 GR</ItemDescription>
+          <UnitBaseCostAmount>2.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>4.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+        <inventoryControlDocumentMerchandiseLineItem>
+          <SequenceNumber>16</SequenceNumber>
+          <Item>634</Item>
+          <UomUnits>1.0000</UomUnits>
+          <ItemBrand>Aramark</ItemBrand>
+          <ItemDescription>YOGHURT IND BATIDO FRUTILLA LIGHT</ItemDescription>
+          <UnitBaseCostAmount>2.0000</UnitBaseCostAmount>
+          <UnitCount>2.0000</UnitCount>
+          <DestinationLocation>DEP1_OS</DestinationLocation>
+          <SourceLocation>DEP1_OS</SourceLocation>
+          <CostTotalAmount>4.0000</CostTotalAmount>
+          <UnitSalesAmount>0.0000</UnitSalesAmount>
+          <SalesTotalAmount>0.0000</SalesTotalAmount>
+          <Stock>0.0000</Stock>
+          <DailyAverageSales>0.0000</DailyAverageSales>
+          <SuggestedPurchaseOrder>0.0000</SuggestedPurchaseOrder>
+          <PickupCode/>
+          <LastUpdateDate/>
+          <DifBME_ASNTypeID/>
+        </inventoryControlDocumentMerchandiseLineItem>
+      </InventoryControlDocumentLineItems>
+    </InventoryControlTransaction>
+  </Transaction>

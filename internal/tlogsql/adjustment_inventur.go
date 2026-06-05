@@ -97,7 +97,7 @@ func adjustmentLines(ctx context.Context, conn *sql.DB, invID string) ([]map[str
 			   art.ART_NUMMER, art.ART_NAME, art.ART_NR, art.CHG_ZEIT
 		FROM INVPOSART inv
 				 LEFT JOIN ARTIKEL art ON art.ART_ID = inv.ART_ID
-		WHERE inv.INV_ID = ?
+		WHERE inv.INV_ID = ? AND inv.INP_SOLL - INV.INP_IST <> 0
 		ORDER BY inv.ART_ID
 		`
 	rows, err := queryRows(ctx, conn, linesSQL, invID)
@@ -214,7 +214,7 @@ func writeAdjustmentLine(x *common.XMLBuilder, line map[string]string, retailID,
 	x.Element("CostTotalAmount", common.FormatDecimal4(math.Abs(costTotal)))
 	x.Element("UnitSalesAmount", "0.0000")
 	x.Element("SalesTotalAmount", "0.0000")
-	x.Element("Stock", common.FormatDecimal4(ist))
+	x.Element("Stock", common.FormatDecimal4(soll))
 	x.Element("DailyAverageSales", "0.0000")
 	x.Element("SuggestedPurchaseOrder", "0.0000")
 	x.EmptyElement("PickupCode")

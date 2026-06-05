@@ -24,6 +24,9 @@ var TableMapping = map[string]string{
 	"His_verbrauch":    "HIS_VERBRAUCH",
 	"His_Verbrauchpos": "HIS_VERBRAUCHPOS",
 	"Dailytotals":      "DAILYTOTALS",
+	"Lieferschein_view": "LIEFERSCHEIN_VIEW",
+	"His_lagerbew":      "HIS_LAGERBEW",
+	"His_lagbewpos":     "HIS_LAGBEWPOS",
 }
 
 // LoadOrder define el orden de carga respetando dependencias FK lógicas.
@@ -42,6 +45,9 @@ var LoadOrder = []string{
 	"HIS_VERBRAUCH",
 	"HIS_VERBRAUCHPOS",
 	"DAILYTOTALS",
+	"LIEFERSCHEIN_VIEW",
+	"HIS_LAGERBEW",
+	"HIS_LAGBEWPOS",
 }
 
 // PatternToTable convierte un patrón de expected_files (ej. "Kostst_*.csv") al
@@ -58,6 +64,12 @@ func PatternToTable(pattern string) string {
 		prefix = "His_Verbrauchpos"
 	} else if strings.HasPrefix(pattern, "His_verbrauch") {
 		prefix = "His_verbrauch"
+	} else if strings.HasPrefix(pattern, "Lieferschein_view") {
+		prefix = "Lieferschein_view"
+	} else if strings.HasPrefix(pattern, "His_lagbewpos") {
+		prefix = "His_lagbewpos"
+	} else if strings.HasPrefix(pattern, "His_lagerbew") {
+		prefix = "His_lagerbew"
 	}
 	return TableMapping[prefix]
 }
@@ -95,6 +107,12 @@ func FindFiles(dir string) (map[string]string, error) {
 			prefix = "His_Verbrauchpos"
 		} else if strings.HasPrefix(name, "His_verbrauch_") {
 			prefix = "His_verbrauch"
+		} else if strings.HasPrefix(name, "Lieferschein_view_") {
+			prefix = "Lieferschein_view"
+		} else if strings.HasPrefix(name, "His_lagbewpos_") {
+			prefix = "His_lagbewpos"
+		} else if strings.HasPrefix(name, "His_lagerbew_") {
+			prefix = "His_lagerbew"
 		}
 		table, ok := TableMapping[prefix]
 		if !ok {

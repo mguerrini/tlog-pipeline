@@ -54,7 +54,7 @@ func (CountVerbrauchGenerator) Generate(ctx context.Context, conn *sql.DB, h *co
 	totalLines := 0
 
 	for _, vbr := range candidates {
-		lines, err := hisVerbrauchposLines(ctx, conn, vbr["VBR_ID"])
+		lines, err := conutHisVerbrauchposLines(ctx, conn, vbr["VBR_ID"])
 		if err != nil {
 			return nil, err
 		}
@@ -88,9 +88,9 @@ func (CountVerbrauchGenerator) Generate(ctx context.Context, conn *sql.DB, h *co
 	}, nil
 }
 
-// hisVerbrauchposLines devuelve las líneas de HIS_VERBRAUCHPOS para un VBR_ID,
+// conutHisVerbrauchposLines devuelve las líneas de HIS_VERBRAUCHPOS para un VBR_ID,
 // joineando ARTIKEL para obtener ART_NUMMER y ART_NAME.
-func hisVerbrauchposLines(ctx context.Context, conn *sql.DB, vbrID string) ([]map[string]string, error) {
+func conutHisVerbrauchposLines(ctx context.Context, conn *sql.DB, vbrID string) ([]map[string]string, error) {
 	const linesSQL = `
 SELECT p.VBR_ID, p.VBT_POS, p.ART_NR, p.VBT_MENGE, p.VBT_WES, p.VPK_NR,
        a.ART_NUMMER, a.ART_NAME

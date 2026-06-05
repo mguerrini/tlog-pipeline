@@ -133,8 +133,14 @@ func writeCierreItem(x *common.XMLBuilder, row map[string]string, locationCode s
 	x.Element("RETURN_TO_VENTOR_UNIT_COUNT", common.FormatDecimal4(0))
 	x.Element("TRANSFERIN_UNIT_COUNT", common.FormatDecimal4(qtyTrsfIn))
 	x.Element("TRANSFEROUT_UNIT_COUNT", common.FormatDecimal4(qtyTrsfOut))
-	x.Element("ADJUSTMENTIN_UNIT_COUNT", common.FormatDecimal4(qtyUsage))
-	x.Element("ADJUSTMENTOUT_UNIT_COUNT", common.FormatDecimal4(qtyInv))
+	if qtyUsage >= 0 {
+		x.Element("ADJUSTMENTIN_UNIT_COUNT", common.FormatDecimal4(qtyUsage)) //>0 a uno u a otro no los dos a laves.
+		x.EmptyElement("ADJUSTMENTOUT_UNIT_COUNT")                            // qtyUsage< 0
+
+	} else {
+		x.EmptyElement("ADJUSTMENTIN_UNIT_COUNT")                              //>0 a uno u a otro no los dos a laves.
+		x.Element("ADJUSTMENTOUT_UNIT_COUNT", common.FormatDecimal4(qtyUsage)) // qtyUsage< 0
+	}
 	x.Element("CURRENT_UNIT_COUNT", common.FormatDecimal4(sohEnd))
 	x.Close()
 }

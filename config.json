@@ -1,6 +1,6 @@
 {
   "process": {
-    "file_name_include_document_type": false,
+    "file_name_include_document_type": true,
     "mode": "ALL",
     "execution_mode": "SERIAL",
     "parallel_retails_per_day": false,
@@ -39,7 +39,7 @@
     "inventory_return": true,
     "inventory_adjustment": true,
     "inventory_count": true,
-    "inventory_transfer": false
+    "inventory_transfer": true
   },
   "logs": {
     "pipeline_enabled": false,
@@ -67,7 +67,10 @@
       "Invposart_*.csv",
       "His_verbrauch_*.csv",
       "His_Verbrauchpos_*.csv",
-      "Dailytotals_*.csv"
+      "Dailytotals_*.csv",
+      "Lieferschein_view_*.csv",
+      "His_lagerbew_*.csv",
+      "His_lagbewpos_*.csv"
     ],
     "clear_cols": {
       "INVENTUR": ["INV_SELECT"]
@@ -88,7 +91,7 @@
     "delete_local_source": true
   },
   "local_clean": {
-    "enabled": true,
+    "enabled": false,
     "delete_source": true,
     "delete_database": true
   }

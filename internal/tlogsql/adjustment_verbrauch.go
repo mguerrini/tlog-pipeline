@@ -56,7 +56,7 @@ func (AdjustmentVerbrauchGenerator) Generate(ctx context.Context, conn *sql.DB, 
 	totalLines := 0
 
 	for _, vbr := range candidates {
-		lines, err := adjVerbrauchposLines(ctx, conn, vbr["VBR_ID"])
+		lines, err := adjustmentVerbrauchposLines(ctx, conn, vbr["VBR_ID"])
 		if err != nil {
 			return nil, err
 		}
@@ -90,7 +90,7 @@ func (AdjustmentVerbrauchGenerator) Generate(ctx context.Context, conn *sql.DB, 
 	}, nil
 }
 
-func adjVerbrauchposLines(ctx context.Context, conn *sql.DB, vbrID string) ([]map[string]string, error) {
+func adjustmentVerbrauchposLines(ctx context.Context, conn *sql.DB, vbrID string) ([]map[string]string, error) {
 	const linesSQL = `
 SELECT p.VBR_ID, p.VBT_POS, p.ART_NR, p.VBT_MENGE, p.VBT_WES, p.VPK_NR,
        a.ART_NUMMER, a.ART_NAME

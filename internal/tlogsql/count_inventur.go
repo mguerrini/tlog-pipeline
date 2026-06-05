@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"math"
 	"time"
 
 	"github.com/opessa/tlog-pipeline/internal/db"
@@ -54,7 +53,7 @@ func (CountInventurGenerator) Generate(ctx context.Context, conn *sql.DB, h *com
 	totalLines := 0
 
 	for _, inv := range candidates {
-		lines, err := adjustmentLines(ctx, conn, inv["INV_ID"])
+		lines, err := countInventurLines(ctx, conn, inv["INV_ID"])
 		if err != nil {
 			return nil, err
 		}
@@ -164,12 +163,29 @@ func writeCountInventurDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, 
 	x.Close()
 }
 
+func countInventurLines(ctx context.Context, conn *sql.DB, invID string) ([]map[string]string, error) {
+	const linesSQL = `
+		SELECT distinct inv.INV_ID, inv.ART_ID, inv.VPK_ID, inv.INP_IST, inv.INP_SOLL,
+			   inv.INP_EKP, inv.INP_VKP, 
+			   art.ART_NUMMER, art.ART_NAME, art.ART_NR, art.CHG_ZEIT
+		FROM INVPOSART inv
+				 LEFT JOIN ARTIKEL art ON art.ART_ID = inv.ART_ID
+		WHERE inv.INV_ID = ? 
+		ORDER BY inv.ART_ID
+		`
+	rows, err := queryRows(ctx, conn, linesSQL, invID)
+	if err != nil {
+		return nil, fmt.Errorf("invposart INV=%s: %w", invID, err)
+	}
+	return rows, nil
+}
+
 func writeCountInventurLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum string, detSeq int) {
 	ist, _ := db.AsFloat(line["INP_IST"])
 	soll, _ := db.AsFloat(line["INP_SOLL"])
-	variance := ist - soll
 	ekp, _ := db.AsFloat(line["INP_EKP"])
-	costTotal := variance * ekp
+	//	variance := ist - soll
+	//	costTotal := variance * ekp
 
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
 	x.Element("RetailStoreID", retailID)
@@ -181,13 +197,13 @@ func writeCountInventurLine(x *common.XMLBuilder, line map[string]string, retail
 	x.EmptyElement("ItemBrand")
 	x.Element("ItemDescription", line["ART_NAME"])
 	x.Element("UnitBaseCostAmount", common.FormatDecimal4(ekp))
-	x.Element("UnitCount", common.FormatDecimal4(variance))
+	x.Element("UnitCount", common.FormatDecimal4(ist))
 	x.Element("DestinationLocation", "DEP1_OS")
 	x.Element("SourceLocation", "DEP1_OS")
-	x.Element("CostTotalAmount", common.FormatDecimal4(math.Abs(costTotal)))
+	x.Element("CostTotalAmount", common.FormatDecimal4(ekp))
 	x.Element("UnitSalesAmount", "0.0000")
 	x.Element("SalesTotalAmount", "0.0000")
-	x.Element("Stock", common.FormatDecimal4(ist))
+	x.Element("Stock", common.FormatDecimal4(soll))
 	x.Element("DailyAverageSales", "0.0000")
 	x.Element("SuggestedPurchaseOrder", "0.0000")
 	x.EmptyElement("PickupCode")

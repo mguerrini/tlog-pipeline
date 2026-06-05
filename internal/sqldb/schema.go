@@ -162,6 +162,9 @@ func allSchemas() []*tableSchema {
 		hisVerbrauch(),
 		hisVerbrauchpos(),
 		dailytotals(),
+		lieferscheinView(),
+		hisLagerbew(),
+		hisLagbewpos(),
 	}
 }
 
@@ -714,6 +717,58 @@ func rechlfs() *tableSchema {
 		},
 		cols: []colDef{
 			i("rng_id"), i("lfs_id"),
+		},
+	}
+}
+
+// ── LIEFERSCHEIN_VIEW ──────────────────────────────────────────────────────
+func lieferscheinView() *tableSchema {
+	return &tableSchema{
+		sqliteName: "LIEFERSCHEIN_VIEW",
+		csvName:    "Lieferschein_view",
+		cols: []colDef{
+			t("RNG_NAME"), i("RNG_COD"), t("RNG_DATUM"),
+			t("LFS_NAME"), i("LFS_RTS"), i("LF_ID"), t("LFS_DATUM"),
+			r("LFS_NETTO"), r("LFS_MWST"), r("LFS_BRUTTO"), i("LFS_STATUS"),
+			t("CHG_ZEIT"), i("ART_NR"), t("LFP_ARTNR"), i("KST_ID"),
+			i("VPK_ID1"), t("POS_LFS_DATUM"),
+			r("LFP_MENGE"), r("LFP_EKP"), r("LFP_VKP"),
+			r("LFP_RABATT"), r("LFP_MWST"), r("LFP_BRUTTO"),
+		},
+	}
+}
+
+// ── HIS_LAGERBEW ───────────────────────────────────────────────────────────
+func hisLagerbew() *tableSchema {
+	return &tableSchema{
+		sqliteName: "HIS_LAGERBEW",
+		csvName:    "His_lagerbew",
+		pk:         []string{"LBW_ID"},
+		fks: []fkRef{
+			{"KST_ID", "KOSTST", "KST_ID"},
+			{"KST_ID1", "KOSTST", "KST_ID"},
+		},
+		cols: []colDef{
+			i("LBW_ID"), i("LBW_STATUS"), i("KST_ID"), i("KST_ID1"),
+			t("CHG_ZEIT"),
+		},
+	}
+}
+
+// ── HIS_LAGBEWPOS ──────────────────────────────────────────────────────────
+func hisLagbewpos() *tableSchema {
+	return &tableSchema{
+		sqliteName: "HIS_LAGBEWPOS",
+		csvName:    "His_lagbewpos",
+		pk:         []string{"LBW_ID", "LBP_POS"},
+		notNull:    []string{"LBW_ID"},
+		fks: []fkRef{
+			{"LBW_ID", "HIS_LAGERBEW", "LBW_ID"},
+			{"ART_NR", "ARTIKEL", "ART_ID"},
+		},
+		cols: []colDef{
+			i("LBW_ID"), i("LBP_POS"), i("ART_NR"), i("VPK_ID"),
+			r("LBP_MENGEGE"), r("LBP_ESP"),
 		},
 	}
 }
