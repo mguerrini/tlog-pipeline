@@ -115,7 +115,7 @@ func writeCierreItem(x *common.XMLBuilder, row map[string]string, locationCode s
 	qtyTrsfIn, _ := db.AsFloat(row["DAY_QTYTRSFIN"])
 	qtyTrsfOut, _ := db.AsFloat(row["DAY_QTYTRSFOUT"])
 	qtyUsage, _ := db.AsFloat(row["DAY_QTYUSAGE"])
-	qtyInv, _ := db.AsFloat(row["DAY_QTYINV"])
+	//qtyInv, _ := db.AsFloat(row["DAY_QTYINV"])
 	//	sohInv, _ := db.AsFloat(row["DAY_SOHINV"])
 	sohEnd, _ := db.AsFloat(row["DAY_SOHEND"])
 

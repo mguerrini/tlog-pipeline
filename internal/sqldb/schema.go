@@ -47,6 +47,7 @@ type tableSchema struct {
 	pk         []string           // columnas de la PK (1 o más)
 	notNull    []string           // columnas con NOT NULL
 	fks        []fkRef            // FKs inline
+	optional   bool               // si true, se omite sin error cuando el CSV no existe
 	index      map[string]colType // construido en init
 }
 
@@ -726,6 +727,7 @@ func lieferscheinView() *tableSchema {
 	return &tableSchema{
 		sqliteName: "LIEFERSCHEIN_VIEW",
 		csvName:    "Lieferschein_view",
+		optional:   true,
 		cols: []colDef{
 			t("RNG_NAME"), i("RNG_COD"), t("RNG_DATUM"),
 			t("LFS_NAME"), i("LFS_RTS"), i("LF_ID"), t("LFS_DATUM"),

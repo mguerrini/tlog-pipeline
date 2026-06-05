@@ -80,6 +80,9 @@ func Load(srcDir, dbPath, sep string) (*LoadResult, error) {
 	for _, ts := range schemas {
 		path, ok := fileByTable[ts.sqliteName]
 		if !ok {
+			if ts.optional {
+				continue
+			}
 			result.Stats = append(result.Stats, TableStat{
 				Table: ts.sqliteName, Err: fmt.Errorf("archivo CSV no encontrado"),
 			})

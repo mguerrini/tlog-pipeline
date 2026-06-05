@@ -173,7 +173,7 @@ func writeFCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, seq
 	x.Element("TaxAmount", common.FormatDecimal4(hdr.TaxAmount))
 	x.Element("VatAmount", common.FormatDecimal4(hdr.VatAmount))
 	x.Element("ServicesVATAmount", "0.0000")
-	x.Element("DifferencialVATAmount", "0.0000")
+	x.Element("DifferencialVATAmount", common.FormatDecimal4(hdr.DifferentialIVAVatAMount))
 	x.Element("IvaTaxAmount", common.FormatDecimal4(hdr.IvaTaxAmount))
 	x.Element("IIBBTaxAmount", common.FormatDecimal4(hdr.IIBBTaxAmount))
 	x.Element("TotalAmount", common.FormatDecimal4(brutto))
