@@ -33,8 +33,8 @@ type CierreGenerator struct{}
 
 func (CierreGenerator) Type() naming.TLOGType { return naming.TLOGCierre }
 
-func (CierreGenerator) BuildSeqMap(_ context.Context, _ *sql.DB, _ string, _ time.Time, _ int) (tlog.DocSeqMap, error) {
-	return nil, nil
+func (CierreGenerator) BuildSeqMap(_ context.Context, _ *sql.DB, _ string, _ time.Time, _ int) (tlog.DocSeqMap, int, error) {
+	return nil, 0, nil
 }
 
 func (CierreGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, _ tlog.DocSeqMap, _ tlog.DocSeqMap, startCounter int) (*tlog.GenerateResult, error) {

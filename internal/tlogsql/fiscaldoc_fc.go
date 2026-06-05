@@ -66,12 +66,32 @@ func (FiscalDocFCGenerator) ListCandidateIDs(ctx context.Context, conn *sql.DB, 
 	return ids, nil
 }
 
-func (g FiscalDocFCGenerator) BuildSeqMap(ctx context.Context, conn *sql.DB, kstID string, businessDay time.Time, startCounter int) (tlog.DocSeqMap, error) {
-	ids, err := g.ListCandidateIDs(ctx, conn, kstID)
+// BuildSeqMap asigna un seqNum por RNG_NAME; todos los LFS_ID del mismo
+// RNG_NAME comparten ese seqNum. Retorna LFS_ID → seqNum y la cantidad de
+// RNG_NAMEs distintos (seqNums consumidos).
+func (FiscalDocFCGenerator) BuildSeqMap(ctx context.Context, conn *sql.DB, kstID string, businessDay time.Time, startCounter int) (tlog.DocSeqMap, int, error) {
+	rows, err := queryRows(ctx, conn, fiscalDocFCCandidatesSQL, kstID)
 	if err != nil {
-		return nil, err
+		return nil, 0, fmt.Errorf("fiscaldoc_fc candidatos: %w", err)
 	}
-	return buildSeqMapFromIDs(ids, businessDay, sequence.DocFiscalDocFC, startCounter)
+	if len(rows) == 0 {
+		return nil, 0, nil
+	}
+	rngSeq := make(map[string]string) // RNG_NAME → seqNum
+	sm := make(tlog.DocSeqMap, len(rows))
+	for _, r := range rows {
+		rng := r["RNG_NAME"]
+		seqNum, ok := rngSeq[rng]
+		if !ok {
+			seqNum, err = sequence.Build(businessDay, sequence.DocFiscalDocFC, startCounter+len(rngSeq))
+			if err != nil {
+				return nil, 0, err
+			}
+			rngSeq[rng] = seqNum
+		}
+		sm[r["LFS_ID"]] = seqNum
+	}
+	return sm, len(rngSeq), nil
 }
 
 func (FiscalDocFCGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, crossSeqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {

@@ -99,7 +99,7 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 			if !d.Cfg.Output.Enabled(gen.Type()) {
 				continue
 			}
-			sm, err := gen.BuildSeqMap(ctx, conn, retail.KstID, d.Day, counters[seqCounterKey(gen.Type())])
+			sm, consumed, err := gen.BuildSeqMap(ctx, conn, retail.KstID, d.Day, counters[seqCounterKey(gen.Type())])
 			if err != nil {
 				return b.Fail(fmt.Errorf("pre-asignar sequence %s KST=%s: %w", gen.Type(), retail.KstID, err))
 			}
@@ -107,7 +107,7 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 				continue
 			}
 			kstSeqMaps[gen.Type()] = sm
-			counters[seqCounterKey(gen.Type())] += len(sm)
+			counters[seqCounterKey(gen.Type())] += consumed
 		}
 
 		// Fase 2: generar XMLs usando los seqNums pre-asignados.

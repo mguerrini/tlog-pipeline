@@ -36,7 +36,9 @@ type Generator interface {
 	// BuildSeqMap pre-asigna SequenceNumbers para los candidatos del KST.
 	// startCounter es el próximo índice global para este tipo de documento.
 	// Retorna nil si el generator no usa pre-asignación (Cierre).
-	BuildSeqMap(ctx context.Context, conn *sql.DB, kstID string, businessDay time.Time, startCounter int) (tlog.DocSeqMap, error)
+	// El segundo valor es la cantidad de seqNums consumidos (puede diferir de
+	// len(seqMap) cuando varios IDs comparten el mismo seqNum, como en FiscalDoc).
+	BuildSeqMap(ctx context.Context, conn *sql.DB, kstID string, businessDay time.Time, startCounter int) (tlog.DocSeqMap, int, error)
 
 	// Generate produce los archivos XML del KST. seqMap contiene los seqNums
 	// pre-asignados por BuildSeqMap (nil para Cierre, que usa startCounter).
@@ -45,20 +47,21 @@ type Generator interface {
 }
 
 // buildSeqMapFromIDs construye el DocSeqMap asignando un SEQUENCENUMBER a
-// cada ID, comenzando en startCounter.
-func buildSeqMapFromIDs(ids []string, businessDay time.Time, doc sequence.DocumentNumber, startCounter int) (tlog.DocSeqMap, error) {
+// cada ID comenzando en startCounter. Devuelve el map y la cantidad de
+// seqNums consumidos (= len(ids)).
+func buildSeqMapFromIDs(ids []string, businessDay time.Time, doc sequence.DocumentNumber, startCounter int) (tlog.DocSeqMap, int, error) {
 	if len(ids) == 0 {
-		return nil, nil
+		return nil, 0, nil
 	}
 	sm := make(tlog.DocSeqMap, len(ids))
 	for i, id := range ids {
 		seqNum, err := sequence.Build(businessDay, doc, startCounter+i)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		sm[id] = seqNum
 	}
-	return sm, nil
+	return sm, len(ids), nil
 }
 
 // queryRows ejecuta una query y devuelve cada fila como map[string]string.

@@ -58,10 +58,10 @@ func (TransferGenerator) ListCandidateIDs(ctx context.Context, conn *sql.DB, kst
 	return ids, nil
 }
 
-func (g TransferGenerator) BuildSeqMap(ctx context.Context, conn *sql.DB, kstID string, businessDay time.Time, startCounter int) (tlog.DocSeqMap, error) {
+func (g TransferGenerator) BuildSeqMap(ctx context.Context, conn *sql.DB, kstID string, businessDay time.Time, startCounter int) (tlog.DocSeqMap, int, error) {
 	ids, err := g.ListCandidateIDs(ctx, conn, kstID)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	return buildSeqMapFromIDs(ids, businessDay, sequence.DocTransfer, startCounter)
 }
