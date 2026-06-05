@@ -1,6 +1,6 @@
 {
   "process": {
-    "file_name_include_document_type": true,
+    "file_name_include_document_type": false,
     "mode": "ALL",
     "execution_mode": "SERIAL",
     "parallel_retails_per_day": false,
@@ -61,7 +61,7 @@
       "Warengruppe_*.csv",
       "Vpckeinh_*.csv",
       "Artikel_*.csv",
-      "Lieferschein_*.csv",
+      "ypf.lieferschein-1_*.csv",
       "Lieferpos_*.csv",
       "Inventur_*.csv",
       "Invposart_*.csv",
@@ -90,7 +90,7 @@
     "delete_local_source": true
   },
   "local_clean": {
-    "enabled": false,
+    "enabled": true,
     "delete_source": true,
     "delete_database": true
   }
