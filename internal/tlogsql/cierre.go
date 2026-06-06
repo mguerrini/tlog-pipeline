@@ -111,14 +111,20 @@ func writeCierreItem(x *common.XMLBuilder, row map[string]string, locationCode s
 	}
 
 	sohBeg, _ := db.AsFloat(row["DAY_SOHBEG"])
+	sohEnd, _ := db.AsFloat(row["DAY_SOHEND"])
+
 	qtySold, _ := db.AsFloat(row["DAY_QTYSOLD"])
+	qtySold = math.Abs(qtySold)
 	qtyPurch, _ := db.AsFloat(row["DAY_QTYPURCH"])
+	qtyPurch = math.Abs(qtyPurch)
 	qtyTrsfIn, _ := db.AsFloat(row["DAY_QTYTRSFIN"])
+	qtyTrsfIn = math.Abs(qtyTrsfIn)
 	qtyTrsfOut, _ := db.AsFloat(row["DAY_QTYTRSFOUT"])
+	qtyTrsfOut = math.Abs(qtyTrsfOut)
+
 	qtyUsage, _ := db.AsFloat(row["DAY_QTYUSAGE"])
 	//qtyInv, _ := db.AsFloat(row["DAY_QTYINV"])
 	//	sohInv, _ := db.AsFloat(row["DAY_SOHINV"])
-	sohEnd, _ := db.AsFloat(row["DAY_SOHEND"])
 
 	x.Open("Item")
 	x.Element("STOCK_SEQ_NUMBER", cierreStockSeqNumber)
@@ -139,6 +145,7 @@ func writeCierreItem(x *common.XMLBuilder, row map[string]string, locationCode s
 		x.EmptyElement("ADJUSTMENTOUT_UNIT_COUNT")                            // qtyUsage< 0
 
 	} else {
+		qtyUsage = math.Abs(qtyUsage)
 		x.EmptyElement("ADJUSTMENTIN_UNIT_COUNT")                              //>0 a uno u a otro no los dos a laves.
 		x.Element("ADJUSTMENTOUT_UNIT_COUNT", common.FormatDecimal4(qtyUsage)) // qtyUsage< 0
 	}

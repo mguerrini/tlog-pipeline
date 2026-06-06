@@ -209,6 +209,8 @@ func writeAdjVerbrauchLine(x *common.XMLBuilder, line map[string]string, retailI
 	menge, _ := db.AsFloat(line["VBT_MENGE"])
 	costTotalAmount := wes * menge
 
+	menge = -menge
+
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
 	x.Element("RetailStoreID", retailID)
 	x.Element("WorkstationID", "0")

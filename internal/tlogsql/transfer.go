@@ -117,9 +117,12 @@ func (TransferGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.H
 func transferLines(ctx context.Context, conn *sql.DB, lbwID string) ([]map[string]string, error) {
 	const linesSQL = `
 SELECT lbp.LBW_ID, lbp.LBP_POS, lbp.ART_NR, lbp.VPK_ID,
-       lbp.LBP_MENGEGE, lbp.LBP_ESP,
-       art.ART_NAME, art.ART_NUMMER
+       lbp.LBP_MENGEGE, lbp.LBP_ESP, art.ART_NAME, art.ART_NUMMER, 
+       lbw.KST_ID, lbw.KST_ID1, KST.KST_CODE, KST1.KST_CODE AS KST_CODE1
 FROM HIS_LAGBEWPOS lbp
+    INNER JOIN HIS_LAGERBEW lbw ON lbw.LBW_ID = lbp.LBW_ID
+    INNER JOIN KOSTST kst  ON kst.KST_ID  = lbw.KST_ID
+    INNER JOIN KOSTST kst1 ON kst1.KST_ID = lbw.KST_ID1
     LEFT JOIN ARTIKEL art ON art.ART_ID = lbp.ART_NR
 WHERE lbp.LBW_ID = ?
 ORDER BY lbp.LBP_POS`
@@ -216,7 +219,8 @@ func writeTransferLine(x *common.XMLBuilder, line map[string]string, retailID, s
 	menge, _ := db.AsFloat(line["LBP_MENGEGE"])
 	esp, _ := db.AsFloat(line["LBP_ESP"])
 	total := math.Abs(menge * esp)
-	//destRetailID := common.FormatRetailStoreID(line["KST_CODE1"])
+
+	destRetailID := common.FormatRetailStoreID(line["KST_CODE1"])
 
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
 	x.Element("RetailStoreID", retailID)
@@ -229,8 +233,8 @@ func writeTransferLine(x *common.XMLBuilder, line map[string]string, retailID, s
 	x.Element("ItemDescription", line["ART_NAME"])
 	x.Element("UnitBaseCostAmount", common.FormatDecimal4(esp))
 	x.Element("UnitCount", common.FormatDecimal4(menge))
-	x.Element("DestinationLocation", transferDestLocation)
-	x.Element("SourceLocation", transferSourceLocation)
+	x.Element("DestinationLocation", destRetailID)
+	x.Element("SourceLocation", retailID)
 	x.Element("CostTotalAmount", common.FormatDecimal4(total))
 	x.Element("UnitSalesAmount", common.FormatDecimal4(esp))
 	x.Element("SalesTotalAmount", common.FormatDecimal4(total))
@@ -240,6 +244,6 @@ func writeTransferLine(x *common.XMLBuilder, line map[string]string, retailID, s
 	x.EmptyElement("PickupCode")
 	x.Element("LastUpdateDate", lastUpdateDate)
 	x.EmptyElement("DifBME_ASNTypeID")
-	x.Element("InventoryControlDocumentState", transferInventoryDocState)
+	x.Element("InventoryControlDocumentState", "2")
 	x.Close()
 }
