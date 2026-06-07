@@ -22,7 +22,7 @@ import (
 )
 
 // Version se inyecta en build time vía -ldflags "-X main.Version=..."
-var Version = "4.4.0"
+var Version = "4.6.0"
 
 func main() {
 	for _, a := range os.Args[1:] {

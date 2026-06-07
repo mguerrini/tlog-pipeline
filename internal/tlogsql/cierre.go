@@ -45,8 +45,8 @@ SELECT dt.KST_ID, dt.ART_ID, dt.DAY_DATE,
        dt.DAY_QTYUSAGE, dt.DAY_QTYSOLD, dt.DAY_QTYINV,
        art.ART_NUMMER, art.ART_NAME
 FROM DAILYTOTALS dt
-LEFT JOIN ARTIKEL art ON art.ART_ID = dt.ART_ID
-WHERE dt.KST_ID = ? and art.ART_NR not in (2204, 2205, 2206, 2207, 2255,2256)
+	LEFT JOIN ARTIKEL art ON art.ART_ID = dt.ART_ID
+WHERE dt.KST_ID = ? and dt.ART_ID  not in (2204, 2205, 2206, 2207, 2255,2256)
 ORDER BY dt.ART_ID`
 	items, err := queryRows(ctx, conn, itemsSQL, kstID)
 	if err != nil {
@@ -142,11 +142,11 @@ func writeCierreItem(x *common.XMLBuilder, row map[string]string, locationCode s
 	x.Element("TRANSFEROUT_UNIT_COUNT", common.FormatDecimal4(qtyTrsfOut))
 	if qtyUsage >= 0 {
 		x.Element("ADJUSTMENTIN_UNIT_COUNT", common.FormatDecimal4(qtyUsage)) //>0 a uno u a otro no los dos a laves.
-		x.EmptyElement("ADJUSTMENTOUT_UNIT_COUNT")                            // qtyUsage< 0
+		x.Element("ADJUSTMENTOUT_UNIT_COUNT", "0.0000")                       // qtyUsage< 0
 
 	} else {
 		qtyUsage = math.Abs(qtyUsage)
-		x.EmptyElement("ADJUSTMENTIN_UNIT_COUNT")                              //>0 a uno u a otro no los dos a laves.
+		x.Element("ADJUSTMENTIN_UNIT_COUNT", "0.0000")                         //>0 a uno u a otro no los dos a laves.
 		x.Element("ADJUSTMENTOUT_UNIT_COUNT", common.FormatDecimal4(qtyUsage)) // qtyUsage< 0
 	}
 	x.Element("CURRENT_UNIT_COUNT", common.FormatDecimal4(sohEnd))
