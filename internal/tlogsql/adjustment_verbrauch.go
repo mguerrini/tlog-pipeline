@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/opessa/tlog-pipeline/internal/db"
@@ -208,8 +209,9 @@ func writeAdjVerbrauchLine(x *common.XMLBuilder, line map[string]string, retailI
 	wes, _ := db.AsFloat(line["VBT_WES"])
 	menge, _ := db.AsFloat(line["VBT_MENGE"])
 	costTotalAmount := wes * menge
-
 	menge = -menge
+	unitCount := math.Abs(menge)
+	costTotalAmount = math.Abs(costTotalAmount)
 
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
 	x.Element("RetailStoreID", retailID)
@@ -221,7 +223,7 @@ func writeAdjVerbrauchLine(x *common.XMLBuilder, line map[string]string, retailI
 	x.EmptyElement("ItemBrand")
 	x.Element("ItemDescription", line["ART_NAME"])
 	x.Element("UnitBaseCostAmount", common.FormatDecimal4(wes))
-	x.Element("UnitCount", common.FormatDecimal4(menge))
+	x.Element("UnitCount", common.FormatDecimal4(unitCount))
 	x.Element("DestinationLocation", "DEP1_OS")
 	x.Element("SourceLocation", "DEP1_OS")
 	x.Element("CostTotalAmount", common.FormatDecimal4(costTotalAmount))

@@ -198,11 +198,8 @@ func writeAdjustmentLine(x *common.XMLBuilder, line map[string]string, retailID,
 	ist, _ := db.AsFloat(line["INP_IST"])
 	soll, _ := db.AsFloat(line["INP_SOLL"])
 	variance := ist - soll
-	variance = math.Abs(variance)
-
 	ekp, _ := db.AsFloat(line["INP_EKP"])
 	costTotal := variance * ekp
-	costTotal = math.Abs(costTotal)
 
 	// El generator in-memory original usa artRow["ART_NR"], pero ART_NR no
 	// existe en el schema SQLite (ARTIKEL solo tiene ART_ID/ART_NAMEID/
