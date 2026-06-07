@@ -46,7 +46,7 @@ SELECT dt.KST_ID, dt.ART_ID, dt.DAY_DATE,
        art.ART_NUMMER, art.ART_NAME
 FROM DAILYTOTALS dt
 LEFT JOIN ARTIKEL art ON art.ART_ID = dt.ART_ID
-WHERE dt.KST_ID = ?
+WHERE dt.KST_ID = ? and art.ART_NR not in (2204, 2205, 2206, 2207, 2255,2256)
 ORDER BY dt.ART_ID`
 	items, err := queryRows(ctx, conn, itemsSQL, kstID)
 	if err != nil {

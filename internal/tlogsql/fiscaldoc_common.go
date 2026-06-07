@@ -151,7 +151,7 @@ SELECT distinct lfp.ART_NR, lfp.LFS_ID, lfp.ART_NR, lfp.LFP_MENGE,
                 art.ART_NUMMER, art.ART_MWSTNR
 FROM LIEFERSCHEIN_VIEW lfp
          LEFT JOIN ARTIKEL art ON art.ART_ID = lfp.ART_NR
-WHERE lfp.RNG_NAME = ? and lfp.ART_NR not in (2204, 2205,2206, 2207)
+WHERE lfp.RNG_NAME = ? and lfp.ART_NR not in (2204, 2205,2206, 2207, 2255, 2256)
 ORDER BY lfp.ART_NR, lfp.LFS_ID;
 `
 
