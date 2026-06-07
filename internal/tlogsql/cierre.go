@@ -123,7 +123,10 @@ func writeCierreItem(x *common.XMLBuilder, row map[string]string, locationCode s
 	qtyTrsfOut = math.Abs(qtyTrsfOut)
 
 	qtyUsage, _ := db.AsFloat(row["DAY_QTYUSAGE"])
-	//qtyInv, _ := db.AsFloat(row["DAY_QTYINV"])
+	qtyInv, _ := db.AsFloat(row["DAY_QTYINV"])
+
+	usage := qtyUsage + qtyInv
+
 	//	sohInv, _ := db.AsFloat(row["DAY_SOHINV"])
 
 	x.Open("Item")
@@ -140,14 +143,14 @@ func writeCierreItem(x *common.XMLBuilder, row map[string]string, locationCode s
 	x.Element("RETURN_TO_VENTOR_UNIT_COUNT", common.FormatDecimal4(0))
 	x.Element("TRANSFERIN_UNIT_COUNT", common.FormatDecimal4(qtyTrsfIn))
 	x.Element("TRANSFEROUT_UNIT_COUNT", common.FormatDecimal4(qtyTrsfOut))
-	if qtyUsage >= 0 {
-		x.Element("ADJUSTMENTIN_UNIT_COUNT", common.FormatDecimal4(qtyUsage)) //>0 a uno u a otro no los dos a laves.
-		x.Element("ADJUSTMENTOUT_UNIT_COUNT", "0.0000")                       // qtyUsage< 0
+	if usage >= 0 {
+		x.Element("ADJUSTMENTIN_UNIT_COUNT", common.FormatDecimal4(usage)) //>0 a uno u a otro no los dos a laves.
+		x.Element("ADJUSTMENTOUT_UNIT_COUNT", "0.0000")                    // qtyUsage< 0
 
 	} else {
-		qtyUsage = math.Abs(qtyUsage)
-		x.Element("ADJUSTMENTIN_UNIT_COUNT", "0.0000")                         //>0 a uno u a otro no los dos a laves.
-		x.Element("ADJUSTMENTOUT_UNIT_COUNT", common.FormatDecimal4(qtyUsage)) // qtyUsage< 0
+		usage = math.Abs(usage)
+		x.Element("ADJUSTMENTIN_UNIT_COUNT", "0.0000")                      //>0 a uno u a otro no los dos a laves.
+		x.Element("ADJUSTMENTOUT_UNIT_COUNT", common.FormatDecimal4(usage)) // qtyUsage< 0
 	}
 	x.Element("CURRENT_UNIT_COUNT", common.FormatDecimal4(sohEnd))
 	x.Close()

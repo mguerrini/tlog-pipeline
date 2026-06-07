@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"math"
 	"time"
 
 	"github.com/opessa/tlog-pipeline/internal/db"
@@ -220,7 +219,7 @@ func writeAdjustmentLine(x *common.XMLBuilder, line map[string]string, retailID,
 	x.Element("UnitCount", common.FormatDecimal4(variance))
 	x.Element("DestinationLocation", "DEP1_OS")
 	x.Element("SourceLocation", "DEP1_OS")
-	x.Element("CostTotalAmount", common.FormatDecimal4(math.Abs(costTotal)))
+	x.Element("CostTotalAmount", common.FormatDecimal4(costTotal))
 	x.Element("UnitSalesAmount", "0.0000")
 	x.Element("SalesTotalAmount", "0.0000")
 	x.Element("Stock", common.FormatDecimal4(soll))

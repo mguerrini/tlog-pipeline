@@ -210,14 +210,17 @@ func writeFCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum stri
 	x.EmptyElement("ICDTotSalesAmount")
 	x.EmptyElement("Frequency")
 	x.EmptyElement("InventoryAdjustmentType")
-	x.Element("ReceiptNumber", lfs["LFS_NAME"])
+	x.Element("ReceiptNumber", lfs["RNG_NAME"])
 	x.Element("FiscalReceiptFlag", fcFiscalReceiptFlag)
 	x.Element("ReceiptType", fcReceiptType)
 	x.Element("ReceiptDate", receiptDate)
 	x.Element("CAINumber", hdr.CAINumber)
 	x.Element("CAIDate", hdr.CAIDate)
 	x.EmptyElement("PagesQuantity")
-	x.Element("NetAmount", common.FormatDecimal4(netto))
+
+	//	netto := restarle - TAxAmount - VatAmount - IVATaxAmount - IIBBTAXAMOUT
+	netAmount := netto - hdr.TaxAmount - hdr.VatAmount - hdr.IvaTaxAmount - hdr.IIBBTaxAmount - hdr.DifferentialIVAVatAMount
+	x.Element("NetAmount", common.FormatDecimal4(netAmount))
 	x.Element("ExemptAmout", common.FormatDecimal4(hdr.ExemptAmount))
 	x.Element("TaxAmount", common.FormatDecimal4(hdr.TaxAmount))
 	x.Element("VatAmount", common.FormatDecimal4(hdr.VatAmount))
