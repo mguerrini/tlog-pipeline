@@ -50,7 +50,10 @@ func (g AdjustmentVerbrauchGenerator) BuildSeqMap(ctx context.Context, conn *sql
 	return buildSeqMapFromIDs(ids, businessDay, sequence.DocAdjustmentVerbrauch, startCounter)
 }
 
-func (AdjustmentVerbrauchGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, crossSeqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
+func (AdjustmentVerbrauchGenerator) Generate(ctx context.Context, genCtx *GeneratorContext, conn *sql.DB, _ int) (*tlog.GenerateResult, error) {
+	kstID := genCtx.KstID
+	seqMap := genCtx.SeqMap
+	crossSeqMap := genCtx.CrossSeqMap
 	candidates, err := queryRows(ctx, conn, adjustmentVerbrauchCandidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("adjustment_verbrauch candidatos: %w", err)
@@ -79,7 +82,7 @@ func (AdjustmentVerbrauchGenerator) Generate(ctx context.Context, conn *sql.DB, 
 		countSeqNum := crossSeqMap[vbr["VBR_ID"]]
 
 		x := common.NewXMLBuilder()
-		writeAdjVerbrauchDoc(x, h, retailID, seqNum, countSeqNum, vbr, lines)
+		writeAdjVerbrauchDoc(x, genCtx, retailID, seqNum, countSeqNum, vbr, lines)
 
 		files = append(files, tlog.GeneratedFile{
 			SeqNum:     seqNum,
@@ -114,17 +117,17 @@ ORDER BY p.VBT_POS`
 	return rows, nil
 }
 
-func writeAdjVerbrauchDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, countSeqNum string,
+func writeAdjVerbrauchDoc(x *common.XMLBuilder, genCtx *GeneratorContext, retailID, seqNum, countSeqNum string,
 	vbr map[string]string, lines []map[string]string) {
 
-	createTimestamp := h.FormatARTimestamp(h.BeginDateTime)
-	expectedDate := h.FormatARTimestamp(h.BeginDateTime)
-	receiptDate := h.FormatARTimestamp(h.BeginDateTime)
+	createTimestamp := genCtx.Header.FormatARTimestamp(genCtx.Header.BeginDateTime)
+	expectedDate := genCtx.Header.FormatARTimestamp(genCtx.Header.BeginDateTime)
+	receiptDate := genCtx.Header.FormatARTimestamp(genCtx.Header.BeginDateTime)
 	if t, err := time.Parse("2006-01-02 15:04:05", vbr["CHG_ZEIT"]); err == nil {
-		createTimestamp = h.FormatARTimestamp(t)
+		createTimestamp = genCtx.Header.FormatARTimestamp(t)
 		dayStart := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
-		expectedDate = h.FormatARTimestamp(dayStart)
-		receiptDate = h.FormatARTimestamp(dayStart)
+		expectedDate = genCtx.Header.FormatARTimestamp(dayStart)
+		receiptDate = genCtx.Header.FormatARTimestamp(dayStart)
 	}
 
 	var icdAmount float64
@@ -138,14 +141,14 @@ func writeAdjVerbrauchDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, s
 	x.Element("RetailStoreID", retailID)
 	x.Element("WorkstationID", "0")
 	x.Element("SequenceNumber", seqNum)
-	x.Element("BusinessDayDate", h.FormatBusinessDayDate())
+	x.Element("BusinessDayDate", genCtx.Header.FormatBusinessDayDate())
 	x.Element("Period", "0")
 	x.Element("Subperiod", "0")
 	x.Element("PeriodCode", "0")
 	x.Element("SubPeriodCode", "0")
-	x.Element("BeginDateTime", h.FormatBeginDateTime())
-	x.Element("EndDateTime", h.FormatEndDateTime())
-	x.Element("OperatorID", h.OperatorID)
+	x.Element("BeginDateTime", genCtx.Header.FormatBeginDateTime())
+	x.Element("EndDateTime", genCtx.Header.FormatEndDateTime())
+	x.Element("OperatorID", genCtx.Header.OperatorID)
 	x.EmptyElement("OriginalTransaction")
 
 	x.Open("InventoryControlTransaction")
@@ -162,7 +165,7 @@ func writeAdjVerbrauchDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, s
 	x.Element("SourceRetailStore", retailID)
 	x.EmptyElement("Supplier")
 	x.EmptyElement("OrderDocumentType")
-	x.Element("User", h.OperatorID)
+	x.Element("User", genCtx.Header.OperatorID)
 	x.EmptyElement("ICDQuantity")
 	x.EmptyElement("ICDTotSalesAmount")
 	x.EmptyElement("Frequency")
@@ -186,7 +189,7 @@ func writeAdjVerbrauchDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, s
 
 	x.Open("InventoryControlDocumentLineItems")
 	for _, line := range lines {
-		writeAdjVerbrauchLine(x, line, retailID, seqNum, createTimestamp)
+		writeAdjVerbrauchLine(x, genCtx, line, retailID, seqNum, createTimestamp)
 	}
 	x.Close()
 	x.Open("inventoryControlDocumentReferences")
@@ -204,25 +207,26 @@ func writeAdjVerbrauchDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, s
 	x.Close()
 }
 
-func writeAdjVerbrauchLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum, lastUpdateDate string) {
+func writeAdjVerbrauchLine(x *common.XMLBuilder, genCtx *GeneratorContext, line map[string]string, retailID, seqNum, lastUpdateDate string) {
 	wes, _ := db.AsFloat(line["VBT_WES"])
 	menge, _ := db.AsFloat(line["VBT_MENGE"])
 	costTotalAmount := wes * menge
-
 	costTotalAmount = -costTotalAmount
-	menge = -menge
+
+	itemCode := line["ART_NUMMER"]
+	genCtx.AddItemUnitCount(itemCode, menge)
 
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
 	x.Element("RetailStoreID", retailID)
 	x.Element("WorkstationID", "0")
 	x.Element("SequenceNumber", seqNum)
 	x.Element("DetSequenceNumber", line["VBT_POS"])
-	x.Element("Item", line["ART_NUMMER"])
+	x.Element("Item", itemCode)
 	x.Element("UomUnits", common.FormatDecimal4(float64(db.MustAsInt(line["VPK_NR"]))))
 	x.EmptyElement("ItemBrand")
 	x.Element("ItemDescription", line["ART_NAME"])
 	x.Element("UnitBaseCostAmount", common.FormatDecimal4(wes))
-	x.Element("UnitCount", common.FormatDecimal4(menge))
+	x.Element("UnitCount", common.FormatDecimal4(-menge))
 	x.Element("DestinationLocation", "DEP1_OS")
 	x.Element("SourceLocation", "DEP1_OS")
 	x.Element("CostTotalAmount", common.FormatDecimal4(costTotalAmount))

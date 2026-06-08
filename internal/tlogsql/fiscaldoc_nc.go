@@ -89,7 +89,11 @@ func (FiscalDocNCGenerator) BuildSeqMap(ctx context.Context, conn *sql.DB, kstID
 	return sm, len(rngSeq), nil
 }
 
-func (FiscalDocNCGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, crossSeqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
+func (FiscalDocNCGenerator) Generate(ctx context.Context, genCtx *GeneratorContext, conn *sql.DB, _ int) (*tlog.GenerateResult, error) {
+	kstID := genCtx.KstID
+	h := genCtx.Header
+	seqMap := genCtx.SeqMap
+	crossSeqMap := genCtx.CrossSeqMap
 	candidates, err := queryRows(ctx, conn, fiscalDocNCCandidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("fiscaldoc_nc candidatos: %w", err)

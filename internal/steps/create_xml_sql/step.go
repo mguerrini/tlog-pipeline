@@ -110,6 +110,14 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 			counters[seqCounterKey(gen.Type())] += consumed
 		}
 
+		genCtx := &tlogsql.GeneratorContext{
+			Header:        h,
+			SeqMap:        nil,
+			CrossSeqMap:   nil,
+			AdjustmentIn:  make(map[string]float64),
+			AdjustmentOut: make(map[string]float64),
+		}
+
 		// Fase 2: generar XMLs usando los seqNums pre-asignados.
 		// Cierre recibe seqMap=nil y usa startCounter directamente.
 		for _, gen := range generators {
@@ -136,7 +144,12 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 			case naming.TLOGCountInventur:
 				crossSeqMap = kstSeqMaps[naming.TLOGAdjustmentInventur]
 			}
-			result, err := gen.Generate(ctx, conn, h, retail.KstID, seqMap, crossSeqMap, counters[gen.Type()])
+
+			genCtx.KstID = retail.KstID
+			genCtx.SeqMap = seqMap
+			genCtx.CrossSeqMap = crossSeqMap
+
+			result, err := gen.Generate(ctx, genCtx, conn, counters[gen.Type()])
 			if err != nil {
 				d.Log.Error("error generando TLOG SQL",
 					"type", gen.Type(), "kst_id", retail.KstID, "err", err)
@@ -155,7 +168,7 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 					return b.Fail(fmt.Errorf("escribir %s: %w", filename, err))
 				}
 				totalXMLs++
-				d.Log.Info("xml generado",
+				d.Log.Info("xml generado", "type", gen.Type(), "kst_id", retail.KstID,
 					"file", filename, "lines", f.NumLines)
 			}
 			// Solo Cierre (seqMap==nil) avanza el contador en Fase 2;
@@ -183,4 +196,3 @@ func seqCounterKey(t naming.TLOGType) naming.TLOGType {
 	}
 	return t
 }
-

@@ -700,13 +700,13 @@ func rechlfs() *tableSchema {
 	return &tableSchema{
 		sqliteName: "RECHLFS",
 		csvName:    "Rechlfs",
-		pk:         []string{"rng_id", "lfs_id"},
-		notNull:    []string{"rng_id", "lfs_id"},
+		pk:         []string{"RNG_ID", "LFS_ID"},
+		notNull:    []string{"RNG_ID", "LFS_ID"},
 		fks: []fkRef{
-			{"rng_id", "RECHNUNG", "RNG_ID"},
+			{"RNG_ID", "RECHNUNG", "RNG_ID"},
 		},
 		cols: []colDef{
-			i("rng_id"), i("lfs_id"),
+			i("RNG_ID"), i("LFS_ID"),
 		},
 	}
 }
@@ -724,7 +724,7 @@ func lieferscheinView() *tableSchema {
 			t("CHG_ZEIT"), i("ART_NR"), t("LFP_ARTNR"), i("KST_ID"),
 			i("VPK_ID1"), t("POS_LFS_DATUM"),
 			r("LFP_MENGE"), r("LFP_EKP"), r("LFP_VKP"),
-			r("LFP_RABATT"), r("LFP_MWST"), r("LFP_BRUTTO"),
+			r("LFP_RABATT"), r("LFP_MWST"), r("LFP_BRUTTO"), r("LFP_MENGEGE"),
 			t("LF_SACHB"), t("LFP_HACCPINFO"), t("LFP_ABLAUFDT"),
 			t("ART_NAME"), i("ART_NUMMER"), i("ART_MWSTNR"),
 		},

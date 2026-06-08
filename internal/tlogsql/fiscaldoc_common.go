@@ -138,7 +138,7 @@ func queryFiscalDocHeaderData(ctx context.Context, conn *sql.DB, h *common.Heade
 func fiscalDocReceptionLines(ctx context.Context, conn *sql.DB, rngName string) ([]map[string]string, error) {
 	//	if isProd {
 	const linesSQL = `
-		SELECT distinct lfp.ART_NR, lfp.LFS_ID, lfp.ART_NR, lfp.LFP_MENGE,
+		SELECT distinct lfp.ART_NR, lfp.LFS_ID, lfp.ART_NR, lfp.LFP_MENGE, lfp.LFP_MENGEGE,
 						lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1, lfp.ART_NAME,
 						lfp.ART_NUMMER, lfp.ART_MWSTNR
 		FROM LIEFERSCHEIN_VIEW lfp

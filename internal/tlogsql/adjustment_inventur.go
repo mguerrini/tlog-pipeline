@@ -48,7 +48,10 @@ func (g AdjustmentInventurGenerator) BuildSeqMap(ctx context.Context, conn *sql.
 	return buildSeqMapFromIDs(ids, businessDay, sequence.DocAdjustmentInventur, startCounter)
 }
 
-func (AdjustmentInventurGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, crossSeqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
+func (AdjustmentInventurGenerator) Generate(ctx context.Context, genCtx *GeneratorContext, conn *sql.DB, _ int) (*tlog.GenerateResult, error) {
+	kstID := genCtx.KstID
+	seqMap := genCtx.SeqMap
+	crossSeqMap := genCtx.CrossSeqMap
 	candidates, err := queryRows(ctx, conn, adjustmentInventurCandidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("adjustment candidatos: %w", err)
@@ -77,7 +80,7 @@ func (AdjustmentInventurGenerator) Generate(ctx context.Context, conn *sql.DB, h
 		countSeqNum := crossSeqMap[inv["INV_ID"]]
 
 		x := common.NewXMLBuilder()
-		writeAdjustmentDoc(x, h, retailID, seqNum, countSeqNum, inv, lines)
+		writeAdjustmentDoc(x, genCtx, retailID, seqNum, countSeqNum, inv, lines)
 		files = append(files, tlog.GeneratedFile{
 			SeqNum:     seqNum,
 			XMLContent: x.String(),
@@ -115,26 +118,26 @@ func adjustmentLines(ctx context.Context, conn *sql.DB, invID string) ([]map[str
 	return rows, nil
 }
 
-func writeAdjustmentDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum, countSeqNum string,
+func writeAdjustmentDoc(x *common.XMLBuilder, genCtx *GeneratorContext, retailID, seqNum, countSeqNum string,
 	inv map[string]string, lines []map[string]string) {
 
-	createTimestamp := h.FormatARTimestamp(h.BeginDateTime)
+	createTimestamp := genCtx.Header.FormatARTimestamp(genCtx.Header.BeginDateTime)
 	if t, err := time.Parse("2006-01-02 15:04:05", inv["CHG_ZEIT"]); err == nil {
-		createTimestamp = h.FormatARTimestamp(t)
+		createTimestamp = genCtx.Header.FormatARTimestamp(t)
 	}
 
 	x.Open("Transaction")
 	x.Element("RetailStoreID", retailID)
 	x.Element("WorkstationID", "0")
 	x.Element("SequenceNumber", seqNum)
-	x.Element("BusinessDayDate", h.FormatBusinessDayDate())
+	x.Element("BusinessDayDate", genCtx.Header.FormatBusinessDayDate())
 	x.Element("Period", "0")
 	x.Element("Subperiod", "0")
 	x.Element("PeriodCode", "0")
 	x.Element("SubPeriodCode", "0")
-	x.Element("BeginDateTime", h.FormatBeginDateTime())
-	x.Element("EndDateTime", h.FormatEndDateTime())
-	x.Element("OperatorID", h.OperatorID)
+	x.Element("BeginDateTime", genCtx.Header.FormatBeginDateTime())
+	x.Element("EndDateTime", genCtx.Header.FormatEndDateTime())
+	x.Element("OperatorID", genCtx.Header.OperatorID)
 	x.EmptyElement("OriginalTransaction")
 
 	x.Open("InventoryControlTransaction")
@@ -144,14 +147,14 @@ func writeAdjustmentDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seq
 	x.Element("contractReferenceNumber", "Generado desde la Web")
 	x.Element("CreateDateTimestamp", createTimestamp)
 	x.Element("DestinationRetailStoreID", retailID)
-	x.Element("ExpectedDeliveryDate", h.FormatARTimestamp(h.BeginDateTime))
+	x.Element("ExpectedDeliveryDate", genCtx.Header.FormatARTimestamp(genCtx.Header.BeginDateTime))
 	x.EmptyElement("ICDAmount")
-	x.Element("LastUpdateDate", h.FormatARTimestamp(h.BeginDateTime))
+	x.Element("LastUpdateDate", genCtx.Header.FormatARTimestamp(genCtx.Header.BeginDateTime))
 	x.EmptyElement("Originator")
 	x.Element("SourceRetailStore", retailID)
 	x.EmptyElement("Supplier")
 	x.EmptyElement("OrderDocumentType")
-	x.Element("User", h.OperatorID)
+	x.Element("User", genCtx.Header.OperatorID)
 	x.EmptyElement("ICDQuantity")
 	x.EmptyElement("ICDTotSalesAmount")
 	x.EmptyElement("Frequency")
@@ -159,7 +162,7 @@ func writeAdjustmentDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seq
 	x.EmptyElement("ReceiptNumber")
 	x.Element("FiscalReceiptFlag", "false")
 	x.EmptyElement("ReceiptType")
-	x.Element("ReceiptDate", h.FormatARTimestamp(h.BeginDateTime))
+	x.Element("ReceiptDate", genCtx.Header.FormatARTimestamp(genCtx.Header.BeginDateTime))
 	x.EmptyElement("CAINumber")
 	x.EmptyElement("CAIDate")
 	x.EmptyElement("PagesQuantity")
@@ -175,7 +178,7 @@ func writeAdjustmentDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seq
 
 	x.Open("InventoryControlDocumentLineItems")
 	for i, line := range lines {
-		writeAdjustmentLine(x, line, retailID, seqNum, i+1)
+		writeAdjustmentLine(x, genCtx, line, retailID, seqNum, i+1)
 	}
 	x.Close()
 	x.Open("inventoryControlDocumentReferences")
@@ -193,12 +196,15 @@ func writeAdjustmentDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seq
 	x.Close()
 }
 
-func writeAdjustmentLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum string, detSeq int) {
+func writeAdjustmentLine(x *common.XMLBuilder, genCtx *GeneratorContext, line map[string]string, retailID, seqNum string, detSeq int) {
 	ist, _ := db.AsFloat(line["INP_IST"])
 	soll, _ := db.AsFloat(line["INP_SOLL"])
 	variance := ist - soll
 	ekp, _ := db.AsFloat(line["INP_EKP"])
 	costTotal := variance * ekp
+
+	itemCode := line["ART_NUMMER"]
+	genCtx.AddItemUnitCount(itemCode, variance)
 
 	// El generator in-memory original usa artRow["ART_NR"], pero ART_NR no
 	// existe en el schema SQLite (ARTIKEL solo tiene ART_ID/ART_NAMEID/
@@ -211,12 +217,14 @@ func writeAdjustmentLine(x *common.XMLBuilder, line map[string]string, retailID,
 	x.Element("SequenceNumber", seqNum)
 
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
-	x.Element("Item", line["ART_NUMMER"])
+	x.Element("Item", itemCode)
 	x.Element("UomUnits", common.FormatDecimal4(float64(db.MustAsInt(line["VPK_ID"]))))
 	x.EmptyElement("ItemBrand")
 	x.Element("ItemDescription", line["ART_NAME"])
 	x.Element("UnitBaseCostAmount", common.FormatDecimal4(ekp))
 	x.Element("UnitCount", common.FormatDecimal4(variance))
+	//	gentCtx.AddItemUnitCount(variance)
+
 	x.Element("DestinationLocation", "DEP1_OS")
 	x.Element("SourceLocation", "DEP1_OS")
 	x.Element("CostTotalAmount", common.FormatDecimal4(costTotal))

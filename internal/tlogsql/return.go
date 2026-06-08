@@ -70,7 +70,11 @@ func (g ReturnGenerator) BuildSeqMap(ctx context.Context, conn *sql.DB, kstID st
 	return buildSeqMapFromIDs(ids, businessDay, sequence.DocReturn, startCounter)
 }
 
-func (ReturnGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, crossSeqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
+func (ReturnGenerator) Generate(ctx context.Context, genCtx *GeneratorContext, conn *sql.DB, _ int) (*tlog.GenerateResult, error) {
+	kstID := genCtx.KstID
+	h := genCtx.Header
+	seqMap := genCtx.SeqMap
+	crossSeqMap := genCtx.CrossSeqMap
 	candidates, err := queryRows(ctx, conn, returnCandidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("return candidatos: %w", err)
@@ -252,7 +256,7 @@ func mapLFSStatusReturn(s string) string {
 
 func returnLines(ctx context.Context, conn *sql.DB, lfsID string) ([]map[string]string, error) {
 	const linesSQL = `
-SELECT distinct lfp.ART_NR, lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE,
+SELECT distinct lfp.ART_NR, lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE, lfp.LFP_MENGEGE,
                 lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1,
                 lfp.LFP_HACCPINFO, lfp.LFP_ABLAUFDT,
                 art.ART_NAME, art.ART_NUMMER,

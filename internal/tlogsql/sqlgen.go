@@ -14,6 +14,7 @@ package tlogsql
 import (
 	"context"
 	"database/sql"
+	"math"
 	"time"
 
 	"github.com/opessa/tlog-pipeline/internal/naming"
@@ -43,7 +44,60 @@ type Generator interface {
 	// Generate produce los archivos XML del KST. seqMap contiene los seqNums
 	// pre-asignados por BuildSeqMap (nil para Cierre, que usa startCounter).
 	// crossSeqMap contiene los seqNums del documento "par"; nil si no aplica.
-	Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, crossSeqMap tlog.DocSeqMap, startCounter int) (*tlog.GenerateResult, error)
+	Generate(ctx context.Context, genCtx *GeneratorContext, conn *sql.DB, startCounter int) (*tlog.GenerateResult, error)
+}
+
+type GeneratorContext struct {
+	KstID       string
+	Header      *common.HeaderCtx
+	SeqMap      tlog.DocSeqMap
+	CrossSeqMap tlog.DocSeqMap
+
+	AdjustmentIn  map[string]float64
+	AdjustmentOut map[string]float64
+}
+
+func (g *GeneratorContext) AddItemUnitCount(itemCode string, count float64) {
+	if count == 0 {
+		return
+	}
+	if count > 0 {
+		if currVal, ok := g.AdjustmentIn[itemCode]; ok {
+			currVal += count
+			g.AdjustmentIn[itemCode] = currVal
+			//				println(fmt.Sprintf("************** AdjustmentIn - item code: %s, count: %v, total: %v", itemCode, count, currVal))
+		} else {
+			g.AdjustmentIn[itemCode] = count
+			//				println(fmt.Sprintf("************** AdjustmentIn - item code: %s, count: %v, total: %v", itemCode, count, count))
+		}
+	} else {
+		absCount := math.Abs(count)
+		if currVal, ok := g.AdjustmentOut[itemCode]; ok {
+			currVal += absCount
+			g.AdjustmentOut[itemCode] = currVal
+			//			println(fmt.Sprintf("************** AdjustmentOut - item code: %s, count: %v, total: %v", itemCode, count, currVal))
+
+		} else {
+			g.AdjustmentOut[itemCode] = absCount
+			//			println(fmt.Sprintf("************** AdjustmentOut - item code: %s, count: %v, total: %v", itemCode, count, absCount))
+		}
+	}
+}
+
+func (g *GeneratorContext) GetAdjustmentUnitCountIn(itemCode string) float64 {
+	val, ok := g.AdjustmentIn[itemCode]
+	if ok {
+		return val
+	}
+	return 0
+}
+
+func (g *GeneratorContext) GetAdjustmentUnitCountOut(itemCode string) float64 {
+	val, ok := g.AdjustmentOut[itemCode]
+	if ok {
+		return val
+	}
+	return 0
 }
 
 // buildSeqMapFromIDs construye el DocSeqMap asignando un SEQUENCENUMBER a

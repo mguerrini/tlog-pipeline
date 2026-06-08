@@ -32,7 +32,8 @@
       "mcp__codegraph__codegraph_search",
       "mcp__codegraph__codegraph_files",
       "Bash(Get-Content *)",
-      "PowerShell(Get-Command *)"
+      "PowerShell(Get-Command *)",
+      "mcp__codegraph__codegraph_callers"
     ]
   },
   "enableAllProjectMcpServers": true,

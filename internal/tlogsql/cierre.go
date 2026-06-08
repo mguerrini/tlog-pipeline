@@ -37,7 +37,9 @@ func (CierreGenerator) BuildSeqMap(_ context.Context, _ *sql.DB, _ string, _ tim
 	return nil, 0, nil
 }
 
-func (CierreGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, _ tlog.DocSeqMap, _ tlog.DocSeqMap, startCounter int) (*tlog.GenerateResult, error) {
+func (CierreGenerator) Generate(ctx context.Context, genCtx *GeneratorContext, conn *sql.DB, startCounter int) (*tlog.GenerateResult, error) {
+	kstID := genCtx.KstID
+	h := genCtx.Header
 	const itemsSQL = `
 SELECT dt.KST_ID, dt.ART_ID, dt.DAY_DATE,
        dt.DAY_SOHBEG, dt.DAY_SOHEND, dt.DAY_SOHINV,
@@ -70,7 +72,7 @@ ORDER BY dt.ART_ID`
 	x := common.NewXMLBuilder()
 	writeCierreHeader(x, h, retailID, seqNum)
 	for i, row := range items {
-		writeCierreItem(x, row, locationCode, i+1)
+		writeCierreItem(x, genCtx, row, locationCode, i+1)
 	}
 	x.Close() // ItemList
 	x.Close() // Transaction
@@ -104,7 +106,7 @@ func writeCierreHeader(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqN
 	x.Open("ItemList")
 }
 
-func writeCierreItem(x *common.XMLBuilder, row map[string]string, locationCode string, itemSeq int) {
+func writeCierreItem(x *common.XMLBuilder, genCtx *GeneratorContext, row map[string]string, locationCode string, itemSeq int) {
 	artNummer := row["ART_NUMMER"]
 	if artNummer == "" {
 		artNummer = row["ART_ID"] // fallback
@@ -122,12 +124,8 @@ func writeCierreItem(x *common.XMLBuilder, row map[string]string, locationCode s
 	qtyTrsfOut, _ := db.AsFloat(row["DAY_QTYTRSFOUT"])
 	qtyTrsfOut = math.Abs(qtyTrsfOut)
 
-	qtyUsage, _ := db.AsFloat(row["DAY_QTYUSAGE"])
-	qtyInv, _ := db.AsFloat(row["DAY_QTYINV"])
-
-	usage := qtyUsage + qtyInv
-
-	//	sohInv, _ := db.AsFloat(row["DAY_SOHINV"])
+	adjIn := genCtx.GetAdjustmentUnitCountIn(artNummer)
+	adjOut := genCtx.GetAdjustmentUnitCountOut(artNummer)
 
 	x.Open("Item")
 	x.Element("STOCK_SEQ_NUMBER", cierreStockSeqNumber)
@@ -143,15 +141,8 @@ func writeCierreItem(x *common.XMLBuilder, row map[string]string, locationCode s
 	x.Element("RETURN_TO_VENTOR_UNIT_COUNT", common.FormatDecimal4(0))
 	x.Element("TRANSFERIN_UNIT_COUNT", common.FormatDecimal4(qtyTrsfIn))
 	x.Element("TRANSFEROUT_UNIT_COUNT", common.FormatDecimal4(qtyTrsfOut))
-	if usage >= 0 {
-		x.Element("ADJUSTMENTIN_UNIT_COUNT", common.FormatDecimal4(usage)) //>0 a uno u a otro no los dos a laves.
-		x.Element("ADJUSTMENTOUT_UNIT_COUNT", "0.0000")                    // qtyUsage< 0
-
-	} else {
-		usage = math.Abs(usage)
-		x.Element("ADJUSTMENTIN_UNIT_COUNT", "0.0000")                      //>0 a uno u a otro no los dos a laves.
-		x.Element("ADJUSTMENTOUT_UNIT_COUNT", common.FormatDecimal4(usage)) // qtyUsage< 0
-	}
+	x.Element("ADJUSTMENTIN_UNIT_COUNT", common.FormatDecimal4(adjIn))
+	x.Element("ADJUSTMENTOUT_UNIT_COUNT", common.FormatDecimal4(adjOut))
 	x.Element("CURRENT_UNIT_COUNT", common.FormatDecimal4(sohEnd))
 	x.Close()
 }

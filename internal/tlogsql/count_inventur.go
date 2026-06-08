@@ -47,7 +47,11 @@ func (g CountInventurGenerator) BuildSeqMap(ctx context.Context, conn *sql.DB, k
 	return buildSeqMapFromIDs(ids, businessDay, sequence.DocCountInventur, startCounter)
 }
 
-func (CountInventurGenerator) Generate(ctx context.Context, conn *sql.DB, h *common.HeaderCtx, kstID string, seqMap tlog.DocSeqMap, crossSeqMap tlog.DocSeqMap, _ int) (*tlog.GenerateResult, error) {
+func (CountInventurGenerator) Generate(ctx context.Context, genCtx *GeneratorContext, conn *sql.DB, _ int) (*tlog.GenerateResult, error) {
+	kstID := genCtx.KstID
+	h := genCtx.Header
+	seqMap := genCtx.SeqMap
+	crossSeqMap := genCtx.CrossSeqMap
 	candidates, err := queryRows(ctx, conn, adjustmentInventurCandidatesSQL, kstID)
 	if err != nil {
 		return nil, fmt.Errorf("count_inventur candidatos: %w", err)
