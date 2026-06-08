@@ -725,6 +725,8 @@ func lieferscheinView() *tableSchema {
 			i("VPK_ID1"), t("POS_LFS_DATUM"),
 			r("LFP_MENGE"), r("LFP_EKP"), r("LFP_VKP"),
 			r("LFP_RABATT"), r("LFP_MWST"), r("LFP_BRUTTO"),
+			t("LF_SACHB"), t("LFP_HACCPINFO"), t("LFP_ABLAUFDT"),
+			t("ART_NAME"), i("ART_NUMMER"), i("ART_MWSTNR"),
 		},
 	}
 }

@@ -40,13 +40,11 @@ type ReceptionGenerator struct{}
 func (ReceptionGenerator) Type() naming.TLOGType { return naming.TLOGReception }
 
 const receptionCandidatesSQL = `
-SELECT DISTINCT l.LFS_ID, K.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO, l.LFS_NAME, l.LFS_DATUM, L2.LF_SACHB
+SELECT DISTINCT l.LFS_ID, k.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO, l.LFS_NAME, l.LFS_DATUM, l.LF_SACHB
 FROM LIEFERSCHEIN_VIEW l
-         INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-         INNER JOIN LIEFER L2 ON lpo.LF_ID = L2.LF_ID
-         INNER JOIN KOSTST K on K.KST_ID = lpo.KST_ID
-WHERE lpo.KST_ID = ? AND l.LFS_STATUS = 42 AND COALESCE(l.LFS_RTS, 0) <> 1 AND l.LFS_BRUTTO > 0 
-      AND l2.LF_ID <> 90327
+         INNER JOIN KOSTST k on k.KST_ID = l.KST_ID
+WHERE l.KST_ID = ? AND l.LFS_STATUS = 42 AND COALESCE(l.LFS_RTS, 0) <> 1 AND l.LFS_BRUTTO > 0 
+      AND l.LF_ID <> 90327
 GROUP BY l.LFS_NAME
 ORDER BY l.LFS_NAME
 `

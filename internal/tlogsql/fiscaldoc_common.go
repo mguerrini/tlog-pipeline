@@ -68,11 +68,10 @@ func queryFiscalDocHeaderData(ctx context.Context, conn *sql.DB, h *common.Heade
 	//	artCAI, artTax, artIva, artIIBB := fiscalArtNRs(h.IsProduction)
 
 	const caiSQL = `
-		SELECT DISTINCT lpo.LFP_HACCPINFO, lpo.LFP_ABLAUFDT
+		SELECT DISTINCT l.LFP_HACCPINFO, l.LFP_ABLAUFDT
 		FROM LIEFERSCHEIN_VIEW l
-				 INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-		WHERE lpo.LFP_HACCPINFO is not null and lpo.LFP_ABLAUFDT is not null
-			AND l.RNG_NAME = ? AND lpo.ART_NR = 2207 AND l.LFS_STATUS = 42`
+		WHERE l.LFP_HACCPINFO is not null and l.LFP_ABLAUFDT is not null
+			AND l.RNG_NAME = ? AND l.ART_NR = 2207 AND l.LFS_STATUS = 42`
 	if row, err := selectOne(ctx, conn, caiSQL, rngName); err != nil {
 		return d, err
 	} else if row != nil {
@@ -88,54 +87,47 @@ func queryFiscalDocHeaderData(ctx context.Context, conn *sql.DB, h *common.Heade
 	d.ExemptAmount, err = querySum(ctx, conn, `
 		SELECT sum(l.LFP_EKP) AS val
 		FROM LIEFERSCHEIN_VIEW l
-				 INNER JOIN LIEFERPOS lpo ON l.LFS_ID = lpo.LFS_ID
-				 INNER JOIN ARTIKEL A ON A.ART_ID = lpo.ART_NR
-		WHERE l.RNG_NAME = ? AND l.LFS_STATUS = 42 AND a.ART_MWSTNR = 0 and l.ART_NR not in (2204, 2205,2206, 2207)`, rngName)
+		WHERE l.RNG_NAME = ? AND l.LFS_STATUS = 42 AND l.ART_MWSTNR = 0 and l.ART_NR not in (2204, 2205,2206, 2207, 2255, 2256)`, rngName)
 	if err != nil {
 		return d, err
 	}
 
 	d.TaxAmount, err = querySum(ctx, conn, `
-		SELECT sum (val) FROM  (
-		SELECT l.LFP_MENGE as val
-		FROM LIEFERSCHEIN_VIEW l
-		WHERE l.RNG_NAME = ? AND l.ART_NR = 2204 AND l.LFS_STATUS = 42)`, rngName)
+		SELECT sum(l.LFP_MENGE) as val
+     	FROM LIEFERSCHEIN_VIEW l
+     	WHERE l.RNG_NAME = ? AND l.ART_NR = 2204 AND l.LFS_STATUS = 42`, rngName)
 	if err != nil {
 		return d, err
 	}
 
 	d.VatAmount, err = querySum(ctx, conn, `
-		SELECT sum (val) FROM  (
-		SELECT l.LFP_MENGE as val
-		FROM LIEFERSCHEIN_VIEW l
-		WHERE  l.RNG_NAME = ? AND l.ART_NR = 2255 AND l.LFS_STATUS = 42)`, rngName)
+    	SELECT sum(l.LFP_MENGE) as val
+     	FROM LIEFERSCHEIN_VIEW l
+     	WHERE l.RNG_NAME = ? AND l.ART_NR = 2255 AND l.LFS_STATUS = 42`, rngName)
 	if err != nil {
 		return d, err
 	}
 
 	d.DifferentialIVAVatAMount, err = querySum(ctx, conn, `
-		SELECT sum (val) FROM  (
-		SELECT l.LFP_MENGE as val
-		FROM LIEFERSCHEIN_VIEW l
-		WHERE l.RNG_NAME = ? AND l.ART_NR = 2256 AND l.LFS_STATUS = 42)`, rngName)
+		SELECT sum(l.LFP_MENGE) as val 
+    	FROM LIEFERSCHEIN_VIEW l
+    	WHERE l.RNG_NAME = ? AND l.ART_NR = 2256 AND l.LFS_STATUS = 42`, rngName)
 	if err != nil {
 		return d, err
 	}
 
 	d.IvaTaxAmount, err = querySum(ctx, conn, `
-		SELECT sum (val) FROM  (
-		SELECT l.LFP_MENGE as val
-		FROM LIEFERSCHEIN_VIEW l
-		WHERE l.RNG_NAME = ? AND l.ART_NR = 2205 AND l.LFS_STATUS = 42)`, rngName)
+		SELECT sum(l.LFP_MENGE) as val
+     	FROM LIEFERSCHEIN_VIEW l
+     	WHERE l.RNG_NAME = ? AND l.ART_NR = 2205 AND l.LFS_STATUS = 42`, rngName)
 	if err != nil {
 		return d, err
 	}
 
 	d.IIBBTaxAmount, err = querySum(ctx, conn, `
-		SELECT sum (val) FROM  (
-		SELECT l.LFP_MENGE as val
-		FROM LIEFERSCHEIN_VIEW l
-		WHERE l.RNG_NAME = ? AND l.ART_NR = 2206 AND l.LFS_STATUS = 42)`, rngName)
+		SELECT sum(l.LFP_MENGE) as val 
+     	FROM LIEFERSCHEIN_VIEW l
+     	WHERE l.RNG_NAME = ? AND l.ART_NR = 2206 AND l.LFS_STATUS = 42`, rngName)
 	if err != nil {
 		return d, err
 	}
@@ -146,13 +138,12 @@ func queryFiscalDocHeaderData(ctx context.Context, conn *sql.DB, h *common.Heade
 func fiscalDocReceptionLines(ctx context.Context, conn *sql.DB, rngName string) ([]map[string]string, error) {
 	//	if isProd {
 	const linesSQL = `
-SELECT distinct lfp.ART_NR, lfp.LFS_ID, lfp.ART_NR, lfp.LFP_MENGE,
-                lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1, art.ART_NAME,
-                art.ART_NUMMER, art.ART_MWSTNR
-FROM LIEFERSCHEIN_VIEW lfp
-         LEFT JOIN ARTIKEL art ON art.ART_ID = lfp.ART_NR
-WHERE lfp.RNG_NAME = ? and lfp.ART_NR not in (2204, 2205,2206, 2207, 2255, 2256)
-ORDER BY lfp.ART_NR, lfp.LFS_ID;
+		SELECT distinct lfp.ART_NR, lfp.LFS_ID, lfp.ART_NR, lfp.LFP_MENGE,
+						lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1, lfp.ART_NAME,
+						lfp.ART_NUMMER, lfp.ART_MWSTNR
+		FROM LIEFERSCHEIN_VIEW lfp
+		WHERE lfp.RNG_NAME = ? and lfp.ART_NR not in (2204, 2205,2206, 2207, 2255, 2256)
+		ORDER BY lfp.ART_NR, lfp.LFS_ID;
 `
 
 	rows, err := queryRows(ctx, conn, linesSQL, rngName)
