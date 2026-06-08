@@ -203,12 +203,13 @@ func writeReturnDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum,
 }
 
 func writeReturnLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum string, detSeq int) {
-	menge, _ := db.AsFloat(line["LFP_MENGE"])
 	ekp, _ := db.AsFloat(line["LFP_EKP"])
 	brutto, _ := db.AsFloat(line["LFP_BRUTTO"])
+	mengege, _ := db.AsFloat(line["LFP_MENGEGE"])
+
 	var unitCost float64
-	if menge != 0 {
-		unitCost = math.Abs(ekp / menge)
+	if mengege != 0 {
+		unitCost = ekp / mengege
 	}
 
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
@@ -221,7 +222,7 @@ func writeReturnLine(x *common.XMLBuilder, line map[string]string, retailID, seq
 	x.Element("ItemBrand", returnItemBrand)
 	x.Element("ItemDescription", line["ART_NAME"])
 	x.Element("UnitBaseCostAmount", common.FormatDecimal4(unitCost))
-	x.Element("UnitCount", common.FormatDecimal4(menge)) // viaja con signo original
+	x.Element("UnitCount", common.FormatDecimal4(mengege)) // viaja con signo original
 	x.Element("DestinationLocation", returnDestLocation)
 	x.Element("SourceLocation", returnSourceLocation)
 	x.Element("CostTotalAmount", common.FormatDecimal4(brutto)) // signo original

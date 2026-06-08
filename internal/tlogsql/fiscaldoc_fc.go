@@ -231,10 +231,6 @@ func writeFCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum stri
 	x.Open("InventoryControlDocumentLineItems")
 	detSeq := 0
 	for _, line := range lines {
-		switch line["ART_NR"] {
-		case "1120", "1100", "1098", "1096":
-			continue
-		}
 		detSeq++
 		writeFCLine(x, line, retailID, seqNum, detSeq)
 	}
@@ -258,12 +254,13 @@ func writeFCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum stri
 }
 
 func writeFCLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum string, detSeq int) {
-	menge, _ := db.AsFloat(line["LFP_MENGE"])
+	mengege, _ := db.AsFloat(line["LFP_MENGEGE"])
 	ekp, _ := db.AsFloat(line["LFP_EKP"])
 	brutto, _ := db.AsFloat(line["LFP_BRUTTO"])
+
 	var unitCost float64
-	if menge != 0 {
-		unitCost = ekp / menge
+	if mengege != 0 {
+		unitCost = ekp / mengege
 	}
 
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
@@ -277,7 +274,7 @@ func writeFCLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum 
 	x.Element("ItemBrand", fcItemBrand)
 	x.Element("ItemDescription", line["ART_NAME"])
 	x.Element("UnitBaseCostAmount", common.FormatDecimal4(unitCost))
-	x.Element("UnitCount", common.FormatDecimal4(menge))
+	x.Element("UnitCount", common.FormatDecimal4(mengege))
 	x.Element("DestinationLocation", fcDestLocation)
 	x.Element("SourceLocation", fcSourceLocation)
 	x.Element("CostTotalAmount", common.FormatDecimal4(math.Abs(brutto)))

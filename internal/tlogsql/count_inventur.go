@@ -153,13 +153,15 @@ func writeCountInventurDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, 
 	x.EmptyElement("TotalAmount")
 
 	x.Open("InventoryControlDocumentLineItems")
+	allEqual := true
 	for i, line := range lines {
-		writeCountInventurLine(x, line, retailID, seqNum, i+1)
+		eq := writeCountInventurLine(x, line, retailID, seqNum, i+1)
+		allEqual = allEqual && eq
 	}
 	x.Close()
 	x.Open("inventoryControlDocumentReferences")
 	x.Open("inventoryControlDocumentReference")
-	if seqNum == "" || adjSeqNum == "" {
+	if seqNum == "" || adjSeqNum == "" || allEqual {
 		x.EmptyElement("SerialFormID")
 		x.EmptyElement("SerialFormIDTo")
 	} else {
@@ -189,12 +191,14 @@ func countInventurLines(ctx context.Context, conn *sql.DB, invID string) ([]map[
 	return rows, nil
 }
 
-func writeCountInventurLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum string, detSeq int) {
+func writeCountInventurLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum string, detSeq int) bool {
 	ist, _ := db.AsFloat(line["INP_IST"])
 	soll, _ := db.AsFloat(line["INP_SOLL"])
 	ekp, _ := db.AsFloat(line["INP_EKP"])
 	//	variance := ist - soll
 	//	costTotal := variance * ekp
+
+	eq := ist == soll
 
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
 	x.Element("RetailStoreID", retailID)
@@ -219,4 +223,6 @@ func writeCountInventurLine(x *common.XMLBuilder, line map[string]string, retail
 	x.EmptyElement("LastUpdateDate")
 	x.EmptyElement("DifBME_ASNTypeID")
 	x.Close()
+
+	return eq
 }

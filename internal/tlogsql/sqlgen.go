@@ -135,7 +135,7 @@ type Retail struct {
 }
 
 func AllRetails(ctx context.Context, conn *sql.DB) ([]Retail, error) {
-	rows, err := queryRows(ctx, conn, `SELECT KST_ID, KST_CODE FROM KOSTST ORDER BY KST_ID`)
+	rows, err := queryRows(ctx, conn, `SELECT KST_ID, KST_CODE FROM KOSTST WHERE KST_FIRMA = 0 ORDER BY KST_ID`)
 	if err != nil {
 		return nil, err
 	}

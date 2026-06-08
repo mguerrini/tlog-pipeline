@@ -225,12 +225,13 @@ func writeReceptionDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqN
 }
 
 func writeReceptionLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum string, detSeq int) {
-	menge, _ := db.AsFloat(line["LFP_MENGE"])
 	ekp, _ := db.AsFloat(line["LFP_EKP"])
 	brutto, _ := db.AsFloat(line["LFP_BRUTTO"])
+	mengege, _ := db.AsFloat(line["LFP_MENGEGE"])
+
 	var unitCost float64
-	if menge != 0 {
-		unitCost = ekp / menge
+	if mengege != 0 {
+		unitCost = ekp / mengege
 	}
 
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
@@ -243,7 +244,7 @@ func writeReceptionLine(x *common.XMLBuilder, line map[string]string, retailID, 
 	x.Element("ItemBrand", receptionItemBrand)
 	x.Element("ItemDescription", line["ART_NAME"])
 	x.Element("UnitBaseCostAmount", common.FormatDecimal4(unitCost))
-	x.Element("UnitCount", common.FormatDecimal4(menge))
+	x.Element("UnitCount", common.FormatDecimal4(mengege))
 	x.Element("DestinationLocation", receptionDestLocation)
 	x.Element("SourceLocation", receptionSourceLocation)
 	x.Element("CostTotalAmount", common.FormatDecimal4(math.Abs(brutto)))

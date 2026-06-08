@@ -248,12 +248,13 @@ func writeNCDoc(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqNum stri
 }
 
 func writeNCLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum string, detSeq int) {
-	menge, _ := db.AsFloat(line["LFP_MENGE"])
 	ekp, _ := db.AsFloat(line["LFP_EKP"])
 	brutto, _ := db.AsFloat(line["LFP_BRUTTO"])
+	mengege, _ := db.AsFloat(line["LFP_MENGEGE"])
+
 	var unitCost float64
-	if menge != 0 {
-		unitCost = ekp / menge
+	if mengege != 0 {
+		unitCost = ekp / mengege
 	}
 
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
@@ -266,7 +267,7 @@ func writeNCLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum 
 	x.Element("ItemBrand", ncItemBrand)
 	x.Element("ItemDescription", line["ART_NAME"])
 	x.Element("UnitBaseCostAmount", common.FormatDecimal4(unitCost))
-	x.Element("UnitCount", common.FormatDecimal4(menge)) // negativo
+	x.Element("UnitCount", common.FormatDecimal4(mengege)) // negativo
 	x.Element("DestinationLocation", ncDestLocation)
 	x.Element("SourceLocation", ncSourceLocation)
 	x.Element("CostTotalAmount", common.FormatDecimal4(brutto)) // negativo
