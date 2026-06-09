@@ -65,10 +65,10 @@ func (g *GeneratorContext) AddItemUnitCount(itemCode string, count float64) {
 		if currVal, ok := g.AdjustmentIn[itemCode]; ok {
 			currVal += count
 			g.AdjustmentIn[itemCode] = currVal
-			//				println(fmt.Sprintf("************** AdjustmentIn - item code: %s, count: %v, total: %v", itemCode, count, currVal))
+			//			println(fmt.Sprintf("************** AdjustmentIn - item code: %s, count: %v, total: %v", itemCode, count, currVal))
 		} else {
 			g.AdjustmentIn[itemCode] = count
-			//				println(fmt.Sprintf("************** AdjustmentIn - item code: %s, count: %v, total: %v", itemCode, count, count))
+			//			println(fmt.Sprintf("************** AdjustmentIn - item code: %s, count: %v, total: %v", itemCode, count, count))
 		}
 	} else {
 		absCount := math.Abs(count)

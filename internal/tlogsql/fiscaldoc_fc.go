@@ -274,7 +274,7 @@ func writeFCLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum 
 
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
 	x.Element("Item", line["ART_NUMMER"])
-	x.Element("UomUnits", common.FormatDecimal4(float64(db.MustAsInt(line["VPK_ID1"]))))
+	x.Element("UomUnits", "1")
 	x.Element("ItemBrand", fcItemBrand)
 	x.Element("ItemDescription", line["ART_NAME"])
 	x.Element("UnitBaseCostAmount", common.FormatDecimal4(unitCost))

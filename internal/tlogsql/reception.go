@@ -128,15 +128,15 @@ func (ReceptionGenerator) Generate(ctx context.Context, genCtx *GeneratorContext
 // usarlo en writeReceptionLine.
 func receptionLines(ctx context.Context, conn *sql.DB, lfsID string) ([]map[string]string, error) {
 	const linesSQL = `
-SELECT distinct lfp.ART_NR, lfp.LFS_ID, lfp.LFP_POS, lfp.ART_NR, lfp.LFP_MENGE, lfp.LFP_MENGEGE,
+	SELECT DISTINCT lfp.ART_NR, lfp.LFS_ID, lfp.ART_NR, lfp.LFP_MENGE, lfp.LFP_MENGEGE,
                 lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1,
                 lfp.LFP_HACCPINFO, lfp.LFP_ABLAUFDT,
-                art.ART_NAME, art.ART_NUMMER,
-                art.ART_MWSTNR
-FROM LIEFERPOS lfp
-         LEFT JOIN ARTIKEL art ON art.ART_ID = lfp.ART_NR
-WHERE lfp.LFS_ID = ? and lfp.ART_NR not in (2204, 2205,2206, 2207,2255,2256)
-ORDER BY lfp.LFP_POS`
+                lfp.ART_NAME, lfp.ART_NUMMER,
+                lfp.ART_MWSTNR
+	FROM LIEFERSCHEIN_VIEW lfp
+	WHERE lfp.LFS_ID = ? and lfp.ART_NR not in (2204, 2205,2206, 2207,2255,2256)
+	ORDER BY lfp.LFS_NAME`
+
 	rows, err := queryRows(ctx, conn, linesSQL, lfsID)
 	if err != nil {
 		return nil, fmt.Errorf("reception lineas LFS=%s: %w", lfsID, err)
@@ -244,7 +244,7 @@ func writeReceptionLine(x *common.XMLBuilder, line map[string]string, retailID, 
 	x.Element("SequenceNumber", seqNum)
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
 	x.Element("Item", line["ART_NUMMER"])
-	x.Element("UomUnits", common.FormatDecimal4(float64(db.MustAsInt(line["VPK_ID1"]))))
+	x.Element("UomUnits", "1")
 	x.Element("ItemBrand", receptionItemBrand)
 	x.Element("ItemDescription", line["ART_NAME"])
 	x.Element("UnitBaseCostAmount", common.FormatDecimal4(unitCost))
@@ -261,17 +261,4 @@ func writeReceptionLine(x *common.XMLBuilder, line map[string]string, retailID, 
 	x.EmptyElement("LastUpdateDate")
 	x.EmptyElement("DifBME_ASNTypeID")
 	x.Close()
-}
-
-func mapLFSStatusReception(s string) string {
-	v, _ := db.AsInt(s)
-	if v == 42 {
-		return "4"
-	}
-
-	if v == 37 {
-		return "7"
-	}
-
-	return ""
 }
