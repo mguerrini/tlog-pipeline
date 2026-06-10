@@ -266,7 +266,7 @@ func writeNCLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum 
 	x.Element("WorkstationID", ncWorkstationID)
 	x.Element("SequenceNumber", seqNum)
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
-	x.Element("Item", line["ART_NR"])
+	x.Element("Item", line["ART_NUMMER"])
 	x.Element("UomUnits", "1")
 	x.Element("ItemBrand", ncItemBrand)
 	x.Element("ItemDescription", line["ART_NAME"])

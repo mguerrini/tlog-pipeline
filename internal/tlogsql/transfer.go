@@ -230,7 +230,7 @@ func writeTransferLine(x *common.XMLBuilder, line map[string]string, retailID, s
 	x.Element("WorkstationID", "0")
 	x.Element("SequenceNumber", seqNum)
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
-	x.Element("Item", line["ART_NR"])
+	x.Element("Item", line["ART_NUMMER"])
 	x.Element("UomUnits", common.FormatDecimal4(float64(db.MustAsInt(line["VPK_ID"]))))
 	x.Element("ItemBrand", "0")
 	x.Element("ItemDescription", line["ART_NAME"])
