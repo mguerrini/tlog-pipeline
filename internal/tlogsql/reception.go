@@ -132,8 +132,9 @@ func receptionLines(ctx context.Context, conn *sql.DB, lfsID string) ([]map[stri
                 lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1,
                 lfp.LFP_HACCPINFO, lfp.LFP_ABLAUFDT,
                 lfp.ART_NAME, lfp.ART_NUMMER,
-                lfp.ART_MWSTNR
+                lfp.ART_MWSTNR, AIC.ITEM_CODE
 	FROM LIEFERSCHEIN_VIEW lfp
+			 INNER JOIN ART_ITEM_CODE AIC on lfp.ART_NUMMER = AIC.ART_NUMMER
 	WHERE lfp.LFS_ID = ? and lfp.ART_NR not in (2204, 2205,2206, 2207,2255,2256)
 	ORDER BY lfp.LFS_NAME`
 
@@ -243,7 +244,7 @@ func writeReceptionLine(x *common.XMLBuilder, line map[string]string, retailID, 
 	x.Element("WorkstationID", receptionWorkstationID)
 	x.Element("SequenceNumber", seqNum)
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
-	x.Element("Item", line["ART_NUMMER"])
+	x.Element("Item", line["ITEM_CODE"])
 	x.Element("UomUnits", "1")
 	x.Element("ItemBrand", receptionItemBrand)
 	x.Element("ItemDescription", line["ART_NAME"])

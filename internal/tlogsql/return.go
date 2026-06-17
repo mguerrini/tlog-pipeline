@@ -42,9 +42,10 @@ func (ReturnGenerator) Type() naming.TLOGType { return naming.TLOGReturn }
 
 const returnCandidatesSQL = `
 SELECT DISTINCT l.LFS_ID, k.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO, l.LFS_NAME, l.LFS_DATUM,
-                l.LFS_NETTO, l.LFS_MWST, l.LF_SACHB
+                l.LFS_NETTO, l.LFS_MWST, l.LF_SACHB, AIC.ITEM_CODE
 FROM LIEFERSCHEIN_VIEW l
          INNER JOIN KOSTST K ON l.KST_ID = k.KST_ID
+		 INNER JOIN ART_ITEM_CODE AIC on l.ART_NUMMER = AIC.ART_NUMMER
 WHERE l.KST_ID = ? AND l.LFS_STATUS = 42 AND COALESCE(l.LFS_RTS, 0) = 1 AND l.LFS_BRUTTO < 0
 GROUP BY l.LFS_NAME
 ORDER BY l.LFS_NAME;
@@ -221,7 +222,7 @@ func writeReturnLine(x *common.XMLBuilder, line map[string]string, retailID, seq
 	x.Element("WorkstationID", returnWorkstationID)
 	x.Element("SequenceNumber", seqNum)
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
-	x.Element("Item", line["ART_NUMMER"])
+	x.Element("Item", line["ITEM_CODE"])
 	x.Element("UomUnits", "1")
 	x.Element("ItemBrand", returnItemBrand)
 	x.Element("ItemDescription", line["ART_NAME"])

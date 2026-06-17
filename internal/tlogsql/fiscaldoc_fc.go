@@ -273,7 +273,7 @@ func writeFCLine(x *common.XMLBuilder, line map[string]string, retailID, seqNum 
 	x.Element("SequenceNumber", seqNum)
 
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
-	x.Element("Item", line["ART_NUMMER"])
+	x.Element("Item", line["ITEM_CODE"])
 	x.Element("UomUnits", "1")
 	x.Element("ItemBrand", fcItemBrand)
 	x.Element("ItemDescription", line["ART_NAME"])

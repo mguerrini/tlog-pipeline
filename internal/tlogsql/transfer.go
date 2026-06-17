@@ -121,12 +121,14 @@ func transferLines(ctx context.Context, conn *sql.DB, lbwID string) ([]map[strin
 	const linesSQL = `
 SELECT lbp.LBW_ID, lbp.LBP_POS, lbp.ART_NR, lbp.VPK_ID,
        lbp.LBP_MENGEGE, lbp.LBP_ESP, art.ART_NAME, art.ART_NUMMER, 
-       lbw.KST_ID, lbw.KST_ID1, KST.KST_CODE, KST1.KST_CODE AS KST_CODE1
+       lbw.KST_ID, lbw.KST_ID1, KST.KST_CODE, KST1.KST_CODE AS KST_CODE1,
+       aic.ITEM_CODE 
 FROM HIS_LAGBEWPOS lbp
     INNER JOIN HIS_LAGERBEW lbw ON lbw.LBW_ID = lbp.LBW_ID
     INNER JOIN KOSTST kst  ON kst.KST_ID  = lbw.KST_ID
     INNER JOIN KOSTST kst1 ON kst1.KST_ID = lbw.KST_ID1
-    LEFT JOIN ARTIKEL art ON art.ART_ID = lbp.ART_NR
+    INNER JOIN ARTIKEL art ON art.ART_ID = lbp.ART_NR
+	INNER JOIN ART_ITEM_CODE aic on art.ART_NUMMER = aic.ART_NUMMER
 WHERE lbp.LBW_ID = ?
 ORDER BY lbp.LBP_POS`
 	rows, err := queryRows(ctx, conn, linesSQL, lbwID)
@@ -230,7 +232,7 @@ func writeTransferLine(x *common.XMLBuilder, line map[string]string, retailID, s
 	x.Element("WorkstationID", "0")
 	x.Element("SequenceNumber", seqNum)
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
-	x.Element("Item", line["ART_NUMMER"])
+	x.Element("Item", line["ITEM_CODE"])
 	x.Element("UomUnits", common.FormatDecimal4(float64(db.MustAsInt(line["VPK_ID"]))))
 	x.Element("ItemBrand", "0")
 	x.Element("ItemDescription", line["ART_NAME"])

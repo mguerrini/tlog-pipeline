@@ -105,9 +105,12 @@ func adjustmentLines(ctx context.Context, conn *sql.DB, invID string) ([]map[str
 	const linesSQL = `
 		SELECT distinct inv.INV_ID, inv.ART_ID, inv.VPK_ID, inv.INP_IST, inv.INP_SOLL,
 			   inv.INP_EKP, inv.INP_VKP, 
-			   art.ART_NUMMER, art.ART_NAME, art.ART_NR, art.CHG_ZEIT
+			   art.ART_NUMMER, art.ART_NAME, art.ART_NR, art.CHG_ZEIT,
+			   aic.ITEM_CODE
 		FROM INVPOSART inv
-				 LEFT JOIN ARTIKEL art ON art.ART_ID = inv.ART_ID
+    		INNER JOIN ARTIKEL art ON art.ART_ID = inv.ART_ID
+			INNER JOIN ART_ITEM_CODE aic ON aic.ART_NUMMER = art.ART_NUMMER
+		
 		WHERE inv.INV_ID = ? AND inv.INP_SOLL - INV.INP_IST <> 0
 		ORDER BY inv.ART_ID
 		`
@@ -203,7 +206,7 @@ func writeAdjustmentLine(x *common.XMLBuilder, genCtx *GeneratorContext, line ma
 	ekp, _ := db.AsFloat(line["INP_EKP"])
 	costTotal := variance * ekp
 
-	itemCode := line["ART_NUMMER"]
+	itemCode := line["ITEM_CODE"]
 	genCtx.AddItemUnitCount(itemCode, variance)
 
 	// El generator in-memory original usa artRow["ART_NR"], pero ART_NR no

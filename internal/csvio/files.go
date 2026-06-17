@@ -26,7 +26,8 @@ var TableMapping = map[string]string{
 	"Dailytotals":      "DAILYTOTALS",
 	"ypf.lieferschein-1": "LIEFERSCHEIN_VIEW",
 	"His_lagerbew":       "HIS_LAGERBEW",
-	"His_lagbewpos":     "HIS_LAGBEWPOS",
+	"His_lagbewpos":      "HIS_LAGBEWPOS",
+	"Art_ItemCode":        "ART_ITEM_CODE",
 }
 
 // LoadOrder define el orden de carga respetando dependencias FK lógicas.
@@ -48,6 +49,7 @@ var LoadOrder = []string{
 	"LIEFERSCHEIN_VIEW",
 	"HIS_LAGERBEW",
 	"HIS_LAGBEWPOS",
+	"ART_ITEM_CODE",
 }
 
 // PatternToTable convierte un patrón de expected_files (ej. "Kostst_*.csv") al
@@ -68,6 +70,8 @@ func PatternToTable(pattern string) string {
 		prefix = "His_lagbewpos"
 	} else if strings.HasPrefix(pattern, "His_lagerbew") {
 		prefix = "His_lagerbew"
+	} else if strings.HasPrefix(pattern, "Art_ItemCode") {
+		prefix = "Art_ItemCode"
 	}
 	return TableMapping[prefix]
 }
@@ -109,6 +113,8 @@ func FindFiles(dir string) (map[string]string, error) {
 			prefix = "His_lagbewpos"
 		} else if strings.HasPrefix(name, "His_lagerbew_") {
 			prefix = "His_lagerbew"
+		} else if strings.HasPrefix(name, "Art_ItemCode_") {
+			prefix = "Art_ItemCode"
 		}
 		table, ok := TableMapping[prefix]
 		if !ok {

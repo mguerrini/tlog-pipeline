@@ -182,9 +182,11 @@ func countInventurLines(ctx context.Context, conn *sql.DB, invID string) ([]map[
 	const linesSQL = `
 		SELECT distinct inv.INV_ID, inv.ART_ID, inv.VPK_ID, inv.INP_IST, inv.INP_SOLL,
 			   inv.INP_EKP, inv.INP_VKP, 
-			   art.ART_NUMMER, art.ART_NAME, art.ART_NR, art.CHG_ZEIT
+			   art.ART_NUMMER, art.ART_NAME, art.ART_NR, art.CHG_ZEIT,
+			   aic.ITEM_CODE
 		FROM INVPOSART inv
-				 LEFT JOIN ARTIKEL art ON art.ART_ID = inv.ART_ID
+    		INNER JOIN ARTIKEL art ON art.ART_ID = inv.ART_ID
+			INNER JOIN ART_ITEM_CODE aic on art.ART_NUMMER = aic.ART_NUMMER		
 		WHERE inv.INV_ID = ? 
 		ORDER BY inv.ART_ID
 		`
@@ -209,7 +211,7 @@ func writeCountInventurLine(x *common.XMLBuilder, line map[string]string, retail
 	x.Element("WorkstationID", "0")
 	x.Element("SequenceNumber", seqNum)
 	x.Element("DetSequenceNumber", fmt.Sprintf("%d", detSeq))
-	x.Element("Item", line["ART_NUMMER"])
+	x.Element("Item", line["ITEM_CODE"])
 	x.Element("UomUnits", common.FormatDecimal4(float64(db.MustAsInt(line["VPK_ID"]))))
 	x.EmptyElement("ItemBrand")
 	x.Element("ItemDescription", line["ART_NAME"])

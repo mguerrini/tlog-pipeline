@@ -166,6 +166,7 @@ func allSchemas() []*tableSchema {
 		lieferscheinView(),
 		hisLagerbew(),
 		hisLagbewpos(),
+		artItemCode(),
 	}
 }
 
@@ -762,6 +763,19 @@ func hisLagbewpos() *tableSchema {
 		cols: []colDef{
 			i("LBW_ID"), i("LBP_POS"), i("ART_NR"), i("VPK_ID"),
 			r("LBP_MENGEGE"), r("LBP_ESP"),
+		},
+	}
+}
+
+// ── ART_ITEM_CODE ──────────────────────────────────────────────────────────
+func artItemCode() *tableSchema {
+	return &tableSchema{
+		sqliteName: "ART_ITEM_CODE",
+		csvName:    "Art_ItemCode",
+		pk:         []string{"ART_NUMMER"},
+		notNull:    []string{"ART_NUMMER"},
+		cols: []colDef{
+			t("ART_NAME"), i("ART_NUMMER"), i("ITEM_CODE"),
 		},
 	}
 }

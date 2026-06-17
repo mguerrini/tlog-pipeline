@@ -45,9 +45,10 @@ SELECT dt.KST_ID, dt.ART_ID, dt.DAY_DATE,
        dt.DAY_SOHBEG, dt.DAY_SOHEND, dt.DAY_SOHINV,
        dt.DAY_QTYPURCH, dt.DAY_QTYTRSFIN, dt.DAY_QTYTRSFOUT,
        dt.DAY_QTYUSAGE, dt.DAY_QTYSOLD, dt.DAY_QTYINV,
-       art.ART_NUMMER, art.ART_NAME
+       art.ART_NUMMER, art.ART_NAME, aic.ITEM_CODE
 FROM DAILYTOTALS dt
-	LEFT JOIN ARTIKEL art ON art.ART_ID = dt.ART_ID
+	INNER JOIN ARTIKEL art ON art.ART_ID = dt.ART_ID
+	INNER JOIN ART_ITEM_CODE aic on art.ART_NUMMER = aic.ART_NUMMER		
 WHERE dt.KST_ID = ? and dt.ART_ID  not in (2204, 2205, 2206, 2207, 2255,2256)
 ORDER BY dt.ART_ID`
 	items, err := queryRows(ctx, conn, itemsSQL, kstID)
@@ -107,9 +108,9 @@ func writeCierreHeader(x *common.XMLBuilder, h *common.HeaderCtx, retailID, seqN
 }
 
 func writeCierreItem(x *common.XMLBuilder, genCtx *GeneratorContext, row map[string]string, locationCode string, itemSeq int) {
-	artNummer := row["ART_NUMMER"]
-	if artNummer == "" {
-		artNummer = row["ART_ID"] // fallback
+	itemCode := row["ITEM_CODE"]
+	if itemCode == "" {
+		itemCode = row["ART_ID"] // fallback
 	}
 
 	sohBeg, _ := db.AsFloat(row["DAY_SOHBEG"])
@@ -124,8 +125,8 @@ func writeCierreItem(x *common.XMLBuilder, genCtx *GeneratorContext, row map[str
 	qtyTrsfOut, _ := db.AsFloat(row["DAY_QTYTRSFOUT"])
 	qtyTrsfOut = math.Abs(qtyTrsfOut)
 
-	adjIn := genCtx.GetAdjustmentUnitCountIn(artNummer)
-	adjOut := genCtx.GetAdjustmentUnitCountOut(artNummer)
+	adjIn := genCtx.GetAdjustmentUnitCountIn(itemCode)
+	adjOut := genCtx.GetAdjustmentUnitCountOut(itemCode)
 
 	x.Open("Item")
 	x.Element("STOCK_SEQ_NUMBER", cierreStockSeqNumber)
@@ -133,7 +134,7 @@ func writeCierreItem(x *common.XMLBuilder, genCtx *GeneratorContext, row map[str
 	x.Element("REVENUE_CENTER", cierreRevenueCenter)
 	x.Element("ITEM_INVENTORY_STATE", cierreItemInventoryState)
 	x.Element("ITEM_SEQ_NUMBER", fmt.Sprintf("%d", itemSeq))
-	x.Element("ITEM_CODE", artNummer)
+	x.Element("ITEM_CODE", itemCode)
 	x.Element("BEGIN_UNIT_COUNT", common.FormatDecimal4(sohBeg))
 	x.Element("GROSS_SALE_UNIT_COUNT", common.FormatDecimal4(math.Abs(qtySold)))
 	x.Element("RETURN_UNIT_COUNT", common.FormatDecimal4(0))

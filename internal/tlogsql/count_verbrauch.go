@@ -106,9 +106,10 @@ func (CountVerbrauchGenerator) Generate(ctx context.Context, genCtx *GeneratorCo
 func conutHisVerbrauchposLines(ctx context.Context, conn *sql.DB, vbrID string) ([]map[string]string, error) {
 	const linesSQL = `
 SELECT p.VBR_ID, p.VBT_POS, p.ART_NR, p.VBT_MENGE, p.VBT_WES, p.VPK_NR,
-       a.ART_NUMMER, a.ART_NAME
+       a.ART_NUMMER, a.ART_NAME, aic.ITEM_CODE
 FROM HIS_VERBRAUCHPOS p
-    LEFT JOIN ARTIKEL a ON a.ART_ID = p.ART_NR
+    INNER JOIN ARTIKEL a ON a.ART_ID = p.ART_NR
+	INNER JOIN ART_ITEM_CODE aic on a.ART_NUMMER = aic.ART_NUMMER
 WHERE p.VBR_ID = ?
 ORDER BY p.VBT_POS`
 	rows, err := queryRows(ctx, conn, linesSQL, vbrID)
@@ -221,7 +222,7 @@ func writeCountLine(x *common.XMLBuilder, line map[string]string, retailID, seqN
 	x.Element("WorkstationID", "0")
 	x.Element("SequenceNumber", seqNum)
 	x.Element("DetSequenceNumber", line["VBT_POS"])
-	x.Element("Item", line["ART_NUMMER"])
+	x.Element("Item", line["ITEM_CODE"])
 	x.Element("UomUnits", common.FormatDecimal4(float64(db.MustAsInt(line["VPK_NR"]))))
 	x.EmptyElement("ItemBrand")
 	x.Element("ItemDescription", line["ART_NAME"])

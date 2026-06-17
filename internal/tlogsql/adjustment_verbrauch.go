@@ -105,9 +105,10 @@ func (AdjustmentVerbrauchGenerator) Generate(ctx context.Context, genCtx *Genera
 func adjustmentVerbrauchposLines(ctx context.Context, conn *sql.DB, vbrID string) ([]map[string]string, error) {
 	const linesSQL = `
 SELECT p.VBR_ID, p.VBT_POS, p.ART_NR, p.VBT_MENGE, p.VBT_WES, p.VPK_NR,
-       a.ART_NUMMER, a.ART_NAME
+       a.ART_NUMMER, a.ART_NAME, aic.ITEM_CODE
 FROM HIS_VERBRAUCHPOS p
-    LEFT JOIN ARTIKEL a ON a.ART_ID = p.ART_NR
+    INNER JOIN ARTIKEL a ON a.ART_ID = p.ART_NR
+	INNER JOIN ART_ITEM_CODE aic on a.ART_NUMMER = aic.ART_NUMMER		
 WHERE p.VBR_ID = ?
 ORDER BY p.VBT_POS`
 	rows, err := queryRows(ctx, conn, linesSQL, vbrID)
@@ -213,7 +214,7 @@ func writeAdjVerbrauchLine(x *common.XMLBuilder, genCtx *GeneratorContext, line 
 	costTotalAmount := wes * menge
 	costTotalAmount = -costTotalAmount
 
-	itemCode := line["ART_NUMMER"]
+	itemCode := line["ITEM_CODE"]
 	genCtx.AddItemUnitCount(itemCode, menge)
 
 	x.Open("inventoryControlDocumentMerchandiseLineItem")

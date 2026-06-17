@@ -140,8 +140,9 @@ func fiscalDocReceptionLines(ctx context.Context, conn *sql.DB, rngName string) 
 	const linesSQL = `
 		SELECT distinct lfp.ART_NR, lfp.LFS_ID, lfp.ART_NR, lfp.LFP_MENGE, lfp.LFP_MENGEGE,
 						lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1, lfp.ART_NAME,
-						lfp.ART_NUMMER, lfp.ART_MWSTNR
+						lfp.ART_NUMMER, lfp.ART_MWSTNR, AIC.ITEM_CODE
 		FROM LIEFERSCHEIN_VIEW lfp
+			 INNER JOIN ART_ITEM_CODE AIC on lfp.ART_NUMMER = AIC.ART_NUMMER
 		WHERE lfp.RNG_NAME = ? and lfp.ART_NR not in (2204, 2205,2206, 2207, 2255, 2256)
 		ORDER BY lfp.ART_NR, lfp.LFS_ID;
 `
