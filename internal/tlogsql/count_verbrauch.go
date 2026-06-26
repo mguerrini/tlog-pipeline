@@ -227,7 +227,7 @@ func writeCountLine(x *common.XMLBuilder, line map[string]string, retailID, seqN
 	x.EmptyElement("ItemBrand")
 	x.Element("ItemDescription", line["ART_NAME"])
 	x.Element("UnitBaseCostAmount", common.FormatDecimal4(wes))
-	x.Element("UnitCount", common.FormatDecimal4(menge))
+	x.Element("UnitCount", common.FormatDecimal4(-menge))
 	x.Element("DestinationLocation", "DEP1_OS")
 	x.Element("SourceLocation", "DEP1_OS")
 	x.Element("CostTotalAmount", common.FormatDecimal4(costTotalAmount))

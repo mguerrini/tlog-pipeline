@@ -215,7 +215,8 @@ func writeAdjVerbrauchLine(x *common.XMLBuilder, genCtx *GeneratorContext, line 
 	costTotalAmount = -costTotalAmount
 
 	itemCode := line["ITEM_CODE"]
-	genCtx.AddItemUnitCount(itemCode, menge)
+	unitCount := -menge
+	genCtx.AddItemUnitCount(itemCode, unitCount)
 
 	x.Open("inventoryControlDocumentMerchandiseLineItem")
 	x.Element("RetailStoreID", retailID)
@@ -227,7 +228,7 @@ func writeAdjVerbrauchLine(x *common.XMLBuilder, genCtx *GeneratorContext, line 
 	x.EmptyElement("ItemBrand")
 	x.Element("ItemDescription", line["ART_NAME"])
 	x.Element("UnitBaseCostAmount", common.FormatDecimal4(wes))
-	x.Element("UnitCount", common.FormatDecimal4(-menge))
+	x.Element("UnitCount", common.FormatDecimal4(unitCount))
 	x.Element("DestinationLocation", "DEP1_OS")
 	x.Element("SourceLocation", "DEP1_OS")
 	x.Element("CostTotalAmount", common.FormatDecimal4(costTotalAmount))
