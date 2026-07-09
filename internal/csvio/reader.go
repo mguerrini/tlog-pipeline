@@ -60,7 +60,8 @@ func Read(path, sep string) ([]string, []map[string]string, error) {
 		row := make(map[string]string, len(header))
 		for i, h := range header {
 			if i < len(rec) {
-				row[h] = strings.TrimSuffix(rec[i], "\r")
+				v := strings.TrimSuffix(rec[i], "\r")
+				row[h] = strings.Trim(v, "\"")
 			} else {
 				row[h] = ""
 			}

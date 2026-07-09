@@ -24,7 +24,7 @@ var TableMapping = map[string]string{
 	"His_verbrauch":    "HIS_VERBRAUCH",
 	"His_Verbrauchpos": "HIS_VERBRAUCHPOS",
 	"Dailytotals":      "DAILYTOTALS",
-	"ypf.lieferschein-1": "LIEFERSCHEIN_VIEW",
+	"Lieferschein-1": "LIEFERSCHEIN_VIEW",
 	"His_lagerbew":       "HIS_LAGERBEW",
 	"His_lagbewpos":      "HIS_LAGBEWPOS",
 	"Art_ItemCode":        "ART_ITEM_CODE",

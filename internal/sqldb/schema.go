@@ -716,7 +716,7 @@ func rechlfs() *tableSchema {
 func lieferscheinView() *tableSchema {
 	return &tableSchema{
 		sqliteName: "LIEFERSCHEIN_VIEW",
-		csvName:    "ypf.lieferschein-1",
+		csvName:    "Lieferschein-1",
 		optional:   true,
 		cols: []colDef{
 			t("RNG_NAME"), i("RNG_COD"), t("RNG_DATUM"),

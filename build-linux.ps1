@@ -8,7 +8,7 @@
 #   .\build-linux.ps1 -Version 2.10.0 -Output tlog-gen-linux
 
 param(
-    [string]$Version = "2.10.0",
+    [string]$Version = "7.0.0",
     [string]$Output  = "tlog-gen"
 )
 

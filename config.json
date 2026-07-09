@@ -61,7 +61,7 @@
       "Warengruppe_*.csv",
       "Vpckeinh_*.csv",
       "Artikel_*.csv",
-      "ypf.lieferschein-1_*.csv",
+      "Lieferschein-1_*.csv",
       "Lieferpos_*.csv",
       "Inventur_*.csv",
       "Invposart_*.csv",
