@@ -171,6 +171,8 @@ type FTPDownload struct {
 	// AAAA-MM-DD) y se bajan a local_folders.source_root/AAAAMMDD/ — el formato
 	// AAAA-MM-DD se normaliza a AAAAMMDD al crear la carpeta local.
 	SplitByDate bool `json:"split_by_date"`
+	RetryCount  int  `json:"retry_count"`
+	RetrySleep  int  `json:"retry_sleep"`
 }
 
 type SplitByDate struct {
@@ -197,7 +199,10 @@ type CreateXML struct {
 }
 
 type FTPUpload struct {
-	Enabled bool `json:"enabled"`
+	Enabled     bool `json:"enabled"`
+	SplitByDate bool `json:"split_by_date"`
+	RetryCount  int  `json:"retry_count"`
+	RetrySleep  int  `json:"retry_sleep"`
 }
 
 type LocalClean struct {
@@ -207,10 +212,10 @@ type LocalClean struct {
 }
 
 type FTPEnd struct {
-	Enabled bool `json:"enabled"`
-	// DeleteLocalSource: si true, una vez que ftp_end completó el archivado
-	// remoto borra también la carpeta local target_root/AAAAMMDD entera.
+	Enabled           bool `json:"enabled"`
 	DeleteLocalSource bool `json:"delete_local_source"`
+	RetryCount        int  `json:"retry_count"`
+	RetrySleep        int  `json:"retry_sleep"`
 }
 
 // Config es el modelo completo de config.json.

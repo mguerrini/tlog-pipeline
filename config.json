@@ -21,9 +21,9 @@
     "pass": "@7xoDPllZq0rn7"
   },
   "ftp_folders": {
-    "source_root": "/SFTPYPF/YPF_Breakpoint_TLOG_Test/Input",
-    "finished_root": "/SFTPYPF/YPF_Breakpoint_TLOG_Test/Finished",
-    "target_root": "/SFTPYPF/YPF_Breakpoint_TLOG_Test/Uploaded"
+    "source_root": "/SFTPYPF/Test-IMDataDum",
+    "finished_root": "/SFTPYPF/Finished-IMDataDum",
+    "target_root": "/SFTPYPF/Test-TLOGSIM/Provisorio"
   },
   "local_folders": {
     "all": "./appdata/all",
@@ -47,8 +47,10 @@
     "sql_db_load": false
   },
   "ftp_download": {
-    "enabled": false,
-    "split_by_date": true
+    "enabled": true,
+    "split_by_date": false,
+    "retry_count": 3,
+    "retry_sleep": 2000
   },
   "split_by_date": {
     "enabled": true
@@ -84,11 +86,16 @@
     "enabled": true
   },
   "ftp_upload": {
-    "enabled": false
+    "enabled": true,
+    "split_by_date": false,
+    "retry_count": 3,
+    "retry_sleep": 2000
   },
   "ftp_end": {
-    "enabled": false,
-    "delete_local_source": true
+    "enabled": true,
+    "delete_local_source": true,
+    "retry_count": 3,
+    "retry_sleep": 2000
   },
   "local_clean": {
     "enabled": true,

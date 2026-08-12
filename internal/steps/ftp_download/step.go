@@ -96,10 +96,13 @@ func Download(ctx context.Context, cfg *config.Config, log *slog.Logger) error {
 		log.Info("ftp_download: remoto resuelto", "configurado", remoteDir, "real", resolved)
 	}
 
+	retryCount := cfg.FTPDownload.RetryCount
+	retrySleep := time.Duration(cfg.FTPDownload.RetrySleep) * time.Millisecond
+
 	if cfg.FTPDownload.SplitByDate {
-		return downloadByDate(ctx, client, resolved, cfg.LocalFolders.SourceRoot, log)
+		return downloadByDate(ctx, client, resolved, cfg.LocalFolders.SourceRoot, retryCount, retrySleep, log)
 	}
-	return downloadFlat(ctx, client, resolved, cfg.LocalFolders.All, log)
+	return downloadFlat(ctx, client, resolved, cfg.LocalFolders.All, retryCount, retrySleep, log)
 }
 
 // resolveCaseInsensitive resuelve un path SFTP tolerando diferencias de
@@ -196,7 +199,7 @@ func resolveCaseInsensitive(c *sftp.Client, p string) (string, error) {
 
 // downloadFlat copia los archivos sueltos del nivel superior de remoteDir a
 // localDir (sin recurrir en sub-carpetas).
-func downloadFlat(ctx context.Context, client *sftp.Client, remoteDir, localDir string, log *slog.Logger) error {
+func downloadFlat(ctx context.Context, client *sftp.Client, remoteDir, localDir string, retryCount int, retrySleep time.Duration, log *slog.Logger) error {
 	if localDir == "" {
 		return fmt.Errorf("destino local vacío (local_folders.all)")
 	}
@@ -220,7 +223,7 @@ func downloadFlat(ctx context.Context, client *sftp.Client, remoteDir, localDir 
 		}
 		remotePath := path.Join(remoteDir, e.Name())
 		localPath := filepath.Join(localDir, e.Name())
-		n, err := downloadFile(client, remotePath, localPath)
+		n, err := downloadWithRetry(client, remotePath, localPath, retryCount, retrySleep, log)
 		if err != nil {
 			return fmt.Errorf("descargar %s: %w", remotePath, err)
 		}
@@ -236,7 +239,7 @@ func downloadFlat(ctx context.Context, client *sftp.Client, remoteDir, localDir 
 // downloadByDate baja cada subcarpeta de remoteDir cuyo nombre sea una fecha
 // AAAAMMDD o AAAA-MM-DD a localRoot/AAAAMMDD/. Subcarpetas con otros nombres
 // se ignoran; archivos sueltos en el nivel superior también.
-func downloadByDate(ctx context.Context, client *sftp.Client, remoteDir, localRoot string, log *slog.Logger) error {
+func downloadByDate(ctx context.Context, client *sftp.Client, remoteDir, localRoot string, retryCount int, retrySleep time.Duration, log *slog.Logger) error {
 	if localRoot == "" {
 		return fmt.Errorf("destino local vacío (local_folders.source_root)")
 	}
@@ -283,7 +286,7 @@ func downloadByDate(ctx context.Context, client *sftp.Client, remoteDir, localRo
 			}
 			remotePath := path.Join(remoteDay, df.Name())
 			localPath := filepath.Join(localDay, df.Name())
-			n, err := downloadFile(client, remotePath, localPath)
+			n, err := downloadWithRetry(client, remotePath, localPath, retryCount, retrySleep, log)
 			if err != nil {
 				return fmt.Errorf("descargar %s: %w", remotePath, err)
 			}
@@ -298,6 +301,22 @@ func downloadByDate(ctx context.Context, client *sftp.Client, remoteDir, localRo
 		"day_folders", dayFolders, "downloaded", downloaded, "bytes", totalBytes,
 		"local_root", localRoot)
 	return nil
+}
+
+func downloadWithRetry(c *sftp.Client, remotePath, localPath string, retryCount int, retrySleep time.Duration, log *slog.Logger) (int64, error) {
+	var n int64
+	var err error
+	for attempt := 0; attempt <= retryCount; attempt++ {
+		if attempt > 0 {
+			log.Info("ftp_download: reintento", "remote", remotePath, "attempt", attempt, "of", retryCount)
+			time.Sleep(retrySleep)
+		}
+		n, err = downloadFile(c, remotePath, localPath)
+		if err == nil {
+			return n, nil
+		}
+	}
+	return n, err
 }
 
 // downloadFile copia un archivo remoto a la ruta local indicada. Usa un .part

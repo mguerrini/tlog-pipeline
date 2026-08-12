@@ -12,6 +12,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"net"
 	"os"
 	"path"
@@ -65,6 +66,9 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 	dayStr := timeutil.FormatCompact(d.Day)
 	dstDayDir := path.Join(dst, dayStr)
 
+	retryCount := d.Cfg.FTPEnd.RetryCount
+	retrySleep := time.Duration(d.Cfg.FTPEnd.RetrySleep) * time.Millisecond
+
 	d.Log.Info("ftp_end: conectando", "addr", addr, "src", src, "dst", dstDayDir)
 
 	sshCfg := &ssh.ClientConfig{
@@ -89,43 +93,66 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 		return b.Fail(fmt.Errorf("crear destino remoto %s: %w", dstDayDir, err))
 	}
 
-	srcDayDir, err := findSourceDayDir(client, src, d.Day)
-	if err != nil {
-		return b.Fail(err)
-	}
-	if srcDayDir == "" {
-		d.Log.Info("ftp_end: carpeta origen del día no existe, nada para mover", "src", src, "day", dayStr)
-		status.MarkSourceDeleted()
-		if err := status.Save(d.OutDir); err != nil {
-			return b.Fail(fmt.Errorf("guardar ftp_status: %w", err))
-		}
-		return b.SetMeta("reason", "source day folder not found").Skip("nada para archivar")
-	}
-
-	dayEntries, err := client.ReadDir(srcDayDir)
-	if err != nil {
-		return b.Fail(fmt.Errorf("listar %s: %w", srcDayDir, err))
-	}
-
 	var moved int
-	for _, e := range dayEntries {
-		if e.IsDir() {
-			continue
-		}
-		if err := ctx.Err(); err != nil {
+	if d.Cfg.FTPDownload.SplitByDate {
+		srcDayDir, err := findSourceDayDir(client, src, d.Day)
+		if err != nil {
 			return b.Fail(err)
 		}
-		from := path.Join(srcDayDir, e.Name())
-		to := path.Join(dstDayDir, e.Name())
-		if err := moveRemote(client, from, to); err != nil {
-			return b.Fail(fmt.Errorf("mover %s -> %s: %w", from, to, err))
+		if srcDayDir == "" {
+			d.Log.Info("ftp_end: carpeta origen del día no existe, nada para mover", "src", src, "day", dayStr)
+			status.MarkSourceDeleted()
+			if err := status.Save(d.OutDir); err != nil {
+				return b.Fail(fmt.Errorf("guardar ftp_status: %w", err))
+			}
+			return b.SetMeta("reason", "source day folder not found").Skip("nada para archivar")
 		}
-		moved++
-		d.Log.Info("ftp_end: movido", "from", from, "to", to)
-	}
 
-	if err := client.RemoveDirectory(srcDayDir); err != nil {
-		d.Log.Warn("ftp_end: no se pudo eliminar carpeta origen", "dir", srcDayDir, "err", err)
+		dayEntries, err := client.ReadDir(srcDayDir)
+		if err != nil {
+			return b.Fail(fmt.Errorf("listar %s: %w", srcDayDir, err))
+		}
+		for _, e := range dayEntries {
+			if e.IsDir() {
+				continue
+			}
+			if err := ctx.Err(); err != nil {
+				return b.Fail(err)
+			}
+			from := path.Join(srcDayDir, e.Name())
+			to := path.Join(dstDayDir, e.Name())
+			if err := moveWithRetry(client, from, to, retryCount, retrySleep, d.Log); err != nil {
+				return b.Fail(fmt.Errorf("mover %s -> %s: %w", from, to, err))
+			}
+			moved++
+			d.Log.Info("ftp_end: movido", "from", from, "to", to)
+		}
+		if err := client.RemoveDirectory(srcDayDir); err != nil {
+			d.Log.Warn("ftp_end: no se pudo eliminar carpeta origen", "dir", srcDayDir, "err", err)
+		}
+	} else {
+		// split_by_date=false: los archivos están sueltos en source_root remoto.
+		// Usamos los nombres de d.DayDir local como referencia para saber cuáles
+		// pertenecen a este día.
+		localEntries, err := os.ReadDir(d.DayDir)
+		if err != nil {
+			return b.Fail(fmt.Errorf("listar day_dir local %s: %w", d.DayDir, err))
+		}
+		for _, e := range localEntries {
+			if e.IsDir() {
+				continue
+			}
+			if err := ctx.Err(); err != nil {
+				return b.Fail(err)
+			}
+			from := path.Join(src, e.Name())
+			to := path.Join(dstDayDir, e.Name())
+			if err := moveWithRetry(client, from, to, retryCount, retrySleep, d.Log); err != nil {
+				return b.Fail(fmt.Errorf("mover %s -> %s: %w", from, to, err))
+			}
+			moved++
+			d.Log.Info("ftp_end: movido", "from", from, "to", to)
+		}
 	}
 
 	status.MarkSourceDeleted()
@@ -173,6 +200,21 @@ func findSourceDayDir(c *sftp.Client, src string, day time.Time) (string, error)
 		}
 	}
 	return "", nil
+}
+
+func moveWithRetry(c *sftp.Client, from, to string, retryCount int, retrySleep time.Duration, log *slog.Logger) error {
+	var err error
+	for attempt := 0; attempt <= retryCount; attempt++ {
+		if attempt > 0 {
+			log.Info("ftp_end: reintento", "from", from, "attempt", attempt, "of", retryCount)
+			time.Sleep(retrySleep)
+		}
+		err = moveRemote(c, from, to)
+		if err == nil {
+			return nil
+		}
+	}
+	return err
 }
 
 // moveRemote intenta rename SFTP (atómico, mismo volumen); si el server lo

@@ -1,11 +1,11 @@
 // Package ftp_upload implementa la subida SFTP de un día como pipeline.Step.
 //
 // Es un step de la fase 2: corre per-day sobre target_root/AAAAMMDD y sube esa
-// estructura a cfg.FtpFolders.TargetRoot/AAAAMMDD en el server cfg.FTPTarget.
-// Usa el archivo ftp_status.json en target_root/AAAAMMDD para no repetir subida
-// si ya estaba marcada como hecha. Si el step está deshabilitado, no genera
-// ftp_status — los steps posteriores (ftp_end) verán Uploaded=false y se
-// saltearán solos.
+// estructura al server cfg.FTPTarget. Si split_by_date=true (default histórico)
+// sube a cfg.FtpFolders.TargetRoot/AAAAMMDD; si es false sube directamente a
+// TargetRoot sin subcarpeta de fecha. Usa ftp_status.json para no repetir la
+// subida. Si el step está deshabilitado, no genera ftp_status — los steps
+// posteriores (ftp_end) verán Uploaded=false y se saltearán solos.
 package ftp_upload
 
 import (
@@ -64,8 +64,14 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 	if port == 0 {
 		port = 22
 	}
-	remoteDayDir := path.Join(remoteRoot, dayStr)
+	remoteDayDir := remoteRoot
+	if d.Cfg.FTPUpload.SplitByDate {
+		remoteDayDir = path.Join(remoteRoot, dayStr)
+	}
 	addr := net.JoinHostPort(tgt.URL, strconv.Itoa(port))
+
+	retryCount := d.Cfg.FTPUpload.RetryCount
+	retrySleep := time.Duration(d.Cfg.FTPUpload.RetrySleep) * time.Millisecond
 
 	d.Log.Info("ftp_upload: conectando", "addr", addr, "user", tgt.Username, "local", d.OutDir, "remote", remoteDayDir)
 
@@ -91,7 +97,7 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 		return b.Fail(fmt.Errorf("crear remoto %s: %w", remoteDayDir, err))
 	}
 
-	uploaded, totalBytes, err := uploadDir(ctx, client, d.OutDir, remoteDayDir, d.Log)
+	uploaded, totalBytes, err := uploadDir(ctx, client, d.OutDir, remoteDayDir, retryCount, retrySleep, d.Log)
 	if err != nil {
 		return b.Fail(err)
 	}
@@ -109,7 +115,7 @@ func (Step) Run(ctx context.Context, d *pipeline.DayCtx) *pipeline.StepResult {
 // uploadDir sube recursivamente los .xml de localDir a remoteDir. El resto de
 // los archivos (ftp_status.json, .db, .log, .md, etc.) son estado local o
 // artefactos intermedios — no forman parte del entregable.
-func uploadDir(ctx context.Context, client *sftp.Client, localDir, remoteDir string, log *slog.Logger) (int, int64, error) {
+func uploadDir(ctx context.Context, client *sftp.Client, localDir, remoteDir string, retryCount int, retrySleep time.Duration, log *slog.Logger) (int, int64, error) {
 	var uploaded int
 	var totalBytes int64
 	err := filepath.Walk(localDir, func(p string, fi os.FileInfo, walkErr error) error {
@@ -136,9 +142,20 @@ func uploadDir(ctx context.Context, client *sftp.Client, localDir, remoteDir str
 		if !strings.EqualFold(filepath.Ext(p), ".xml") {
 			return nil
 		}
-		n, err := uploadFile(client, p, remotePath)
-		if err != nil {
-			return fmt.Errorf("subir %s: %w", p, err)
+		var n int64
+		var uploadErr error
+		for attempt := 0; attempt <= retryCount; attempt++ {
+			if attempt > 0 {
+				log.Info("ftp_upload: reintento", "local", p, "attempt", attempt, "of", retryCount)
+				time.Sleep(retrySleep)
+			}
+			n, uploadErr = uploadFile(client, p, remotePath)
+			if uploadErr == nil {
+				break
+			}
+		}
+		if uploadErr != nil {
+			return fmt.Errorf("subir %s: %w", p, uploadErr)
 		}
 		uploaded++
 		totalBytes += n
