@@ -21,9 +21,9 @@
     "pass": "@7xoDPllZq0rn7"
   },
   "ftp_folders": {
-    "source_root": "/SFTPYPF/Test-IMDataDum",
+    "source_root": "/SFTPYPF/IMDataDum",
     "finished_root": "/SFTPYPF/Finished-IMDataDum",
-    "target_root": "/SFTPYPF/Test-TLOGSIM/Provisorio"
+    "target_root": "/SFTPYPF/TLOGSIM/Provisorio"
   },
   "local_folders": {
     "all": "./appdata/all",
