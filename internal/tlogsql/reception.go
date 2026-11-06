@@ -131,11 +131,11 @@ func receptionLines(ctx context.Context, conn *sql.DB, lfsID string) ([]map[stri
 	SELECT DISTINCT lfp.ART_NR, lfp.LFS_ID, lfp.ART_NR, lfp.LFP_MENGE, lfp.LFP_MENGEGE,
                 lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1,
                 lfp.LFP_HACCPINFO, lfp.LFP_ABLAUFDT,
-                lfp.ART_NAME, lfp.ART_NUMMER,
-                lfp.ART_MWSTNR, AIC.ITEM_CODE
+                lfp.ART_NAME, lfp.ART_MUMMER,
+                lfp.ART_MUSTNR, AIC.ITEM_CODE
 	FROM LIEFERSCHEIN_VIEW lfp
-			 INNER JOIN ART_ITEM_CODE AIC on lfp.ART_NUMMER = AIC.ART_NUMMER
-	WHERE lfp.LFS_ID = ? and lfp.ART_NR not in (2204, 2205,2206, 2207,2255,2256)
+			 INNER JOIN ART_ITEM_CODE AIC on lfp.ART_MUMMER = AIC.ART_NUMMER
+	WHERE lfp.LFS_ID = ? and lfp.ART_NR not in (2204, 2205,2206, 2207,2255,2256, 5923)
 	ORDER BY lfp.LFS_NAME`
 
 	rows, err := queryRows(ctx, conn, linesSQL, lfsID)

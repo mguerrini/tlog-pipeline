@@ -49,7 +49,7 @@ SELECT dt.KST_ID, dt.ART_ID, dt.DAY_DATE,
 FROM DAILYTOTALS dt
 	INNER JOIN ARTIKEL art ON art.ART_ID = dt.ART_ID
 	INNER JOIN ART_ITEM_CODE aic on art.ART_NUMMER = aic.ART_NUMMER		
-WHERE dt.KST_ID = ? and dt.ART_ID  not in (2204, 2205, 2206, 2207, 2255,2256)
+WHERE dt.KST_ID = ? and dt.ART_ID  not in (2204, 2205, 2206, 2207, 2255,2256, 5923)
 ORDER BY dt.ART_ID`
 	items, err := queryRows(ctx, conn, itemsSQL, kstID)
 	if err != nil {
@@ -129,6 +129,7 @@ func writeCierreItem(x *common.XMLBuilder, genCtx *GeneratorContext, row map[str
 	adjOut := genCtx.GetAdjustmentUnitCountOut(itemCode)
 
 	x.Open("Item")
+	//	x.Element("KST_ID", row["KST_ID"])
 	x.Element("STOCK_SEQ_NUMBER", cierreStockSeqNumber)
 	x.Element("LOCATION_CODE", locationCode)
 	x.Element("REVENUE_CENTER", cierreRevenueCenter)
@@ -136,7 +137,7 @@ func writeCierreItem(x *common.XMLBuilder, genCtx *GeneratorContext, row map[str
 	x.Element("ITEM_SEQ_NUMBER", fmt.Sprintf("%d", itemSeq))
 	x.Element("ITEM_CODE", itemCode)
 	x.Element("BEGIN_UNIT_COUNT", common.FormatDecimal4(sohBeg))
-	x.Element("GROSS_SALE_UNIT_COUNT", common.FormatDecimal4(math.Abs(qtySold)))
+	x.Element("GROSS_SALE_UNIT_COUNT", common.FormatDecimal4(qtySold))
 	x.Element("RETURN_UNIT_COUNT", common.FormatDecimal4(0))
 	x.Element("RECEIVED_UNIT_COUNT", common.FormatDecimal4(qtyPurch))
 	x.Element("RETURN_TO_VENTOR_UNIT_COUNT", common.FormatDecimal4(0))

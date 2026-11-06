@@ -66,13 +66,6 @@ func (ts *tableSchema) typeOf(col string) colType {
 
 // indexes corre después de la carga; no depende del DDL.
 const indexes = `
-CREATE INDEX IF NOT EXISTS idx_lfs_lf      ON LIEFERSCHEIN(LF_ID);
-CREATE INDEX IF NOT EXISTS idx_lfs_status  ON LIEFERSCHEIN(LFS_STATUS);
-CREATE INDEX IF NOT EXISTS idx_lfs_rts     ON LIEFERSCHEIN(LFS_RTS);
-CREATE INDEX IF NOT EXISTS idx_lfs_datum   ON LIEFERSCHEIN(LFS_DATUM);
-CREATE INDEX IF NOT EXISTS idx_lfp_artnr   ON LIEFERPOS(ART_NR);
-CREATE INDEX IF NOT EXISTS idx_lfp_kst     ON LIEFERPOS(KST_ID);
-CREATE INDEX IF NOT EXISTS idx_art_wgr     ON ARTIKEL(WGR_ID);
 CREATE INDEX IF NOT EXISTS idx_art_nummer  ON ARTIKEL(ART_NUMMER);
 CREATE INDEX IF NOT EXISTS idx_inv_kst     ON INVENTUR(KST_ID);
 CREATE INDEX IF NOT EXISTS idx_inv_status  ON INVENTUR(INV_STATUS);
@@ -150,14 +143,7 @@ func r(name string) colDef { return colDef{name: name, typ: colReal} }
 func allSchemas() []*tableSchema {
 	return []*tableSchema{
 		kostst(),
-		liefer(),
-		warengruppe(),
-		vpckeinh(),
 		artikel(),
-		lieferschein(),
-		lieferpos(),
-		rechnung(),
-		rechlfs(),
 		inventur(),
 		invposart(),
 		hisVerbrauch(),
@@ -249,185 +235,12 @@ func kostst() *tableSchema {
 	}
 }
 
-// ── LIEFER ─────────────────────────────────────────────────────────────────
-func liefer() *tableSchema {
-	return &tableSchema{
-		sqliteName: "LIEFER",
-		csvName:    "Liefer",
-		pk:         []string{"LF_ID"},
-		cols: []colDef{
-			i("LF_ID"), t("LF_NAME"), i("STE_ID"), t("LF_BRANCHE"),
-			t("LF_ADRESSE"), t("LF_PLZ"), t("LF_TEL"), i("LF_EXISTFAX"),
-			t("LF_FAX"), t("LF_TELEX"), i("LF_SACHB"), t("LF_KLAP_S"),
-			t("LF_VERT"), t("LF_KLAP_V"), t("LF_KDNNR"), t("LF_LCD"),
-			t("LF_WCD"), t("LF_MWSTCD"), t("LF_ZBED"), t("LF_VERSAND"),
-			t("LF_LBED"), t("LF_ULFD"), t("LF_UVRJ"), r("LF_PROV"),
-			t("LF_KONR"), t("JANL_NUMMER"), i("NEW_USER"), t("NEW_ZEIT"),
-			i("CHG_USER"), t("CHG_ZEIT"), t("AKTIV"), t("LF_NAMEID"),
-			t("SCH_NR"), t("LF_EU_IDNR"), t("LF_ZWEITWAEHR"),
-			t("LF_TERMIN1"), t("LF_TERMIN2"), t("LF_TERMIN3"), t("LF_TERMIN4"),
-			t("LF_TERMIN5"), t("LF_TERMIN6"), t("LF_TERMIN7"),
-			i("LF_GUTSCHRIFT"), i("LF_B2BORDER"), i("LF_B2BDELIVER"),
-			i("LF_LOCNR"), i("CUR_NR"), t("LF_PRICEORDERDATE"), t("LF_FMTOUTPUT"),
-			i("LF_FKEY"), t("LF_SHIPMENT"), t("LF_POREPORT"), i("LF_NOFIBU"),
-			t("LF_CCACCOUNT"), i("LF_STORETYPE"), r("LF_STOREPERC"),
-			i("SUG_NR"), i("LF_USEMENGENFAKT"), t("LF_RATING"), t("LF_TELEX2"),
-			i("LF_B2BLFSUSEPQ"), i("LF_PREPORDER"), t("LF_B2BFILE"),
-			t("LF_B2BPATH"), i("LF_B2BNONEWRCV"), i("LF_B2BNOEDITRCV"),
-			i("LF_B2BLOCKPO"), t("LF_LFNR"), i("LF_EPROCURE"), t("LF_INVOICE"),
-			t("LF_ODCVALIDTO"), i("LF_VENTOCC"), t("LF_VENDOR_GLN"),
-			t("LF_BUYER_GLN"), t("LF_SUPFOLDER"), t("LF_WWW"),
-			t("LF_B2BSENDSVR"), i("LF_B2BONEFILE"), t("LF_B2BCUTOFFTIME"),
-			t("LF_B2BSENDTIME"), t("LF_B2BORDERFTP"), t("LF_B2BARTCATFTP"),
-			t("LF_B2BRCVFTP"), t("LF_LASTSENT"), t("LF_B2BPOACKFTP"),
-			t("LF_B2BPOCONFTP"), t("LF_ORDERREMINDER"), t("LF_B2BPOTEMPLATE"),
-			i("LF_B2BPOCOUNTER"), i("LF_B2BUSE_OC"), r("LF_DISCOUNT"),
-			i("TXT_NR"), i("LF_COD"), i("ISNOTCORPORATE"), r("LF_CORPORATEPC"),
-			t("LF_B2BCATTEMPLATE"), t("LF_B2BCATPATH"), t("LF_B2BCATFILE"),
-			t("LF_B2BRCVTEMPLATE"), t("LF_B2BRCVPATH"), t("LF_B2BRCVFILE"),
-			t("LF_B2BORDERWS"), t("LF_B2BARTCATWS"), t("LF_B2BRCVWS"),
-			t("LF_B2BPOACKWS"), t("LF_B2BPOCONFWS"), t("LF_B2BPOACKTMPL"),
-			t("LF_B2BPOCNFTMPL"), t("LF_B2BPOACKFILE"), t("LF_B2BPOACKPATH"),
-			t("LF_B2BPOCNFFILE"), t("LF_B2BPOCNFPATH"),
-			t("LF_B2BOCPATH"), t("LF_B2BOCFILE"), t("LF_B2BOCTEMPLATE"),
-			t("LF_B2BOCFTP"), t("LF_B2BOCWS"),
-			t("LF_B2BRAPATH"), t("LF_B2BRAFILE"), t("LF_B2BRATEMPLATE"),
-			t("LF_B2BRAFTP"), t("LF_B2BRAWS"),
-			i("LF_VENDORTYPE"), r("LF_BASERED"),
-			t("LF_ALPHCUST1"), t("LF_ALPHCUST2"), t("LF_ALPHCUST3"),
-			t("LF_ALPHCUST4"), t("LF_ALPHCUST5"),
-			t("LF_NUMCUST1"), t("LF_NUMCUST2"), t("LF_NUMCUST3"),
-			t("LF_NUMCUST4"), t("LF_NUMCUST5"),
-			t("LF_INTCUST1"), t("LF_INTCUST2"), t("LF_INTCUST3"),
-			t("LF_INTCUST4"), t("LF_INTCUST5"),
-			i("LF_USEREMADV"), i("LF_PURCHASEALL"), i("LF_B2BSPLITPO"),
-			i("LF_LEADDAYS1"), i("LF_LEADDAYS2"), i("LF_LEADDAYS3"),
-			i("LF_LEADDAYS4"), i("LF_LEADDAYS5"), i("LF_LEADDAYS6"),
-			i("LF_LEADDAYS7"), i("LF_B2BPOSORT"), t("LF_B2BSEND_AT_OC"),
-			t("LF_B2BMAILSUBJECT"), i("LF_B2BCATCOMPLETE"), i("LF_USE_CBX"),
-			i("LF_B2BPOFOREIGNDB"), t("LF_B2BPONOTIFSBJT"), i("LF_B2BPOQTYIMPORT"),
-			t("LF_B2BNOTEPATH"), t("LF_B2BNOTEFILE"), t("LF_B2BNOTETEMPLATE"),
-			t("LF_B2BNOTEFTP"), t("LF_B2BNOTEWS"), i("LF_RCVINACTIVEPQ"),
-			t("LF_B2BCATSVR"), t("LF_B2BRCVSVR"), t("LF_B2BACKSVR"),
-			t("LF_B2BOCSVR"), t("LF_B2BCATNOTIF"), t("LF_B2BRCVNOTIF"),
-			t("LF_B2BACKNOTIF"), t("LF_B2BOCNOTIF"),
-			t("LF_B2BMASTER"), i("LF_USEB2BMASTER"), i("LF_B2BPREFERRED"),
-			i("LF_DELIVDEVCHECK"), r("LF_DISCOUNT1"),
-			t("LF_DSCYEARFROM"), t("LF_DSCYEARTO"),
-			r("LF_PURCHVOL1"), r("LF_PURCHVOL2"), r("LF_PURCHVOL3"),
-			r("LF_PURCHVOL4"), r("LF_PURCHVOL5"),
-			r("LF_PURCHDISC1"), r("LF_PURCHDISC2"), r("LF_PURCHDISC3"),
-			r("LF_PURCHDISC4"), r("LF_PURCHDISC5"),
-			i("LF_PURCHVOLPAY"), i("LF_SETCONTRACT"),
-			t("LF_ADCOSTFROM"), t("LF_ADCOSTTO"), r("LF_ADCOSTVALUE"),
-			i("LF_ADCOSTPAY"), t("LF_PRODLISTFROM"), t("LF_PRODLISTTO"),
-			i("TXT_NR1"), i("TXT_NR2"), i("TXT_NR3"), i("TXT_NR4"),
-			i("LF_B2B_1PO_CC_DAY"), t("LF_EMAILFROMCFG"), i("LF_B2BCATCONTRACT"),
-			i("LF_B2BRCVNODUPES"), i("LF_MOLONLY"),
-			t("LF_POTEMPLATE"), t("LF_POTEMPLATENP"), t("LF_BIDCOVERLETTER"),
-			i("KST_NR_EXTL"), i("LF_USE_EXTL"), t("LF_EXTLSVR"),
-			t("LF_EXTLIMPPATH"), t("LF_EXTLIMPFILE"), t("LF_EXTLIMPTEMPLATE"),
-			t("LF_EXTLIMPFTP"), t("LF_EXTLIMPWS"),
-			t("LF_EXTLEXPPATH"), t("LF_EXTLEXPFILE"), t("LF_EXTLEXPTEMPLATE"),
-			t("LF_EXTLEXPFTP"), t("LF_EXTLEXPWS"), i("LF_EXTLCOUNTER"),
-			i("LF_B2BSPLITPOCC"), i("LF_MINORDRULE"), i("LF_MINORDOVERRIDE"),
-			r("LF_MINORDTOTALQTY"), r("LF_MINORDTOTALVAL"), r("LF_MINORDTOTALWGT"),
-			i("LF_B2BCATACK"), t("LF_B2BCATACKPATH"), t("LF_B2BCATACKFILE"),
-			t("LF_B2BCATACKTMPL"), t("LF_B2BCATACKFTP"), t("LF_B2BCATACKWS"),
-			i("LF_B2BRCVACK"), t("LF_B2BRCVACKPATH"), t("LF_B2BRCVACKFILE"),
-			t("LF_B2BRCVACKTMPL"), t("LF_B2BRCVACKFTP"), t("LF_B2BRCVACKWS"),
-			i("LF_B2BCATACKCNT"), i("LF_B2BRCVACKCNT"), i("LF_UPDPQDISCOUNT"),
-			t("LF_KONRADD"), t("LF_IVCSUPPLIER"), i("LF_USEIVCSUPPLIER"),
-			i("LF_B2BORD_SUSPEND"), i("LF_SCONTODAYS"), t("LF_B2BOC_TASKS"),
-			t("LF_RECEIPTFORMAT"), t("LF_INVOICEFORMAT"), i("LF_USEPOLANGUAGE"),
-			i("LF_LANGUAGEID"), t("LF_ATTFILE"), i("LF_GROUPORDER"),
-			i("LF_AUTOSBI"), i("LF_OLDPRICEDAYS"), i("LF_B2BENABLELISTED"),
-			i("LF_B2BQTYMATCH"), i("LF_B2BCATCHWEIGHT"), i("LF_LEADDAYS"),
-			i("LF_B2BCHECKID_CAT"), i("LF_B2BCHECKID_RCV"), i("LF_RATINGBYDOC"),
-			i("LF_B2BSBI"), t("LF_B2BSBIPATH"), t("LF_B2BSBIFILE"),
-			t("LF_B2BSBITMPL"), t("LF_B2BSBIREPORT"), t("LF_B2BSBIBACKUPPATH"),
-			t("LF_B2BSBIFTP"), t("LF_B2BSBIWS"), i("LF_B2BSBICNT"),
-			i("LF_USECUSTOMERNUMBERFROMCC"), r("LF_B2B_SUBS_PRICE"),
-			t("LF_BIDMAIL"), i("LF_EXT_INVOICE"), i("LF_B2B_INVOICE"),
-			r("LF_NETNET_PURCHINCOME"), r("LF_NETNET_LISTINGFEE"),
-			r("LF_NETNET_ADVCOSTSUB"), i("LF_PRESERVE_IMPORTED_OC"),
-			t("LF_ADDRESSLINE1"), t("LF_ADDRESSLINE2"), t("LF_STREET"),
-			t("LF_CITY"), t("LF_POSTALCODE"), t("LF_COUNTRY"),
-			t("LF_RECEIPTFORMAT2"), t("LF_INVOICEFORMAT2"),
-			t("LF_RECEIPTFORMAT3"), t("LF_INVOICEFORMAT3"),
-			t("LF_RECEIPTFORMAT4"), t("LF_INVOICEFORMAT4"),
-			t("LF_RECEIPTFORMAT5"), t("LF_INVOICEFORMAT5"),
-			t("LF_STATE"), t("LF_EXT_RECEIPT"), t("LF_EMAILBODY"),
-		},
-	}
-}
-
-// ── WARENGRUPPE ────────────────────────────────────────────────────────────
-func warengruppe() *tableSchema {
-	return &tableSchema{
-		sqliteName: "WARENGRUPPE",
-		csvName:    "Warengruppe",
-		pk:         []string{"WGR_ID"},
-		cols: []colDef{
-			i("WGR_ID"), t("WGR_NAME"), i("SPA_ID"), i("WGR_TYP"),
-			i("WGR_MWSTNR"), t("WGR_KONR"), t("WGR_MWSTKO"), t("JANW_NUMMER"),
-			i("CHG_USER"), t("CHG_ZEIT"), i("NEW_USER"), t("NEW_ZEIT"),
-			t("AKTIV"), t("WGR_RABNR"), i("WGR_INV_SORT"), t("WGR_NAMEID"),
-			t("WGR_BEDGR1"), t("WGR_BEDGR2"), i("KRT_NR"),
-			t("WGR_KONR2"), t("WGR_KONRRUECK"), t("WGR_MWSTKO2"), t("WGR_MWSTKORUECK"),
-			i("WGR_EP1DEF"), r("WGR_EP1PERC"), i("WGR_EP2DEF"), r("WGR_EP2PERC"),
-			t("WGR_KONR3"), t("WGR_MWSTKO3"), i("WGR_FORCB"), i("WGR_NOTRANSFER"),
-			i("WGR_DEPOSIT"), i("WGR_NUMBER"), i("WGR_OQC_METHOD"),
-			i("WGR_OQC_BDAYS"), i("WGR_OQC_SUBSOH"), i("WGR_OQC_ADDLEAD"),
-			i("WGR_OQC_ROUNDING"), r("WGR_OQC_SFACTOR"),
-			t("WGR_ACCINV1"), t("WGR_ACCEXP1"), t("WGR_ACCCOS1"), t("WGR_ACCACC1"),
-			t("WGR_ACCINV2"), t("WGR_ACCEXP2"), t("WGR_ACCCOS2"), t("WGR_ACCACC2"),
-			t("WGR_ACCINV3"), t("WGR_ACCEXP3"), t("WGR_ACCCOS3"), t("WGR_ACCACC3"),
-			t("WGR_ACCINV4"), t("WGR_ACCEXP4"), t("WGR_ACCCOS4"), t("WGR_ACCACC4"),
-			t("WGR_ACCINV5"), t("WGR_ACCEXP5"), t("WGR_ACCCOS5"), t("WGR_ACCACC5"),
-			t("WGR_VATINV1"), t("WGR_VATEXP1"), t("WGR_VATCOS1"), t("WGR_VATACC1"),
-			t("WGR_VATINV2"), t("WGR_VATEXP2"), t("WGR_VATCOS2"), t("WGR_VATACC2"),
-			t("WGR_VATINV3"), t("WGR_VATEXP3"), t("WGR_VATCOS3"), t("WGR_VATACC3"),
-			t("WGR_VATINV4"), t("WGR_VATEXP4"), t("WGR_VATCOS4"), t("WGR_VATACC4"),
-			t("WGR_VATINV5"), t("WGR_VATEXP5"), t("WGR_VATCOS5"), t("WGR_VATACC5"),
-			i("WGR_WGRNR"), i("WGR_WGRNRCNT"), i("ART_NR"),
-			i("WGR_NOREPORT"), i("WGR_ACTTHEO"), i("WGR_TENTATIVE"),
-			i("WGR_FKEY"), t("WGR_KONRADD"),
-			t("WGR_ACCADD1"), t("WGR_ACCADD2"), t("WGR_ACCADD3"),
-			t("WGR_ACCADD4"), t("WGR_ACCADD5"), i("VPK_NR"),
-		},
-	}
-}
-
-// ── VPCKEINH ───────────────────────────────────────────────────────────────
-func vpckeinh() *tableSchema {
-	return &tableSchema{
-		sqliteName: "VPCKEINH",
-		csvName:    "Vpckeinh",
-		pk:         []string{"VPK_ID"},
-		cols: []colDef{
-			i("VPK_ID"), t("VPK_NAME"), t("VPK_BSTNAME"), r("VPK_MENGE"),
-			i("VPK_EINH"), r("VPK_GRMENGE"), i("VPK_GRUND"), t("VPK_INFO"),
-			t("VPK_KZGRUND"), r("VPK_PFAND"), r("VPK_CHILDPFAND"), r("VPK_WERT"),
-			r("VPK_MWST"), i("NEW_USER"), t("NEW_ZEIT"), i("CHG_USER"),
-			t("CHG_ZEIT"), r("VPK_PROV"), t("AKTIV"), i("VPK_USEININV"),
-			t("VPK_NAMEID"), i("ART_NR"), i("VPK_CONTAINERGN"), i("VPK_FKEY"),
-			i("VPK_USEFORRECYIELD"),
-		},
-	}
-}
-
 // ── ARTIKEL ────────────────────────────────────────────────────────────────
 func artikel() *tableSchema {
 	return &tableSchema{
 		sqliteName: "ARTIKEL",
 		csvName:    "Artikel",
 		pk:         []string{"ART_ID"},
-		fks: []fkRef{
-			{"WGR_ID", "WARENGRUPPE", "WGR_ID"},
-			{"VPK_NR", "VPCKEINH", "VPK_ID"},
-			{"VPK_NR2", "VPCKEINH", "VPK_ID"},
-		},
 		cols: []colDef{
 			i("ART_ID"), t("ART_NAME"), i("ART_NUMMER"), i("WGR_ID"),
 			i("ART_TYP"), i("VPK_NR"), i("ART_LAGER"), i("ART_NR"),
@@ -486,93 +299,6 @@ func artikel() *tableSchema {
 	}
 }
 
-// ── LIEFERSCHEIN ───────────────────────────────────────────────────────────
-// La estructura cambió: ahora el CSV exporta una vista desnormalizada
-// (cabecera + líneas de posición) sin LFS_ID como clave única.
-func lieferschein() *tableSchema {
-	return &tableSchema{
-		sqliteName: "LIEFERSCHEIN",
-		csvName:    "Lieferschein",
-		fks:        []fkRef{{"LF_ID", "LIEFER", "LF_ID"}},
-		cols: []colDef{
-			t("RNG_NAME"), i("RNG_COD"), t("RNG_DATUM"),
-			t("LFS_NAME"), i("LFS_RTS"), i("LF_ID"), t("LFS_DATUM"),
-			r("LFS_NETTO"), r("LFS_MWST"), r("LFS_BRUTTO"), i("LFS_STATUS"),
-			t("CHG_ZEIT"), i("ART_NR"), t("LFP_ARTNR"), i("KST_ID"),
-			i("VPK_ID1"),
-			r("LFP_MENGE"), r("LFP_EKP"), r("LFP_VKP"),
-			r("LFP_RABATT"), r("LFP_MWST"), r("LFP_BRUTTO"),
-		},
-	}
-}
-
-// ── LIEFERPOS ──────────────────────────────────────────────────────────────
-func lieferpos() *tableSchema {
-	return &tableSchema{
-		sqliteName: "LIEFERPOS",
-		csvName:    "Lieferpos",
-		pk:         []string{"LFS_ID", "LFP_POS"},
-		notNull:    []string{"LFS_ID", "LFP_POS"},
-		fks: []fkRef{
-			{"KST_ID", "KOSTST", "KST_ID"},
-			{"KST_ID1", "KOSTST", "KST_ID"},
-			{"ART_NR", "ARTIKEL", "ART_ID"},
-			{"LF_ID", "LIEFER", "LF_ID"},
-			{"VPK_ID1", "VPCKEINH", "VPK_ID"},
-			{"VPK_ID2", "VPCKEINH", "VPK_ID"},
-		},
-		cols: []colDef{
-			i("LFS_ID"), i("LFP_POS"), i("LFP_LFSPOS"), i("SB_NR"),
-			i("KST_ID"), i("KRT_ID"), i("KRT_NR"), i("KST_ID1"),
-			i("ART_NR"), i("LF_ID"), i("VPK_ID1"),
-			r("LFP_MENGE"), r("LFP_EKP"), r("LFP_VKP"),
-			r("LFP_RABATT"), r("LFP_MWST"), r("LFP_BRUTTO"),
-			i("LFP_MENGEGE"), i("VPK_ID2"), i("LFP_STATUS"), i("LFP_HISTORIE"),
-			t("LFS_NAME"), t("LFS_DATUM"), i("BST_ID"), t("B_NAME"),
-			t("BP_FREIG"), i("BST_ID1"), t("SB_NAME"), t("SB_ZE"),
-			i("BP_SONDERANGEBOT"), t("BP_LTERM"),
-			r("BP_MENGE"), r("BP_EKP"), i("TXT_NR"),
-			r("BP_VORSCHLAG"), r("BP_VORSCHLAGDIFF"), i("BP_SONDERBEST"),
-			i("FIB_AKTIV"), t("BP_INFO"), t("LFP_INFO"),
-			i("NEW_USER"), t("NEW_ZEIT"), i("CHG_USER"), t("CHG_ZEIT"),
-			t("AKTIV"), i("CUR_NR"), r("CUR_EXCHANGE"), r("LFP_RABATT2"),
-			r("LFP_EKPSTK"), r("LFP_TEMPERATUR"), t("LFP_LIEFERZT"),
-			t("LFP_KUEHLZT"), t("LFP_CHARGE"), t("LFP_ABLAUFDT"),
-			i("LFP_SORT"), r("LFP_EKPSTKORIG"), t("LFP_HACCPINFO"),
-			t("B_REFNO"), t("LFP_MANUFACTURED"),
-			i("LFP_MENGEGE_S"), r("LFP_EKPSTK_S"), t("LFP_PCKSLIP"),
-			i("LFP_QUALITY"), i("RC_NR"), r("LFP_EKPSTKFC"),
-			r("LFP_FIXDISCOUNT"), r("LFP_XTRACHARGE"),
-			r("LFP_EKPSTK_ACT"), r("LFP_EKPSTK_BM"), r("LFP_EKPSTK_BMACT"),
-			i("TXT_ID"), t("LFP_ACCOUNT"), t("LFP_ACCVAT"), i("LFP_MWSTNR"),
-			r("LFP_UNITPRICE"), r("LFP_ADJUSTMENTS"), r("LFP_BASERED"),
-			t("LFP_ALPHCUST1"), t("LFP_ALPHCUST2"), t("LFP_ALPHCUST3"),
-			t("LFP_NUMCUST1"), t("LFP_NUMCUST2"), t("LFP_NUMCUST3"),
-			t("LFP_INTCUST1"), t("LFP_INTCUST2"), t("LFP_INTCUST3"),
-			t("FIT_CFOPPOS"), t("FIT_UTILCODEPOS"), r("LFP_BASEREDVAL"),
-			i("B_ID"), r("BP_RABATT"), r("BP_RABATT2"),
-			r("BP_FIXDISCOUNT"), r("BP_XTRACHARGE"), r("BP_MENGEORG"),
-			i("LFP_ACCOVERRULE"), t("LFP_PRODUCER"), t("LFP_COUNTRYORG"),
-			i("RC_NR_PO"), r("LFP_VEHTEMP"), i("LFP_HYGCHECK"),
-			t("LFP_ACTTAKEN"), r("SB_LASTPR"), r("LFP_QUALITY_TOL"),
-			t("LFP_SHP_IVC"), t("LFP_SHP_IVCDATE"),
-			i("BP_POS"), i("BP_NR"), i("BP_LFNR"),
-			r("BP_VORSCHLAGVAT"), t("BP_DOCLINK"), i("TXT_NR2"), t("B_INFO"),
-			r("BP_WEIGHT"), r("LFP_QTYRTV"), t("LFP_DOCLINK"),
-			t("LFP_SHIPMENT1"), t("LFP_SHIPMENT2"), t("LFP_SHIPMENT3"),
-			t("LFP_SHIPMENT4"), t("LFP_SHIPMENT5"), t("LFP_SHIPMENT6"),
-			t("LFP_SHIPMENT7"), t("LFP_SHIPMENT8"), t("LFP_SHIPMENT9"),
-			t("LFP_SHIPMENT10"),
-			i("VPK_NR1"), i("EFD_NR"), i("LFP_POS_CONTAINED"),
-			i("ART_NR_CONTAINED"), r("LFP_B2B_SUBS_PRICE"),
-			i("LFP_ARTNR"), r("LFP_DEPOSIT"),
-			r("LFP_ADDTAXFEE1"), r("LFP_ADDTAXFEE2"), r("LFP_ADDTAXFEE3"),
-			r("BP_VORSCHLAGADJ"), r("BP_VORSCHLAGRBT"),
-			r("BP_VORSCHLAGBASEREDVAL"), r("BP_VORSCHLAGRBT2"),
-		},
-	}
-}
-
 // ── INVENTUR ───────────────────────────────────────────────────────────────
 func inventur() *tableSchema {
 	return &tableSchema{
@@ -606,8 +332,6 @@ func invposart() *tableSchema {
 		notNull:    []string{"INV_ID", "ART_ID", "VPK_ID"},
 		fks: []fkRef{
 			{"ART_ID", "ARTIKEL", "ART_ID"},
-			{"VPK_ID", "VPCKEINH", "VPK_ID"},
-			{"WGR_NR", "WARENGRUPPE", "WGR_ID"},
 		},
 		cols: []colDef{
 			i("INV_ID"), i("INP_TYP"), i("ART_ID"), i("VPK_ID"),
@@ -669,49 +393,6 @@ func hisVerbrauchpos() *tableSchema {
 	}
 }
 
-// ── RECHNUNG ───────────────────────────────────────────────────────────────
-func rechnung() *tableSchema {
-	return &tableSchema{
-		sqliteName: "RECHNUNG",
-		csvName:    "Rechnung",
-		pk:         []string{"RNG_ID"},
-		fks:        []fkRef{{"LF_ID", "LIEFER", "LF_ID"}},
-		cols: []colDef{
-			i("RNG_ID"), t("RNG_NAME"), i("LF_ID"), t("RNG_DATUM"),
-			t("RNG_QUITTNR"), r("RNG_NETTO"), r("RNG_MWST"), r("RNG_BRUTTO"),
-			i("RNG_STATUS"), i("FIB_ID"), t("RNG_INFO"),
-			i("NEW_USER"), t("NEW_ZEIT"), i("CHG_USER"), t("CHG_ZEIT"),
-			t("AKTIV"), t("KOS_NR"), t("KOS_VON"), t("KOS_ANZ"),
-			t("RNG_NAMEID"), t("RNG_BUCHPERIODE"), t("RNG_DATVALUTA"),
-			t("RNG_FIBBELEGNR"), t("RNG_ESR"),
-			r("RNG_SKONTOPROZ"), r("RNG_SKONTOVAL"),
-			t("KST_NR"), t("RNG_DATDELIVERY"), i("REPLICATED"),
-			i("RNG_TYPE"), i("RNG_SELFBILLING"), t("RNG_BENTRYDATE"),
-			r("RNG_BVAT"), r("RNG_BGROSS"), i("RNG_COD"), i("RNG_PROCESSING"),
-			t("CBX_NR1"), t("CBX_NR2"), t("CBX_NR3"), t("CBX_NR4"),
-			t("RNG_DOCLINK"), i("RNG_BRUTTOCALC"), i("TFL_NR"), r("CUR_EXCHANGE"),
-			i("RNG_B2BSBI"), i("RNG_ADJUSTED"), i("DGROWVER"),
-			r("RNG_B2B_NETVALUE"), r("RNG_B2B_VATVALUE"), r("RNG_B2B_GROSSVALUE"),
-		},
-	}
-}
-
-// ── RECHLFS ────────────────────────────────────────────────────────────────
-func rechlfs() *tableSchema {
-	return &tableSchema{
-		sqliteName: "RECHLFS",
-		csvName:    "Rechlfs",
-		pk:         []string{"RNG_ID", "LFS_ID"},
-		notNull:    []string{"RNG_ID", "LFS_ID"},
-		fks: []fkRef{
-			{"RNG_ID", "RECHNUNG", "RNG_ID"},
-		},
-		cols: []colDef{
-			i("RNG_ID"), i("LFS_ID"),
-		},
-	}
-}
-
 // ── LIEFERSCHEIN_VIEW ──────────────────────────────────────────────────────
 func lieferscheinView() *tableSchema {
 	return &tableSchema{
@@ -727,7 +408,7 @@ func lieferscheinView() *tableSchema {
 			r("LFP_MENGE"), r("LFP_EKP"), r("LFP_VKP"),
 			r("LFP_RABATT"), r("LFP_MWST"), r("LFP_BRUTTO"), r("LFP_MENGEGE"),
 			t("LF_SACHB"), t("LFP_HACCPINFO"), t("LFP_ABLAUFDT"),
-			t("ART_NAME"), i("ART_NUMMER"), i("ART_MWSTNR"),
+			t("ART_NAME"), i("ART_MUMMER"), i("ART_MUSTNR"),
 		},
 	}
 }
@@ -794,15 +475,15 @@ func dailytotals() *tableSchema {
 		cols: []colDef{
 			i("KST_ID"), i("ART_ID"), t("DAY_DATE"),
 			r("DAY_SOHBEG"), r("DAY_SOHEND"),
-			i("DAY_QTYPURCH"), i("DAY_QTYTRSFIN"), i("DAY_QTYTRSFOUT"),
-			i("DAY_QTYUSAGE"), i("DAY_QTYSOLD"),
-			i("DAY_QTYPRODUSE"), i("DAY_QTYPROD"),
-			i("DAY_QTYINV"), i("DAY_SOHINV"), t("DAY_INVDATE"),
+			r("DAY_QTYPURCH"), r("DAY_QTYTRSFIN"), r("DAY_QTYTRSFOUT"),
+			r("DAY_QTYUSAGE"), r("DAY_QTYSOLD"),
+			r("DAY_QTYPRODUSE"), r("DAY_QTYPROD"),
+			r("DAY_QTYINV"), r("DAY_SOHINV"), t("DAY_INVDATE"),
 			r("DAY_PRICELAST"), r("DAY_PRICEAVG"), r("DAY_PRICELPURCH"),
 			r("DAY_PRICELTRSF"), i("DAY_FLAGEXP"), i("DAY_FLAGPRICE"),
 			i("NEW_USER"), t("NEW_ZEIT"), i("CHG_USER"), t("CHG_ZEIT"),
 			r("DAY_REVENUE"), r("DAY_PRICE"),
-			i("DAY_QTYINVBEG"), i("DAY_QTYEXPENSE"),
+			r("DAY_QTYINVBEG"), r("DAY_QTYEXPENSE"),
 			r("DAY_PRICESTD"), r("DAY_SUMPURCH"), r("DAY_SUMTRSF"),
 			r("DAY_QTYYIELDIN"), r("DAY_SUMYIELD"), r("DAY_USAGEFACTOR"),
 			r("DAY_SUMVATPURCH"), r("DAY_SUMVATTRSF"), r("DAY_VATAVG"),

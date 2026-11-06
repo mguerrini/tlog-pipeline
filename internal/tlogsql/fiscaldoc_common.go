@@ -87,18 +87,28 @@ func queryFiscalDocHeaderData(ctx context.Context, conn *sql.DB, h *common.Heade
 	d.ExemptAmount, err = querySum(ctx, conn, `
 		SELECT sum(l.LFP_EKP) AS val
 		FROM LIEFERSCHEIN_VIEW l
-		WHERE l.RNG_NAME = ? AND l.LFS_STATUS = 42 AND l.ART_MWSTNR = 0 and l.ART_NR not in (2204, 2205,2206, 2207, 2255, 2256)`, rngName)
+		WHERE l.RNG_NAME = ? AND l.LFS_STATUS = 42 AND l.ART_MUSTNR = 0 and l.ART_NR not in (2204, 2205,2206, 2207, 2255, 2256, 5923)`, rngName)
 	if err != nil {
 		return d, err
 	}
 
-	d.TaxAmount, err = querySum(ctx, conn, `
+	taxAmount2204, err := querySum(ctx, conn, `
 		SELECT sum(l.LFP_MENGE) as val
      	FROM LIEFERSCHEIN_VIEW l
      	WHERE l.RNG_NAME = ? AND l.ART_NR = 2204 AND l.LFS_STATUS = 42`, rngName)
 	if err != nil {
 		return d, err
 	}
+
+	taxAmount5923, err := querySum(ctx, conn, `
+		SELECT sum(l.LFP_MENGE) as val
+     	FROM LIEFERSCHEIN_VIEW l
+     	WHERE l.RNG_NAME = ? AND l.ART_NR = 5923 AND l.LFS_STATUS = 42`, rngName)
+	if err != nil {
+		return d, err
+	}
+
+	d.TaxAmount = taxAmount2204 + taxAmount5923
 
 	d.VatAmount, err = querySum(ctx, conn, `
     	SELECT sum(l.LFP_MENGE) as val
@@ -140,10 +150,10 @@ func fiscalDocReceptionLines(ctx context.Context, conn *sql.DB, rngName string) 
 	const linesSQL = `
 		SELECT distinct lfp.ART_NR, lfp.LFS_ID, lfp.ART_NR, lfp.LFP_MENGE, lfp.LFP_MENGEGE,
 						lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1, lfp.ART_NAME,
-						lfp.ART_NUMMER, lfp.ART_MWSTNR, AIC.ITEM_CODE
+						lfp.ART_MUMMER, lfp.ART_MUSTNR, AIC.ITEM_CODE
 		FROM LIEFERSCHEIN_VIEW lfp
-			 INNER JOIN ART_ITEM_CODE AIC on lfp.ART_NUMMER = AIC.ART_NUMMER
-		WHERE lfp.RNG_NAME = ? and lfp.ART_NR not in (2204, 2205,2206, 2207, 2255, 2256)
+			 INNER JOIN ART_ITEM_CODE AIC on lfp.ART_MUMMER = AIC.ART_NUMMER
+		WHERE lfp.RNG_NAME = ? and lfp.ART_NR not in (2204, 2205,2206, 2207, 2255, 2256, 5923)
 		ORDER BY lfp.ART_NR, lfp.LFS_ID;
 `
 

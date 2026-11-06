@@ -47,7 +47,7 @@
     "sql_db_load": false
   },
   "ftp_download": {
-    "enabled": true,
+    "enabled": false,
     "split_by_date": false,
     "retry_count": 3,
     "retry_sleep": 2000
@@ -59,12 +59,8 @@
     "enabled": true,
     "expected_files": [
       "Kostst_*.csv",
-      "Liefer_*.csv",
-      "Warengruppe_*.csv",
-      "Vpckeinh_*.csv",
       "Artikel_*.csv",
       "Lieferschein-1_*.csv",
-      "Lieferpos_*.csv",
       "Inventur_*.csv",
       "Invposart_*.csv",
       "His_verbrauch_*.csv",
@@ -86,19 +82,19 @@
     "enabled": true
   },
   "ftp_upload": {
-    "enabled": true,
+    "enabled": false,
     "split_by_date": false,
     "retry_count": 3,
     "retry_sleep": 2000
   },
   "ftp_end": {
-    "enabled": true,
+    "enabled": false,
     "delete_local_source": true,
     "retry_count": 3,
     "retry_sleep": 2000
   },
   "local_clean": {
-    "enabled": true,
+    "enabled": false,
     "delete_source": true,
     "delete_database": true
   }

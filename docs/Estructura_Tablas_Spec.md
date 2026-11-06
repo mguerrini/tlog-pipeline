@@ -163,7 +163,56 @@ Maestro de artículos.
 
 ---
 
-### 3.6. LIEFERSCHEIN (12 filas)
+### 3.5bis. LIEFERSCHEIN_VIEW — vista vigente (reemplaza 3.6/3.7)
+
+> ⚠️ El pipeline actual (`internal/sqldb/schema.go`, función `lieferscheinView()`) **ya no carga**
+> `LIEFERSCHEIN` y `LIEFERPOS` como tablas separadas. Se consolidaron en una única vista/tabla
+> `LIEFERSCHEIN_VIEW`, cargada desde el CSV `Lieferschein-1_*.csv` (ver `internal/csvio/files.go`).
+> Las secciones **3.6 LIEFERSCHEIN** y **3.7 LIEFERPOS** más abajo describen el diseño anterior
+> (histórico/de referencia); el código actual usa esta tabla.
+
+| Columna | Tipo SQLite | Notas |
+|---|---|---|
+| `RNG_NAME` | TEXT | Talonario/rango fiscal. Agrupa varios `LFS_ID` en un mismo documento fiscal (FC/NC) |
+| `RNG_COD` | INTEGER | Código de rango (usado para excluir `RNG_COD = 1` en FISCAL_DOC FC) |
+| `RNG_DATUM` | TEXT (datetime) | Fecha de rango |
+| `LFS_NAME` | TEXT | Nº de comprobante |
+| `LFS_RTS` | INTEGER | `1` = devolución a proveedor |
+| `LF_ID` | INTEGER | Proveedor (filtra `<> 90327` en Reception) |
+| `LFS_ID` | INTEGER | Cabecera del remito |
+| `LFS_DATUM` | TEXT (datetime) | Fecha del documento |
+| `LFS_NETTO` | REAL | Importe neto |
+| `LFS_MWST` | REAL | IVA de cabecera |
+| `LFS_BRUTTO` | REAL | Importe bruto (negativo en NCs/devoluciones) |
+| `LFS_STATUS` | INTEGER | `42` = imputado |
+| `CHG_ZEIT` | TEXT (datetime) | Auditoría |
+| `ART_NR` | INTEGER | FK lógica a `ARTIKEL.ART_ID`; también se usa como código especial de impuestos/CAI (`2204,2205,2206,2207,2255,2256,5923`) |
+| `LFP_ARTNR` | TEXT | — |
+| `KST_ID` | INTEGER | EESS — vive directo en la vista (antes sólo en `LIEFERPOS`) |
+| `VPK_ID1` | INTEGER | UoM principal |
+| `POS_LFS_DATUM` | TEXT (datetime) | — |
+| `LFP_MENGE` | REAL | Cantidad de línea |
+| `LFP_EKP` | REAL | Costo unitario |
+| `LFP_VKP` | REAL | Precio venta |
+| `LFP_RABATT` | REAL | Descuento |
+| `LFP_MWST` | REAL | IVA de línea |
+| `LFP_BRUTTO` | REAL | Costo total de línea |
+| `LFP_MENGEGE` | REAL | **Columna agregada.** Cantidad en UoM secundaria; usada para `UnitCount` y costo unitario (`LFP_EKP / LFP_MENGEGE`) en Reception/Return/FiscalDoc FC/NC |
+| `LF_SACHB` | TEXT | Proveedor / responsable — usado directo como `<Supplier>` (antes requería join contra `LIEFER`) |
+| `LFP_HACCPINFO` | TEXT | CAI (línea especial `ART_NR = 2207`) |
+| `LFP_ABLAUFDT` | TEXT (datetime) | Fecha de CAI (línea especial `ART_NR = 2207`) |
+| `ART_NAME` | TEXT | Descripción del artículo |
+| `ART_MUMMER` | INTEGER | **Renombrada.** Antes `ART_NUMMER`. EAN/código de barras; se usa para el join con `ART_ITEM_CODE.ART_NUMMER` (esa tabla no cambió de nombre) |
+| `ART_MUSTNR` | INTEGER | **Renombrada.** Antes `ART_MWSTNR`. Código de IVA del artículo |
+
+**Tablas relacionadas sin cambios:** `ART_ITEM_CODE` (PK `ART_NUMMER`, columna `ITEM_CODE`) sigue usando
+`ART_NUMMER` tal cual; el join ahora es `LIEFERSCHEIN_VIEW.ART_MUMMER = ART_ITEM_CODE.ART_NUMMER`.
+La tabla `ARTIKEL` tampoco cambió: sus columnas `ART_NUMMER`/`ART_MWSTNR` (sección 3.5) siguen con esos
+nombres — el rename aplicó únicamente a `LIEFERSCHEIN_VIEW`.
+
+---
+
+### 3.6. LIEFERSCHEIN (12 filas) — histórico, ya no se carga como tabla separada
 
 Cabecera de remitos / facturas / notas de crédito / devoluciones.
 
@@ -190,9 +239,9 @@ Cabecera de remitos / facturas / notas de crédito / devoluciones.
 
 ---
 
-### 3.7. LIEFERPOS (150 filas)
+### 3.7. LIEFERPOS (150 filas) — histórico, ya no se carga como tabla separada
 
-Detalle de LIEFERSCHEIN.
+Detalle de LIEFERSCHEIN. Ver 3.5bis — consolidada en `LIEFERSCHEIN_VIEW`.
 
 | Columna | Tipo SQLite | Rol | Notas |
 |---|---|---|---|

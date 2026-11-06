@@ -47,14 +47,6 @@ func TestLoadSampleData(t *testing.T) {
 		}
 	}
 
-	// Y que LF_VERT (la columna que el generator de reception usaba pero
-	// no existía en el viejo schema) haya quedado consultable.
-	var n int
-	if err := conn.QueryRow(`SELECT COUNT(*) FROM LIEFER WHERE LF_VERT IS NOT NULL`).Scan(&n); err != nil {
-		t.Fatalf("query LF_VERT: %v", err)
-	}
-	t.Logf("LIEFER.LF_VERT no-null rows: %d", n)
-
 	// Comparar columnas del CSV con las declaradas: no debe faltar ninguna
 	// del CSV en el schema.
 	csvFiles, err := csvio.FindFiles(srcDir)

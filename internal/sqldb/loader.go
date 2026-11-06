@@ -267,17 +267,13 @@ func convertVal(s string, ct colType) any {
 func runOrphanChecks(db *sql.DB) []OrphanCheck {
 	type def struct {
 		label, child, chCol, parent, pCol string
-		expectZero                         bool
+		expectZero                        bool
 	}
 	defs := []def{
-		{"LIEFERPOS.ART_NR → ARTIKEL.ART_ID", "LIEFERPOS", "ART_NR", "ARTIKEL", "ART_ID", true},
-		{"LIEFERSCHEIN.LF_ID → LIEFER", "LIEFERSCHEIN", "LF_ID", "LIEFER", "LF_ID", true},
 		{"INVPOSART.INV_ID → INVENTUR (esperado)", "INVPOSART", "INV_ID", "INVENTUR", "INV_ID", false},
 		{"INVPOSART.ART_ID → ARTIKEL", "INVPOSART", "ART_ID", "ARTIKEL", "ART_ID", true},
-		{"INVPOSART.WGR_NR → WARENGRUPPE", "INVPOSART", "WGR_NR", "WARENGRUPPE", "WGR_ID", true},
 		{"DAILYTOTALS.ART_ID → ARTIKEL", "DAILYTOTALS", "ART_ID", "ARTIKEL", "ART_ID", true},
 		{"DAILYTOTALS.KST_ID → KOSTST", "DAILYTOTALS", "KST_ID", "KOSTST", "KST_ID", true},
-		{"ARTIKEL.WGR_ID → WARENGRUPPE", "ARTIKEL", "WGR_ID", "WARENGRUPPE", "WGR_ID", true},
 	}
 	var out []OrphanCheck
 	for _, d := range defs {

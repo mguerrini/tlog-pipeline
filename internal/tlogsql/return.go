@@ -45,7 +45,7 @@ SELECT DISTINCT l.LFS_ID, k.KST_CODE, l.LFS_STATUS, l.LFS_BRUTTO, l.LFS_NAME, l.
                 l.LFS_NETTO, l.LFS_MWST, l.LF_SACHB, AIC.ITEM_CODE
 FROM LIEFERSCHEIN_VIEW l
          INNER JOIN KOSTST K ON l.KST_ID = k.KST_ID
-		 INNER JOIN ART_ITEM_CODE AIC on l.ART_NUMMER = AIC.ART_NUMMER
+		 INNER JOIN ART_ITEM_CODE AIC on l.ART_MUMMER = AIC.ART_NUMMER
 WHERE l.KST_ID = ? AND l.LFS_STATUS = 42 AND COALESCE(l.LFS_RTS, 0) = 1 AND l.LFS_BRUTTO < 0
 GROUP BY l.LFS_NAME
 ORDER BY l.LFS_NAME;
@@ -260,10 +260,10 @@ func returnLines(ctx context.Context, conn *sql.DB, lfsID string) ([]map[string]
 	SELECT DISTINCT lfp.ART_NR, lfp.LFS_ID, lfp.ART_NR, lfp.LFP_MENGE, lfp.LFP_MENGEGE,
                 lfp.LFP_EKP, lfp.LFP_BRUTTO, lfp.VPK_ID1,
                 lfp.LFP_HACCPINFO, lfp.LFP_ABLAUFDT,
-                lfp.ART_NAME, lfp.ART_NUMMER,
-                lfp.ART_MWSTNR
+                lfp.ART_NAME, lfp.ART_MUMMER,
+                lfp.ART_MUSTNR
 	FROM LIEFERSCHEIN_VIEW lfp
-	WHERE lfp.LFS_ID = ? and lfp.ART_NR not in (2204, 2205,2206, 2207,2255,2256)
+	WHERE lfp.LFS_ID = ? and lfp.ART_NR not in (2204, 2205,2206, 2207,2255,2256, 5923)
 --	GROUP BY lfp.LFS_NAME
 	ORDER BY lfp.LFS_NAME`
 
